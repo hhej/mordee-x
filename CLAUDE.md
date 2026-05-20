@@ -2,7 +2,7 @@
 
 **What this is:** Thai telemedicine demo. Single Next.js app, two-sided (patient AI triage + doctor dashboard with ML). Built for two academic rubrics (MADT6004 + MADT7104), presented **2026-05-30**.
 
-**Where we are:** Phase 1 (scaffold + design system) complete on 2026-05-20, committed at `1830b72`. Next is Phase 2 (ML notebooks) which the user authors in Jupyter — **not Claude work**. Phase 3+ resumes Claude implementation.
+**Where we are:** Phase 1 (scaffold + design system) ✅ done. Phase 2 (ML notebooks + symptom KB) ✅ done by Claude on 2026-05-20 — the user reassigned Phase 2 from themselves to Claude and pivoted the data source from Brazil Kaggle to a **synthetic MorDee+ event log** calibrated to published Thai stats. Next is Phase 3 (API routes + RAG + LLM prompts wiring).
 
 ---
 
@@ -63,8 +63,8 @@ Architecture, tech stack, file structure, design system, and LLM prompts are pre
 | # | Dates | Scope | Author |
 |---|---|---|---|
 | 1 | May 10–11 | Scaffold + design system | ✅ Claude (done) |
-| 2 | May 12–16 | ML notebooks (no-show + demand forecast) + symptom KB seed | **User in Jupyter** |
-| 3 | May 17–19 | 5 API routes + RAG + LLM prompts wiring | Claude |
+| 2 | May 20 | Synthetic MorDee+ data + 4 notebooks (no-show, demand forecast, symptom KB embeddings) | ✅ Claude (done) |
+| 3 | May 21–23 | 5 API routes + RAG + LLM prompts wiring | Claude |
 | 4 | May 20–22 | Doctor page | Claude |
 | 5 | May 23–26 | Patient page | Claude |
 | 6 | May 27–29 | Polish + demo prep | Claude + user |
@@ -74,27 +74,31 @@ Plan was written assuming today = May 10. Real today may differ — check `git l
 
 ---
 
-## File map (post-Phase 1)
+## File map (post-Phase 2)
 
 ```
 src/
-├── app/
-│   ├── page.tsx            # landing (patient-hero asymmetric)
-│   ├── layout.tsx          # fonts, metadata
-│   ├── globals.css         # mint tokens + .glass + body gradient
-│   ├── patient/page.tsx    # skeleton (Phase 5)
-│   └── doctor/page.tsx     # skeleton (Phase 4)
-├── components/
-│   ├── shared/{GlassCard,RoleHeader,EmptyState}.tsx
-│   ├── patient/            # empty (Phase 5)
-│   ├── doctor/             # empty (Phase 4)
-│   └── ui/                 # shadcn primitives (button, card, dialog, input, badge, avatar, tabs)
-├── lib/utils.ts            # cn() helper
-└── data/                   # empty (Phase 3 seeds JSON)
-notebooks/                  # empty (Phase 2)
+├── app/{page,layout,globals.css,patient/page,doctor/page}.tsx
+├── components/{shared,patient,doctor,ui}/...
+├── lib/utils.ts
+└── data/                   # populated in Phase 3 (doctors.json, hospitals.json, demo_scenarios.json)
+notebooks/
+├── _build.py               # programmatic .ipynb builder (uv run python notebooks/_build.py)
+├── 00_generate_synthetic_data.ipynb
+├── 01_no_show_full_pipeline.ipynb
+├── 02_demand_forecast_full_pipeline.ipynb
+├── 03_seed_symptom_kb.ipynb
+└── lib/{thai_stats,synth,symptom_kb_seed}.py
+data/
+├── synthetic/bookings.csv         # 30k synthetic MorDee+ bookings (12 mo)
+├── ml/no_show_predictions.json    # nb01 output, keyed by NS001/NS002/NS003 per §6
+├── ml/demand_forecast_7d.json     # nb02 output, DD01 → 168 hourly points per §6
+└── symptom_kb.json                # nb03 output, 50 entries × 768-d embeddings per §6
+pyproject.toml + .python-version   # uv-managed Python env (python 3.12)
 ```
 
 Phase 1 plan archived at `~/.claude/plans/staged-questing-dolphin.md`.
+Phase 2 plan archived at `~/.claude/plans/cosmic-gliding-deer.md`.
 
 ---
 
@@ -116,8 +120,11 @@ Phase 1 plan archived at `~/.claude/plans/staged-questing-dolphin.md`.
 - `pnpm build` — production build; use to type-check
 - `pnpm lint` — ESLint
 - `pnpm dlx shadcn@4.6.0 add <component>` — add more shadcn primitives
+- `uv sync` — install Python env for notebooks (Phase 2 deliverables)
+- `uv run python notebooks/_build.py [nb00|nb01|nb02|nb03]` — regenerate notebook source
+- `uv run jupyter nbconvert --to notebook --execute --inplace notebooks/XX.ipynb` — re-execute
 
-`.env.local` (gitignored) needs `GOOGLE_GENAI_API_KEY=...` for any LLM call once Phase 3 starts. Template: `.env.local.example`.
+`.env` (gitignored) holds `GOOGLE_API_KEY=...` for Gemini (used by notebook 03 + Phase 3 API routes). Template: `.env.local.example`.
 
 ---
 
