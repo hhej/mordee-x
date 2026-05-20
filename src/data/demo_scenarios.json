@@ -1,0 +1,34 @@
+{
+  "patient_demos": [
+    {
+      "id": "PD01",
+      "label": "Routine: gastroenteritis",
+      "symptom_input": "ปวดท้องน้อย ท้องเสีย 2 วัน ไข้ต่ำ ๆ คลื่นไส้",
+      "expected_triage": "yellow",
+      "expected_specialty": "Internal Medicine"
+    },
+    {
+      "id": "PD02",
+      "label": "Critical: chest pain",
+      "symptom_input": "เจ็บหน้าอกร้าวไปแขนซ้าย หายใจลำบาก เหงื่อแตก 30 นาที",
+      "expected_triage": "red",
+      "expected_specialty": "ER"
+    },
+    {
+      "id": "PD03",
+      "label": "Green: mild headache",
+      "symptom_input": "ปวดหัวเล็กน้อย พักผ่อนน้อย เครียดจากงาน",
+      "expected_triage": "green",
+      "expected_specialty": "General Practice"
+    }
+  ],
+  "doctor_demo": {
+    "id": "DD01",
+    "doctor_id": "D001",
+    "today_appointments": [
+      {"appt_id":"A001","patient":"นางสาว มะลิ","time":"10:00","symptom":"ไอเรื้อรัง","prediction_id":"NS001"},
+      {"appt_id":"A002","patient":"นาย สมชาย","time":"11:30","symptom":"ปวดเข่า","prediction_id":"NS002"},
+      {"appt_id":"A003","patient":"นาง วันดี","time":"14:00","symptom":"ตรวจสุขภาพ","prediction_id":"NS003"}
+    ]
+  }
+}

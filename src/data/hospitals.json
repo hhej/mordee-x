@@ -1,0 +1,7 @@
+[
+  {"name":"โรงพยาบาลรามาธิบดี","name_en":"Ramathibodi Hospital","phone":"02-201-1000","emergency":"1669"},
+  {"name":"โรงพยาบาลศิริราช","name_en":"Siriraj Hospital","phone":"02-419-7000","emergency":"1669"},
+  {"name":"โรงพยาบาลจุฬาลงกรณ์","name_en":"Chulalongkorn Hospital","phone":"02-256-4000","emergency":"1669"},
+  {"name":"โรงพยาบาลบำรุงราษฎร์","name_en":"Bumrungrad Hospital","phone":"02-066-8888","emergency":"1669"},
+  {"name":"โรงพยาบาลกรุงเทพ","name_en":"Bangkok Hospital","phone":"1719","emergency":"1669"}
+]
