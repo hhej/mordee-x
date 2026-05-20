@@ -1321,10 +1321,181 @@ def build_nb02() -> Path:
     return write_nb("02_demand_forecast_full_pipeline", cells)
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Notebook 03 — Symptom KB seed + embeddings
+# ─────────────────────────────────────────────────────────────────────
+
+
+NB03_BOOT = r'''
+import sys, os, json, time
+from pathlib import Path
+if Path.cwd().name == "notebooks":
+    os.chdir(Path.cwd().parent)
+REPO = Path.cwd()
+sys.path.insert(0, str(REPO))
+sys.path.insert(0, str(REPO / "notebooks"))
+
+import numpy as np
+from dotenv import load_dotenv
+load_dotenv(REPO / ".env")  # has GOOGLE_API_KEY
+
+from google import genai
+from google.genai import types
+
+from lib.symptom_kb_seed import KB_ENTRIES, text_for_embedding, severity_counts
+
+print(f"Loaded {len(KB_ENTRIES)} KB entries. Mix:", severity_counts())
+'''
+
+
+def build_nb03() -> Path:
+    cells = [
+        md(r"""
+        # MorDee+ — Notebook 03: Symptom KB Seed + Gemini Embeddings
+
+        ## 1. Project context / บริบทธุรกิจ
+
+        ระบบ triage ของ MorDee+ ใช้ RAG (retrieval-augmented generation) เพื่อให้ LLM ตอบโดยอ้างอิงจาก
+        แนวทางการแพทย์ที่ตรวจสอบได้ ไม่ใช่ตอบลอย ๆ. โน้ตบุ๊กนี้ seed ฐานความรู้ 50 entries ครอบคลุม
+        chief complaint ที่พบบ่อยในไทย แต่ละ entry มี title (TH+EN), severity (red/yellow/green),
+        guidance text (TH+EN), และ specialty hint. จากนั้นเรียก Gemini `gemini-embedding-001` เพื่อสร้าง
+        embedding 768-dim ต่อ entry และส่งออกเป็น `data/symptom_kb.json`.
+
+        **Sources** (cited per-entry in the `source` field):
+        - Manchester Triage System (MTS) — 53 chief-complaint flowcharts
+        - WHO 2009 Dengue Classification (warning signs vs severe)
+        - Thai ACS Guidelines 2020 (Thai Heart Association)
+        - RCPT 2024 hypertension / dyslipidemia CPGs
+        - GINA, ACOG, NICE, AAP, AAFP, IDSA, AAD, ARIA, AASM, ACR, ACG specialty guidelines
+
+        ### Demo anchor check
+        - **PD01** (gastroenteritis, expected YELLOW) → matches entry **S016**
+        - **PD02** (chest pain + diaphoresis, expected RED) → matches entry **S001**
+        - **PD03** (mild headache from stress, expected GREEN) → matches entry **S036**
+        """),
+        md(r"""
+        ## 2. Load entries + initialise Gemini client
+        """),
+        code(NB03_BOOT),
+        code(r"""
+        api_key = os.environ.get("GOOGLE_API_KEY")
+        assert api_key, "GOOGLE_API_KEY not found in .env"
+        client = genai.Client(api_key=api_key)
+        EMBED_MODEL = "gemini-embedding-001"
+        EMBED_DIM = 768  # plan §6 spec
+        print(f"Gemini client ready. Model={EMBED_MODEL}  output_dim={EMBED_DIM}")
+        """),
+        md(r"""
+        ## 3. Compute embeddings (batched)
+
+        `gemini-embedding-001` defaults to 3072-dim but the §6 schema asks for 768.
+        We pass `output_dimensionality=768` via `EmbedContentConfig`. After truncation
+        the vectors must be re-normalized (Google's recommendation) so cosine similarity
+        behaves correctly.
+        """),
+        code(r"""
+        def l2_normalize(v):
+            v = np.asarray(v, dtype=np.float32)
+            n = np.linalg.norm(v)
+            return (v / n).tolist() if n > 0 else v.tolist()
+
+        BATCH = 5  # gemini-embedding-001 accepts batched contents
+        texts = [text_for_embedding(e) for e in KB_ENTRIES]
+
+        all_embeddings: list[list[float]] = []
+        for i in range(0, len(texts), BATCH):
+            batch = texts[i:i+BATCH]
+            resp = client.models.embed_content(
+                model=EMBED_MODEL,
+                contents=batch,
+                config=types.EmbedContentConfig(output_dimensionality=EMBED_DIM),
+            )
+            for e in resp.embeddings:
+                all_embeddings.append(l2_normalize(e.values))
+            print(f"  embedded {i+len(batch):2d}/{len(texts)}")
+            time.sleep(0.4)  # gentle on the free-tier rate limit
+        print(f"\nTotal embeddings: {len(all_embeddings)}")
+        print(f"Each vector: dim={len(all_embeddings[0])}  L2 norm={np.linalg.norm(all_embeddings[0]):.4f}")
+        """),
+        md(r"""
+        ## 4. Build final JSON
+        """),
+        code(r"""
+        kb_out = []
+        for entry, emb in zip(KB_ENTRIES, all_embeddings):
+            kb_out.append({**entry, "embedding": emb})
+
+        out_path = REPO / "data" / "symptom_kb.json"
+        out_path.write_text(json.dumps(kb_out, ensure_ascii=False, indent=2))
+        size_kb = out_path.stat().st_size / 1024
+        print(f"✔ Wrote {out_path.relative_to(REPO)} ({size_kb:.0f} KB, {len(kb_out)} entries)")
+        """),
+        md(r"""
+        ## 5. Sanity-check RAG retrieval for the 3 demo scenarios
+
+        ใช้ embedding ของผู้ป่วยจาก §6 demo scenarios แล้ว rank cosine similarity เทียบกับ 50 entries
+        ใน KB. คาดหวังว่า top-1 จะตรงกับ anchor ที่เราออกแบบไว้.
+        """),
+        code(r"""
+        # Re-embed the demo queries (raw symptom text from data/demo_scenarios.json §6)
+        demo_queries = [
+            ("PD01 (gastro YELLOW)",
+             "ปวดท้องน้อย ท้องเสีย 2 วัน ไข้ต่ำ ๆ คลื่นไส้",
+             "S016"),
+            ("PD02 (chest pain RED)",
+             "เจ็บหน้าอกร้าวไปแขนซ้าย หายใจลำบาก เหงื่อแตก 30 นาที",
+             "S001"),
+            ("PD03 (mild headache GREEN)",
+             "ปวดหัวเล็กน้อย พักผ่อนน้อย เครียดจากงาน",
+             "S036"),
+        ]
+        q_resp = client.models.embed_content(
+            model=EMBED_MODEL,
+            contents=[q[1] for q in demo_queries],
+            config=types.EmbedContentConfig(output_dimensionality=EMBED_DIM),
+        )
+        q_vecs = [l2_normalize(e.values) for e in q_resp.embeddings]
+
+        kb_mat = np.array(all_embeddings)  # (50, 768) — already L2-normalised
+        for (label, _, anchor_id), qv in zip(demo_queries, q_vecs):
+            sims = kb_mat @ np.array(qv)
+            top3 = np.argsort(sims)[::-1][:3]
+            print(f"\n{label}  → expected anchor: {anchor_id}")
+            for rank, idx in enumerate(top3, 1):
+                e = KB_ENTRIES[idx]
+                marker = "  ←  ANCHOR MATCH" if e["id"] == anchor_id else ""
+                print(f"  {rank}. {e['id']}  sim={sims[idx]:.4f}  [{e['severity']:6s}]  "
+                       f"{e['title'][:55]}{marker}")
+        """),
+        md(r"""
+        ## 6. Schema verification (per §6)
+        """),
+        code(r"""
+        with open("data/symptom_kb.json", encoding="utf-8") as f:
+            kb = json.load(f)
+        assert isinstance(kb, list) and len(kb) == 50, f"Expected 50 entries, got {len(kb)}"
+        required = {"id","title","title_th","severity","guidance_th","guidance_en",
+                    "specialty_hint","source","embedding"}
+        for entry in kb:
+            assert required <= entry.keys(), f"Missing keys in {entry.get('id')}: {required - entry.keys()}"
+            assert entry["severity"] in {"red","yellow","green"}
+            assert len(entry["embedding"]) == 768, f"{entry['id']} embedding dim={len(entry['embedding'])}"
+            assert abs(np.linalg.norm(entry["embedding"]) - 1.0) < 0.01, f"{entry['id']} not L2-normalized"
+
+        from collections import Counter
+        print("✔ All 50 entries pass schema validation")
+        print("Severity mix:", Counter(e["severity"] for e in kb))
+        print(f"File size: {Path('data/symptom_kb.json').stat().st_size/1024:.0f} KB")
+        """),
+    ]
+    return write_nb("03_seed_symptom_kb", cells)
+
+
 BUILDERS = {
     "nb00": build_nb00,
     "nb01": build_nb01,
     "nb02": build_nb02,
+    "nb03": build_nb03,
 }
 
 
