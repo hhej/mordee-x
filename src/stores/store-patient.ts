@@ -95,8 +95,6 @@ interface PatientState {
   summaryError: string | null;
   endConsult: () => Promise<void>;
 
-  reopenBookingForFollowup: () => void;
-
   reset: () => void;
 }
 
@@ -285,19 +283,6 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       const msg = err instanceof Error ? err.message : String(err);
       set({ summaryError: msg, isSummarizing: false });
     }
-  },
-
-  reopenBookingForFollowup: () => {
-    const { summary } = get();
-    const days = summary?.followup_in_days ?? 7;
-    const target = new Date();
-    target.setDate(target.getDate() + days);
-    target.setHours(10, 0, 0, 0);
-    set({
-      bookingOpen: true,
-      bookingMode: 'scheduled',
-      bookingSlot: target.toISOString(),
-    });
   },
 
   reset: () => {

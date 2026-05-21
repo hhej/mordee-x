@@ -1,8 +1,8 @@
 'use client';
 
-import { CalendarPlus } from 'lucide-react';
+import { useState } from 'react';
+import { BellRing, CalendarCheck, CalendarPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { usePatientStore } from '@/stores/store-patient';
 
 interface FollowupCalloutProps {
   daysFromNow: number;
@@ -21,19 +21,43 @@ function formatThaiDate(daysFromNow: number): string {
 }
 
 export function FollowupCallout({ daysFromNow, reason }: FollowupCalloutProps) {
-  const reopen = usePatientStore((s) => s.reopenBookingForFollowup);
+  const [booked, setBooked] = useState(false);
+  const dateLabel = formatThaiDate(daysFromNow);
+
+  if (booked) {
+    return (
+      <div className="flex items-center justify-between rounded-lg border border-mint-400/60 bg-mint-100/70 px-3 py-2">
+        <div className="flex items-start gap-2">
+          <CalendarCheck className="mt-0.5 size-4 text-mint-800" />
+          <div>
+            <div className="text-sm font-medium text-mint-900">
+              ✓ นัดติดตาม {dateLabel} เรียบร้อย
+            </div>
+            <div className="flex items-center gap-1 text-xs text-mint-800/80">
+              <BellRing className="size-3" />
+              ระบบจะส่งการแจ้งเตือนก่อนนัดล่วงหน้า · ยังไม่ต้องชำระเงินตอนนี้
+            </div>
+          </div>
+        </div>
+        <Button size="sm" variant="outline" disabled>
+          ✓ จองแล้ว
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-between rounded-lg border border-mint-300/60 bg-mint-50/60 px-3 py-2">
       <div className="flex items-start gap-2">
         <CalendarPlus className="mt-0.5 size-4 text-mint-700" />
         <div>
           <div className="text-sm font-medium text-mint-900">
-            แนะนำให้ติดตามอาการในอีก {daysFromNow} วัน · {formatThaiDate(daysFromNow)}
+            แนะนำให้ติดตามอาการในอีก {daysFromNow} วัน · {dateLabel}
           </div>
           {reason ? <div className="text-xs text-mint-800/80">{reason}</div> : null}
         </div>
       </div>
-      <Button size="sm" variant="default" onClick={reopen}>
+      <Button size="sm" variant="default" onClick={() => setBooked(true)}>
         จองนัดติดตาม
       </Button>
     </div>
