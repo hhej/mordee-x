@@ -89,7 +89,7 @@ export function MockPaymentDialog() {
             </div>
             <div className="rounded-md bg-slate-50 px-3 py-1.5">
               <div className="text-[10px] uppercase tracking-wide text-muted-foreground">ช่องทาง</div>
-              <div className="text-ink">วิดีโอคอล · MorDee+</div>
+              <div className="text-ink">แชทกับคุณหมอ · MorDee+</div>
             </div>
           </div>
         </div>

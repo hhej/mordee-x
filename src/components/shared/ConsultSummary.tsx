@@ -2,7 +2,8 @@
 
 import { ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileCheck2, Loader2, Sparkles } from 'lucide-react';
+import { AlertTriangle, FileCheck2, Loader2, RotateCcw, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { SummaryResult } from '@/lib/llm/schemas';
@@ -29,6 +30,14 @@ export interface ConsultSummaryProps {
    * If omitted, a minimal "ไม่ได้กำหนดการติดตาม" placeholder is rendered instead.
    */
   renderFollowup?: (args: { daysFromNow: number; reason: string | null }) => ReactNode;
+
+  /**
+   * Optional retry handler. When the summary fails and no `summary` is set
+   * (pure-error state), the error block renders a "ลองอีกครั้ง" button that
+   * invokes this callback. Doctor side omits it since it falls back to the
+   * cached summary; patient side passes endConsult.
+   */
+  onRetry?: () => void;
 }
 
 export function ConsultSummary({
@@ -42,8 +51,11 @@ export function ConsultSummary({
   doctorSpecialty,
   defaultTab = 'cert',
   renderFollowup,
+  onRetry,
 }: ConsultSummaryProps) {
   if (!visible) return null;
+
+  const pureError = !isSummarizing && !summary && summaryError !== null;
 
   return (
     <AnimatePresence>
@@ -73,7 +85,7 @@ export function ConsultSummary({
             ) : null}
           </div>
 
-          {summaryError ? (
+          {summary && summaryError ? (
             <div className="mb-3 rounded-md bg-amber-50 px-3 py-1.5 text-[11px] text-amber-800 ring-1 ring-amber-200">
               ⚠ {summaryError}
             </div>
@@ -85,6 +97,22 @@ export function ConsultSummary({
               <div className="mt-2 text-sm text-muted-foreground">
                 กำลังสรุปการสนทนา · ระบบจะดึงยา การวินิจฉัย และคำแนะนำจากที่คุยกัน
               </div>
+            </div>
+          ) : pureError ? (
+            <div className="grid place-items-center gap-3 py-12">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-800">
+                <AlertTriangle className="size-6" />
+              </div>
+              <div className="max-w-md text-center text-sm text-ink">
+                <div className="font-medium">สรุปการสนทนาล้มเหลว</div>
+                <div className="mt-1 text-xs text-muted-foreground">{summaryError}</div>
+              </div>
+              {onRetry ? (
+                <Button size="sm" variant="default" onClick={onRetry}>
+                  <RotateCcw className="size-3.5" />
+                  ลองอีกครั้ง · Retry
+                </Button>
+              ) : null}
             </div>
           ) : summary ? (
             <>

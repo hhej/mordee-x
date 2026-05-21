@@ -7,11 +7,20 @@ import { getDoctors, type Doctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
 import { DoctorMatchCard } from './DoctorMatchCard';
 
-export function DoctorMatchList() {
+interface DoctorMatchListProps {
+  /**
+   * When true, all 15 doctors render expanded by default and the top-3
+   * highlight banner is hidden. Used for the bypass-triage flow.
+   */
+  defaultExpandAll?: boolean;
+}
+
+export function DoctorMatchList({ defaultExpandAll = false }: DoctorMatchListProps) {
   const matched = usePatientStore((s) => s.matched);
   const isMatching = usePatientStore((s) => s.isMatching);
   const matchError = usePatientStore((s) => s.matchError);
-  const [showRest, setShowRest] = useState(false);
+  const triage = usePatientStore((s) => s.triage);
+  const [showRest, setShowRest] = useState(defaultExpandAll);
 
   const allDoctors = getDoctors();
   const byId = new Map(allDoctors.map((d) => [d.id, d]));
@@ -24,13 +33,18 @@ export function DoctorMatchList() {
 
   const matchedIds = new Set(topThree.map((m) => m.doctor.id));
   const rest = allDoctors.filter((d) => !matchedIds.has(d.id));
+  const bypass = triage === null;
 
   return (
     <GlassCard>
       <div className="mb-3 flex items-center gap-2">
         <Users className="size-4 text-mint-700" />
-        <h2 className="text-base font-semibold text-ink md:text-lg">เลือกแพทย์ที่เหมาะกับคุณ</h2>
-        <span className="text-xs text-muted-foreground">· Choose your doctor</span>
+        <h2 className="text-base font-semibold text-ink md:text-lg">
+          {bypass ? 'เลือกแพทย์ที่คุณอยากปรึกษา' : 'เลือกแพทย์ที่เหมาะกับคุณ'}
+        </h2>
+        <span className="text-xs text-muted-foreground">
+          · {bypass ? 'All doctors' : 'Choose your doctor'}
+        </span>
         {isMatching ? (
           <span className="ml-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
             <Loader2 className="size-3 animate-spin" />
@@ -60,21 +74,29 @@ export function DoctorMatchList() {
             />
           ))}
         </div>
-      ) : (
-        <p className="text-xs text-muted-foreground">ยังไม่มีคำแนะนำ — ลองเลือกจากรายชื่อทั้งหมดด้านล่าง</p>
-      )}
+      ) : !bypass ? (
+        <p className="text-xs text-muted-foreground">
+          ยังไม่มีคำแนะนำ — ลองเลือกจากรายชื่อทั้งหมดด้านล่าง
+        </p>
+      ) : null}
 
-      <button
-        type="button"
-        onClick={() => setShowRest((v) => !v)}
-        className="mt-4 inline-flex items-center gap-1.5 text-xs text-mint-700 hover:text-mint-800"
-      >
-        {showRest ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
-        {showRest ? 'ซ่อนรายชื่อทั้งหมด' : `ดูแพทย์ทั้งหมด (${rest.length})`}
-      </button>
+      {!defaultExpandAll ? (
+        <button
+          type="button"
+          onClick={() => setShowRest((v) => !v)}
+          className="mt-4 inline-flex items-center gap-1.5 text-xs text-mint-700 hover:text-mint-800"
+        >
+          {showRest ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+          {showRest ? 'ซ่อนรายชื่อทั้งหมด' : `ดูแพทย์ทั้งหมด (${rest.length})`}
+        </button>
+      ) : null}
 
       {showRest ? (
-        <div className="mt-3 grid gap-3 md:grid-cols-3">
+        <div
+          className={`grid gap-3 md:grid-cols-3 ${
+            defaultExpandAll && topThree.length === 0 ? 'mt-0' : 'mt-3'
+          }`}
+        >
           {rest.map((d) => (
             <DoctorMatchCard key={d.id} doctor={d} />
           ))}

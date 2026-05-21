@@ -63,6 +63,8 @@ interface PatientState {
   matched: RankedDoctor[];
   isMatching: boolean;
   matchError: string | null;
+  /** Skip symptom triage and go straight to the doctor list. */
+  bypassToDoctorList: () => void;
 
   bookingOpen: boolean;
   selectedDoctorId: string | null;
@@ -162,6 +164,21 @@ export const usePatientStore = create<PatientState>((set, get) => ({
   matched: [],
   isMatching: false,
   matchError: null,
+  bypassToDoctorList: () =>
+    set({
+      step: 'doctorList',
+      triage: null,
+      isTriaging: false,
+      triageError: null,
+      matched: [],
+      isMatching: false,
+      matchError: null,
+      consultMessages: [],
+      consultEnded: false,
+      streamError: null,
+      summary: null,
+      summaryError: null,
+    }),
 
   bookingOpen: false,
   selectedDoctorId: null,
@@ -205,14 +222,16 @@ export const usePatientStore = create<PatientState>((set, get) => ({
   inputText: '',
   setInputText: (t) => set({ inputText: t }),
 
-  // Opens the consult by sending the patient's symptom as the first user
-  // message. The mock-doctor's greeting + clarifying question streams in
-  // as the first assistant bubble.
+  // Opens the consult by sending the patient's opening message. If we have
+  // a triage symptom_text it leads with that; otherwise (bypass flow with
+  // no triage) it falls back to a generic "สวัสดี{ค่ะ/ครับ} คุณหมอ" so the
+  // mock doctor naturally asks what's wrong.
   kickoffConsult: async () => {
-    const { consultMessages, isStreaming, symptomText } = get();
+    const { consultMessages, isStreaming, symptomText, persona } = get();
     if (consultMessages.length > 0 || isStreaming) return;
-    const opening = symptomText.trim();
-    if (!opening) return;
+    const trimmed = symptomText.trim();
+    const particle = persona.gender === 'F' ? 'ค่ะ' : 'ครับ';
+    const opening = trimmed || `สวัสดี${particle} คุณหมอ`;
     await streamPatientTurn(set, get, opening);
   },
 
@@ -232,12 +251,22 @@ export const usePatientStore = create<PatientState>((set, get) => ({
     if (consultMessages.length === 0) {
       set({
         consultEnded: true,
+        step: 'summary',
         summaryError: 'ยังไม่มีบทสนทนาให้สรุป',
       });
       return;
     }
 
-    set({ isSummarizing: true, consultEnded: true, summaryError: null });
+    // Eagerly flip step + clear stale state so the summary card mounts and
+    // shows its built-in loader. On error, ConsultSummary renders the retry
+    // block (onRetry calls back here).
+    set({
+      isSummarizing: true,
+      consultEnded: true,
+      step: 'summary',
+      summary: null,
+      summaryError: null,
+    });
 
     try {
       const res = await fetch('/api/summarize', {
@@ -251,7 +280,7 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const summary = (await res.json()) as SummaryResult;
-      set({ summary, isSummarizing: false, step: 'summary' });
+      set({ summary, isSummarizing: false });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       set({ summaryError: msg, isSummarizing: false });
