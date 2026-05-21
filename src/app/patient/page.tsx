@@ -1,38 +1,111 @@
-import { GlassCard } from "@/components/shared/GlassCard";
-import { RoleHeader } from "@/components/shared/RoleHeader";
-import { EmptyState } from "@/components/shared/EmptyState";
+'use client';
 
-const SECTIONS = [
-  { title: "Symptom Chat", titleEn: "แชทอาการ", phase: "Phase 5" },
-  { title: "Triage Result 🟢🟡🔴", titleEn: "ผลการประเมิน", phase: "Phase 5" },
-  { title: "Doctor List", titleEn: "รายชื่อแพทย์", phase: "Phase 5" },
-  { title: "Booking", titleEn: "จองคิว", phase: "Phase 5" },
-  { title: "Mock Payment", titleEn: "ชำระเงิน", phase: "Phase 5" },
-  { title: "Consult Chat", titleEn: "ห้องปรึกษา", phase: "Phase 5" },
-  {
-    title: "Consult Summary",
-    titleEn: "ใบรับรองแพทย์ + แผนดูแลตัวเอง",
-    phase: "Phase 5",
-  },
-];
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { RoleHeader } from '@/components/shared/RoleHeader';
+import { ConsultSummary } from '@/components/shared/ConsultSummary';
+import { PatientPersonaPopover } from '@/components/patient/PatientPersonaPopover';
+import { ResetButton } from '@/components/patient/ResetButton';
+import { SymptomChat } from '@/components/patient/SymptomChat';
+import { TriageResultCard } from '@/components/patient/TriageResultCard';
+import { HospitalListCard } from '@/components/patient/HospitalListCard';
+import { DoctorMatchList } from '@/components/patient/DoctorMatchList';
+import { PatientConsultPanel } from '@/components/patient/PatientConsultPanel';
+import { BookingDialog } from '@/components/patient/BookingDialog';
+import { MockPaymentDialog } from '@/components/patient/MockPaymentDialog';
+import { FollowupCallout } from '@/components/patient/FollowupCallout';
+import { getDoctor } from '@/lib/data';
+import { usePatientStore } from '@/stores/store-patient';
+
+const fadeUp = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.3, ease: 'easeOut' as const },
+};
 
 export default function PatientPage() {
+  const persona = usePatientStore((s) => s.persona);
+  const hydratePersona = usePatientStore((s) => s.hydratePersona);
+  const step = usePatientStore((s) => s.step);
+  const triage = usePatientStore((s) => s.triage);
+  const summary = usePatientStore((s) => s.summary);
+  const isSummarizing = usePatientStore((s) => s.isSummarizing);
+  const summaryError = usePatientStore((s) => s.summaryError);
+  const consultEnded = usePatientStore((s) => s.consultEnded);
+  const selectedDoctorId = usePatientStore((s) => s.selectedDoctorId);
+
+  useEffect(() => {
+    hydratePersona();
+  }, [hydratePersona]);
+
+  const selectedDoctor = selectedDoctorId ? getDoctor(selectedDoctorId) : undefined;
+  const showTriage = triage !== null && step !== 'symptom';
+  const showHospital = step === 'hospital';
+  const showFlow =
+    !showHospital && triage !== null && triage.triage !== 'red' && step !== 'symptom';
+  const showSummary = step === 'summary' && (summary !== null || isSummarizing);
+
   return (
     <>
-      <RoleHeader title="ผู้ป่วย · Patient" subtitle="คุณ Pol" />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-6 md:px-12 md:py-8">
+      <RoleHeader
+        title="ผู้ป่วย · Patient"
+        subtitle={persona.name}
+        actions={
+          <>
+            <PatientPersonaPopover />
+            <ResetButton />
+          </>
+        }
+      />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-6 md:px-12 md:py-8">
         <div className="flex flex-col gap-5">
-          {SECTIONS.map((section) => (
-            <GlassCard key={section.title}>
-              <EmptyState
-                title={section.title}
-                titleEn={section.titleEn}
-                phase={section.phase}
+          <motion.section {...fadeUp}>
+            <SymptomChat />
+          </motion.section>
+
+          {showTriage ? (
+            <motion.section {...fadeUp} key="triage">
+              <TriageResultCard triage={triage} />
+            </motion.section>
+          ) : null}
+
+          {showHospital ? (
+            <motion.section {...fadeUp} key="hospital">
+              <HospitalListCard />
+            </motion.section>
+          ) : null}
+
+          {showFlow ? (
+            <motion.section {...fadeUp} key="match">
+              <DoctorMatchList />
+            </motion.section>
+          ) : null}
+
+          <PatientConsultPanel />
+
+          {showSummary && selectedDoctor ? (
+            <motion.section {...fadeUp} key="summary">
+              <ConsultSummary
+                visible={Boolean(consultEnded && selectedDoctor)}
+                isSummarizing={isSummarizing}
+                summary={summary}
+                summaryError={summaryError}
+                patientName={persona.name}
+                patientAge={persona.age}
+                doctorName={selectedDoctor.name}
+                doctorSpecialty={selectedDoctor.specialty_th}
+                defaultTab="care"
+                renderFollowup={({ daysFromNow, reason }) => (
+                  <FollowupCallout daysFromNow={daysFromNow} reason={reason} />
+                )}
               />
-            </GlassCard>
-          ))}
+            </motion.section>
+          ) : null}
         </div>
       </main>
+
+      <BookingDialog />
+      <MockPaymentDialog />
     </>
   );
 }

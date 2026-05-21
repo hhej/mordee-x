@@ -1,8 +1,11 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import doctorsData from '@/data/doctors.json';
 import hospitalsData from '@/data/hospitals.json';
 import demoData from '@/data/demo_scenarios.json';
+// ML JSONs are bundled as TS imports (not fs.readFileSync) so this module
+// stays client-safe — the patient page imports it from the browser. The
+// notebooks write to data/ml/; re-copy into src/data/ml/ after re-running.
+import noShowData from '@/data/ml/no_show_predictions.json';
+import demandData from '@/data/ml/demand_forecast_7d.json';
 import type { BriefResult, SummaryResult } from '@/lib/llm/schemas';
 
 export interface Doctor {
@@ -88,11 +91,8 @@ export interface DemandForecast {
 const doctors = doctorsData as Doctor[];
 const hospitals = hospitalsData as Hospital[];
 const demoScenarios = demoData as DemoScenarios;
-
-const noShowPath = path.join(process.cwd(), 'data', 'ml', 'no_show_predictions.json');
-const demandPath = path.join(process.cwd(), 'data', 'ml', 'demand_forecast_7d.json');
-const noShowMap: Record<string, NoShowPrediction> = JSON.parse(fs.readFileSync(noShowPath, 'utf-8'));
-const demandMap: Record<string, DemandForecast> = JSON.parse(fs.readFileSync(demandPath, 'utf-8'));
+const noShowMap = noShowData as Record<string, NoShowPrediction>;
+const demandMap = demandData as Record<string, DemandForecast>;
 
 export function getDoctors(): Doctor[] {
   return doctors;

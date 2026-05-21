@@ -1,0 +1,68 @@
+{
+  "NS001": {
+    "p_no_show": 0.0744,
+    "risk_tier": "LOW",
+    "top_shap": [
+      {
+        "feature": "symptom_category_uti",
+        "value": 1.0,
+        "shap": -0.9049906730651855
+      },
+      {
+        "feature": "lead_time_hours",
+        "value": 0.6972317992926735,
+        "shap": -0.33564069867134094
+      },
+      {
+        "feature": "age",
+        "value": 75.0,
+        "shap": -0.25024786591529846
+      }
+    ],
+    "recommended_action": "single_reminder"
+  },
+  "NS002": {
+    "p_no_show": 0.45,
+    "risk_tier": "MED",
+    "top_shap": [
+      {
+        "feature": "prior_completion_rate",
+        "value": 0.6666666666666667,
+        "shap": 0.36867818236351013
+      },
+      {
+        "feature": "paid_upfront",
+        "value": 1.0,
+        "shap": -0.2510516941547394
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.2292145937681198
+      }
+    ],
+    "recommended_action": "escalated_reminder"
+  },
+  "NS003": {
+    "p_no_show": 0.8803,
+    "risk_tier": "HIGH",
+    "top_shap": [
+      {
+        "feature": "lead_time_hours",
+        "value": 341.13142296865044,
+        "shap": 0.6478791832923889
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 0.0,
+        "shap": 0.5422568321228027
+      },
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.26493775844573975
+      }
+    ],
+    "recommended_action": "require_confirmation"
+  }
+}
