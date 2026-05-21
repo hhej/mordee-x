@@ -3,6 +3,7 @@ import path from 'node:path';
 import doctorsData from '@/data/doctors.json';
 import hospitalsData from '@/data/hospitals.json';
 import demoData from '@/data/demo_scenarios.json';
+import type { BriefResult, SummaryResult } from '@/lib/llm/schemas';
 
 export interface Doctor {
   id: string;
@@ -33,12 +34,27 @@ export interface PatientDemo {
   expected_specialty: string;
 }
 
+export interface DoctorAppointmentProfile {
+  age: number;
+  gender: 'male' | 'female';
+  history: string;
+  triage: 'green' | 'yellow' | 'red';
+}
+
+export interface DoctorAppointmentCache {
+  brief: BriefResult;
+  greeting: string;
+  summary: SummaryResult;
+}
+
 export interface DoctorAppointment {
   appt_id: string;
   patient: string;
   time: string;
   symptom: string;
   prediction_id: string;
+  profile?: DoctorAppointmentProfile;
+  cached?: DoctorAppointmentCache;
 }
 
 export interface DoctorDemo {

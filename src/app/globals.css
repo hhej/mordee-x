@@ -118,3 +118,26 @@ body {
     @apply font-sans;
   }
 }
+
+/* Print-only: when the user clicks Print on the cert, hide everything
+   except the certificate frame so the browser's Save-as-PDF flow gives
+   a clean single-page cert. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #cert-print-area,
+  #cert-print-area * {
+    visibility: visible;
+  }
+  #cert-print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 0;
+  }
+  body {
+    background: white !important;
+  }
+}

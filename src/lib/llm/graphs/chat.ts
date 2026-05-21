@@ -1,6 +1,5 @@
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import {
-  SystemMessage,
   HumanMessage,
   AIMessage,
   type BaseMessage,
@@ -23,7 +22,7 @@ export interface ChatInput {
   patient_demo_brief?: string;
 }
 
-function buildSystemPrompt(input: ChatInput, doctor: Doctor): string {
+function buildPersona(input: ChatInput, doctor: Doctor): string {
   if (input.role === 'patient') {
     return systemMockDoctor({
       name: doctor.name,
@@ -41,24 +40,34 @@ function buildSystemPrompt(input: ChatInput, doctor: Doctor): string {
   );
 }
 
-function buildContextMessage(input: ChatInput, doctor: Doctor): string {
+function buildContextBlock(input: ChatInput, doctor: Doctor): string {
   if (input.role === 'patient') {
     return [
-      'Patient profile:',
-      `- Name: ${input.patient_name}`,
-      `- Triage tier: ${input.triage ?? 'unknown'}`,
-      `- Initial symptoms: ${input.symptom_text ?? '(none provided)'}`,
+      '',
+      '=== Context for this consult ===',
+      `Patient: ${input.patient_name}`,
+      `Triage tier: ${input.triage ?? 'unknown'}`,
+      `Initial symptoms: ${input.symptom_text ?? '(none provided)'}`,
     ].join('\n');
   }
   return [
-    `Doctor profile: ${doctor.name} (${doctor.specialty_th})`,
-    'Your patient profile:',
+    '',
+    '=== Context for this consult ===',
+    `Doctor: ${doctor.name} (${doctor.specialty_th})`,
+    'You (patient) profile:',
     `- Name: ${input.patient_name}`,
     `- Age: ${input.age ?? 30}`,
     `- Gender: ${input.gender ?? 'unspecified'}`,
     `- Main symptoms: ${input.symptom_text ?? '(none)'}`,
     `- History: ${input.history ?? 'None reported'}`,
   ].join('\n');
+}
+
+// Gemini accepts ONLY ONE system instruction. createReactAgent injects one
+// via its `prompt:` param — so we must NOT also push a SystemMessage into the
+// messages array. Instead, merge the per-turn context into the system prompt.
+function buildSystemPrompt(input: ChatInput, doctor: Doctor): string {
+  return `${buildPersona(input, doctor)}\n${buildContextBlock(input, doctor)}`;
 }
 
 export async function* streamChat(
@@ -81,13 +90,9 @@ export async function* streamChat(
   const history: BaseMessage[] = input.messages.map((m) =>
     m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
   );
-  const seedMessages: BaseMessage[] = [
-    new SystemMessage(buildContextMessage(input, doctor)),
-    ...history,
-  ];
 
   const stream = await agent.stream(
-    { messages: seedMessages },
+    { messages: history },
     { streamMode: 'messages' },
   );
 

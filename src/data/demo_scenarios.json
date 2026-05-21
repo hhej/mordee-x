@@ -26,9 +26,287 @@
     "id": "DD01",
     "doctor_id": "D001",
     "today_appointments": [
-      {"appt_id":"A001","patient":"นางสาว มะลิ","time":"10:00","symptom":"ไอเรื้อรัง","prediction_id":"NS001"},
-      {"appt_id":"A002","patient":"นาย สมชาย","time":"11:30","symptom":"ปวดเข่า","prediction_id":"NS002"},
-      {"appt_id":"A003","patient":"นาง วันดี","time":"14:00","symptom":"ตรวจสุขภาพ","prediction_id":"NS003"}
+      {
+        "appt_id": "A001",
+        "patient": "นางสาว มะลิ",
+        "time": "10:00",
+        "symptom": "ไอเรื้อรัง 3 สัปดาห์ มีเสมหะ ไม่มีไข้",
+        "prediction_id": "NS001",
+        "profile": {
+          "age": 32,
+          "gender": "female",
+          "history": "ไม่มีโรคประจำตัว ไม่สูบบุหรี่ แพ้ฝุ่นเล็กน้อย",
+          "triage": "yellow"
+        },
+        "cached": {
+          "brief": {
+            "one_liner": "32F c/o chronic productive cough x 3 wks, no fever, with mild dust allergy.",
+            "key_symptoms": [
+              "Chronic cough (3 weeks)",
+              "Productive sputum",
+              "No fever"
+            ],
+            "history_flags": [
+              "Mild dust allergy",
+              "Non-smoker",
+              "No underlying disease"
+            ],
+            "ddx": [
+              {
+                "diagnosis": "Post-nasal drip (UACS)",
+                "likelihood": "high",
+                "rationale": "Common cause of chronic productive cough, consistent with allergy history."
+              },
+              {
+                "diagnosis": "Cough-variant asthma",
+                "likelihood": "medium",
+                "rationale": "Chronic cough can be the sole symptom of asthma; allergy history is a risk factor."
+              },
+              {
+                "diagnosis": "Persistent post-infectious cough",
+                "likelihood": "low",
+                "rationale": "Cough can linger for weeks after a viral illness, even with sputum."
+              }
+            ],
+            "suggested_questions_th": [
+              "ลักษณะเสมหะเป็นอย่างไร?",
+              "มีอาการคันคอ/แสบคอ/หายใจลำบากร่วมด้วยหรือไม่?",
+              "ไอมากช่วงไหนของวัน หรือสัมพันธ์กับสิ่งกระตุ้นใด?"
+            ],
+            "red_flags": [
+              "Hemoptysis",
+              "Unexplained weight loss",
+              "Progressive dyspnea",
+              "New onset fever"
+            ]
+          },
+          "greeting": "สวัสดีค่ะคุณหมอ หนูไอมา 3 อาทิตย์แล้วค่ะ มีเสมหะด้วย ไม่มีไข้นะคะ",
+          "summary": {
+            "diagnosis": "Upper respiratory allergy",
+            "diagnosis_th": "ภูมิแพ้ทางเดินหายใจส่วนบน",
+            "icd10": "J30.4 (estimated)",
+            "certificate_text_th": "ใบรับรองแพทย์ ขอรับรองว่า นางสาว มะลิ อายุ [ระบุอายุ] ปี ได้มาตรวจรักษาพยาบาลที่ [ชื่อสถานพยาบาล] เมื่อวันที่ [วันที่ปัจจุบัน] ด้วยอาการไอเรื้อรังนานเกือบ 3 สัปดาห์ มีเสมหะใส และมีอาการคัดจมูกเล็กน้อย โดยเฉพาะช่วงกลางคืน แพทย์ได้ตรวจวินิจฉัยแล้วว่าเป็น ภูมิแพ้ทางเดินหายใจส่วนบน จึงได้ให้การรักษาและคำแนะนำในการปฏิบัติตัว โดยให้พักผ่อนให้เพียงพอ หลีกเลี่ยงการสัมผัสฝุ่นละอองและสารก่อภูมิแพ้ต่างๆ สวมหน้ากากอนามัยเมื่ออยู่ในที่ที่มีฝุ่น เพื่อบรรเทาอาการและป้องกันการกำเริบของโรค จึงเรียนมาเพื่อโปรดทราบและพิจารณา นพ. ธนพล ใจกล้า (เวชศาสตร์ทั่วไป) [ชื่อสถานพยาบาล] [วันที่ปัจจุบัน]",
+            "self_care_plan": {
+              "summary_th": "คุณมีอาการภูมิแพ้ทางเดินหายใจส่วนบน ซึ่งทำให้มีอาการไอ มีเสมหะ และคัดจมูก การดูแลตัวเองอย่างเหมาะสมจะช่วยให้อาการดีขึ้นได้เร็วขึ้นค่ะ",
+              "medications": [
+                {
+                  "name_th": "ลอราทาดีน (Loratadine)",
+                  "dose_th": "ครั้งละ 1 เม็ด (10 มิลลิกรัม)",
+                  "frequency_th": "ก่อนนอน",
+                  "duration_th": "7 วัน",
+                  "with_food": false
+                },
+                {
+                  "name_th": "กัวเฟนิซิน (Guaifenesin)",
+                  "dose_th": "ครั้งละ 1 เม็ด (200 มิลลิกรัม)",
+                  "frequency_th": "ทุก 8 ชั่วโมง",
+                  "duration_th": "ตามอาการเมื่อมีเสมหะ",
+                  "with_food": false
+                }
+              ],
+              "diet_th": [
+                "ดื่มน้ำอุ่นมากๆ เพื่อช่วยละลายเสมหะ",
+                "รับประทานอาหารอ่อน ย่อยง่าย รสไม่จัด"
+              ],
+              "avoid_th": [
+                "หลีกเลี่ยงฝุ่นละออง ควันบุหรี่ และสารก่อภูมิแพ้ต่างๆ",
+                "ทำความสะอาดบ้านและที่ทำงานเป็นประจำ โดยเฉพาะบริเวณที่มีฝุ่นสะสม"
+              ],
+              "rest_advice_th": "พักผ่อนให้เพียงพอ อย่างน้อย 7-8 ชั่วโมงต่อวัน และหลีกเลี่ยงการทำกิจกรรมที่ต้องใช้แรงมาก",
+              "warning_signs_th": [
+                "อาการไม่ดีขึ้นภายใน 7 วัน",
+                "มีไข้สูง หนาวสั่น",
+                "หายใจลำบาก หรือหอบเหนื่อยมากขึ้น",
+                "เสมหะเปลี่ยนสีเป็นสีเหลืองเขียว หรือมีเลือดปน"
+              ],
+              "recovery_timeline_th": "อาการจะค่อยๆ ดีขึ้นภายใน 7 วัน หากปฏิบัติตามคำแนะนำและรับประทานยาอย่างต่อเนื่อง"
+            },
+            "needs_followup": true,
+            "followup_in_days": 7,
+            "followup_reason_th": "เพื่อประเมินอาการและปรับแผนการรักษาหากอาการไม่ดีขึ้น"
+          }
+        }
+      },
+      {
+        "appt_id": "A002",
+        "patient": "นาย สมชาย",
+        "time": "11:30",
+        "symptom": "ปวดเข่าขวา 2 สัปดาห์ ปวดมากเวลาขึ้นบันได",
+        "prediction_id": "NS002",
+        "profile": {
+          "age": 58,
+          "gender": "male",
+          "history": "ความดันโลหิตสูง ทาน amlodipine 5mg วันละครั้ง น้ำหนักเกินเล็กน้อย",
+          "triage": "yellow"
+        },
+        "cached": {
+          "brief": {
+            "one_liner": "58M with 2-wk R knee pain, worse with stairs; HTN, slightly overweight.",
+            "key_symptoms": [
+              "Right knee pain",
+              "Worse with stairs",
+              "Duration 2 weeks"
+            ],
+            "history_flags": [
+              "Hypertension (on Amlodipine)",
+              "Slightly overweight"
+            ],
+            "ddx": [
+              {
+                "diagnosis": "Osteoarthritis (OA) knee (M17.1)",
+                "likelihood": "high",
+                "rationale": "Common in age group, exacerbated by weight-bearing, history of overweight."
+              },
+              {
+                "diagnosis": "Meniscal tear (S83.2)",
+                "likelihood": "medium",
+                "rationale": "Can cause mechanical pain with specific movements like stairs."
+              },
+              {
+                "diagnosis": "Patellofemoral Pain Syndrome (PFPS) (M22.2)",
+                "likelihood": "medium",
+                "rationale": "Often presents with pain worse with stair climbing."
+              }
+            ],
+            "suggested_questions_th": [
+              "อาการปวดเป็นอย่างไรบ้าง (sharp, dull, aching)?",
+              "มีอาการบวม แดง ร้อน หรือข้อติดขัดตอนเช้าหรือไม่?",
+              "เคยมีอุบัติเหตุหรือบาดเจ็บที่เข่ามาก่อนไหม?"
+            ],
+            "red_flags": [
+              "Watch for signs of septic arthritis (fever, severe swelling, redness)",
+              "Acute fracture (trauma history, inability to bear weight)"
+            ]
+          },
+          "greeting": "สวัสดีครับคุณหมอ ผมสมชายครับ ปวดเข่าขวามาสองอาทิตย์แล้วครับ",
+          "summary": {
+            "diagnosis": "Early stage osteoarthritis of the knee",
+            "diagnosis_th": "ข้อเข่าเสื่อมระยะเริ่มต้น",
+            "icd10": "M17.9 (estimated)",
+            "certificate_text_th": "ใบรับรองแพทย์ วันที่ 25 พฤษภาคม 2567 เรื่อง ขอรับรองการตรวจรักษาพยาบาล เรียน ผู้ที่เกี่ยวข้อง ขอรับรองว่า นาย สมชาย ได้มารับการตรวจรักษาพยาบาล เมื่อวันที่ 25 พฤษภาคม 2567 ด้วยอาการปวดเข่าขวาเป็นระยะเวลาประมาณ 2 สัปดาห์ โดยเฉพาะเวลาขึ้นบันได จากการตรวจวินิจฉัย พบว่ามีอาการของ ข้อเข่าเสื่อมระยะเริ่มต้น (Early stage osteoarthritis of the knee) แพทย์ได้ให้การรักษาด้วยยาและแนะนำให้ผู้ป่วยพักผ่อน งดกิจกรรมที่ต้องใช้เข่ามากเกินไป เช่น การขึ้นลงบันไดบ่อยครั้ง การนั่งยองๆ หรือคุกเข่า เพื่อลดการลงน้ำหนักที่ข้อเข่า และให้ปฏิบัติตามคำแนะนำของแพทย์อย่างเคร่งครัด รวมถึงการลดน้ำหนักตัว เพื่อช่วยให้อาการทุเลาลงและป้องกันการเสื่อมของข้อเข่าในระยะยาว จึงเรียนมาเพื่อโปรดทราบ ขอแสดงความนับถือ (นพ. ธนพล ใจกล้า) แพทย์เวชศาสตร์ทั่วไป",
+            "self_care_plan": {
+              "summary_th": "คุณมีอาการข้อเข่าเสื่อมระยะเริ่มต้น แพทย์แนะนำให้ทานยาตามที่กำหนด ลดน้ำหนัก และหลีกเลี่ยงกิจกรรมที่ทำให้ปวดเข่า เพื่อช่วยให้อาการดีขึ้นและป้องกันไม่ให้อาการแย่ลง",
+              "medications": [
+                {
+                  "name_th": "นาพรอกเซน (Naproxen)",
+                  "dose_th": "ครั้งละ 1 เม็ด (250 มิลลิกรัม)",
+                  "frequency_th": "เช้า-เย็น",
+                  "duration_th": "7 วัน",
+                  "with_food": true
+                }
+              ],
+              "diet_th": [
+                "ลดน้ำหนักลง 3-5 กิโลกรัม เพื่อลดภาระของข้อเข่า",
+                "รับประทานอาหารที่มีประโยชน์และครบ 5 หมู่",
+                "หลีกเลี่ยงอาหารหวาน มัน เค็ม"
+              ],
+              "avoid_th": [
+                "หลีกเลี่ยงการขึ้นลงบันไดบ่อยๆ",
+                "หลีกเลี่ยงการนั่งยองๆ หรือคุกเข่า",
+                "หลีกเลี่ยงการยกของหนัก",
+                "หลีกเลี่ยงการออกกำลังกายที่ลงน้ำหนักเข่ามากเกินไป"
+              ],
+              "rest_advice_th": "พักผ่อนให้เพียงพอ หลีกเลี่ยงกิจกรรมที่ทำให้ปวดเข่า และทำกายภาพบำบัดเบาๆ ตามคำแนะนำ เช่น การบริหารกล้ามเนื้อรอบเข่าเพื่อเสริมสร้างความแข็งแรง",
+              "warning_signs_th": [
+                "อาการปวดเข่ารุนแรงขึ้น ไม่ทุเลาลงแม้ทานยาแล้ว",
+                "เข่าบวม แดง ร้อน หรือมีไข้",
+                "ไม่สามารถลงน้ำหนักที่เข่าได้",
+                "มีอาการชาหรืออ่อนแรงที่ขา"
+              ],
+              "recovery_timeline_th": "อาการปวดเข่าจะค่อยๆ ดีขึ้นภายใน 1-2 สัปดาห์ หากปฏิบัติตามคำแนะนำของแพทย์อย่างเคร่งครัด"
+            },
+            "needs_followup": true,
+            "followup_in_days": 14,
+            "followup_reason_th": "เพื่อประเมินอาการและผลการรักษา"
+          }
+        }
+      },
+      {
+        "appt_id": "A003",
+        "patient": "นาง วันดี",
+        "time": "14:00",
+        "symptom": "ขอตรวจสุขภาพประจำปี รู้สึกอ่อนเพลียบ่อย",
+        "prediction_id": "NS003",
+        "profile": {
+          "age": 45,
+          "gender": "female",
+          "history": "ครอบครัวมีประวัติเบาหวาน ออกกำลังกายน้อย",
+          "triage": "green"
+        },
+        "cached": {
+          "brief": {
+            "one_liner": "45F c/o frequent fatigue, here for annual check-up; FHx DM, low activity.",
+            "key_symptoms": [
+              "Frequent fatigue (อ่อนเพลียบ่อย)",
+              "Annual health check-up (ตรวจสุขภาพประจำปี)"
+            ],
+            "history_flags": [
+              "Family history of diabetes",
+              "Low physical activity"
+            ],
+            "ddx": [
+              {
+                "diagnosis": "Diabetes Mellitus / Pre-diabetes",
+                "likelihood": "high",
+                "rationale": "Common cause of fatigue, supported by FHx DM and low activity."
+              },
+              {
+                "diagnosis": "Anemia",
+                "likelihood": "medium",
+                "rationale": "Common cause of fatigue, especially in women."
+              },
+              {
+                "diagnosis": "Hypothyroidism",
+                "likelihood": "low",
+                "rationale": "Common endocrine cause of chronic fatigue."
+              }
+            ],
+            "suggested_questions_th": [
+              "ลักษณะความเพลียเป็นอย่างไร? เป็นมานานแค่ไหน?",
+              "มีอาการอื่นร่วมด้วยหรือไม่ เช่น น้ำหนักลด/เพิ่ม, หิวบ่อย, ปัสสาวะบ่อย?",
+              "ตรวจสุขภาพครั้งสุดท้ายเมื่อไหร่? ผลเป็นอย่างไร?"
+            ],
+            "red_flags": [
+              "Unexplained weight loss",
+              "New onset severe symptoms"
+            ]
+          },
+          "greeting": "สวัสดีค่ะคุณหมอ วันนี้มาตรวจสุขภาพประจำปีค่ะ แล้วก็รู้สึกอ่อนเพลียบ่อยๆ ช่วงนี้ค่ะ",
+          "summary": {
+            "diagnosis": "High risk of Diabetes Mellitus",
+            "diagnosis_th": "ภาวะเสี่ยงต่อโรคเบาหวาน",
+            "icd10": "R73.02 (estimated)",
+            "certificate_text_th": "ใบรับรองแพทย์ ออกให้ ณ วันที่ 1 มกราคม 2567 ขอรับรองว่า นาง วันดี ได้มาตรวจสุขภาพที่สถานพยาบาลแห่งนี้ เมื่อวันที่ 1 มกราคม 2567 เวลา 10:00 น. จากการซักประวัติและตรวจประเมินเบื้องต้น พบว่ามีอาการอ่อนเพลีย กระหายน้ำบ่อย และปัสสาวะกลางคืนหลายครั้ง ร่วมกับมีประวัติครอบครัวเป็นโรคเบาหวาน ซึ่งบ่งชี้ถึงภาวะเสี่ยงต่อโรคเบาหวาน แพทย์จึงได้ให้คำแนะนำเบื้องต้นในการปรับเปลี่ยนพฤติกรรมสุขภาพ เช่น การควบคุมอาหารและการออกกำลังกาย พร้อมทั้งได้ส่งตรวจทางห้องปฏิบัติการเพิ่มเติม ได้แก่ Fasting Blood Sugar และ HbA1c เพื่อยืนยันการวินิจฉัยและวางแผนการรักษาที่เหมาะสมต่อไป จึงเรียนมาเพื่อโปรดทราบ ลงชื่อ (นพ. ธนพล ใจกล้า) ตำแหน่ง แพทย์เวชศาสตร์ทั่วไป",
+            "self_care_plan": {
+              "summary_th": "คุณวันดีมีความเสี่ยงสูงที่จะเป็นโรคเบาหวานจากการตรวจเบื้องต้นและประวัติครอบครัว คุณหมอแนะนำให้ปรับเปลี่ยนพฤติกรรมการกินและการออกกำลังกาย เพื่อลดความเสี่ยงและควบคุมระดับน้ำตาลในเลือด",
+              "medications": [],
+              "diet_th": [
+                "ลดการบริโภคของหวานและเครื่องดื่มรสหวานทุกชนิด",
+                "เพิ่มการรับประทานผักและผลไม้ที่ไม่หวานจัด",
+                "เลือกรับประทานอาหารที่มีใยอาหารสูง เช่น ข้าวกล้อง ธัญพืชไม่ขัดสี"
+              ],
+              "avoid_th": [
+                "ของหวานทุกชนิด",
+                "เครื่องดื่มรสหวาน",
+                "อาหารแปรรูป",
+                "อาหารที่มีไขมันสูง"
+              ],
+              "rest_advice_th": "ควรพักผ่อนให้เพียงพออย่างน้อย 7-8 ชั่วโมงต่อคืน และออกกำลังกายแบบแอโรบิกปานกลางอย่างน้อย 30 นาทีต่อวัน 5 วันต่อสัปดาห์ เช่น เดินเร็ว วิ่งเหยาะๆ หรือปั่นจักรยาน",
+              "warning_signs_th": [
+                "กระหายน้ำบ่อยผิดปกติ",
+                "ปัสสาวะบ่อยขึ้น โดยเฉพาะตอนกลางคืน",
+                "อ่อนเพลียมากผิดปกติ หรือไม่มีแรง",
+                "น้ำหนักลดลงโดยไม่ทราบสาเหตุ",
+                "มีอาการชาตามปลายมือปลายเท้า หรือแผลหายช้า"
+              ],
+              "recovery_timeline_th": "หากปฏิบัติตามคำแนะนำอย่างเคร่งครัด อาการจะดีขึ้นและช่วยลดความเสี่ยงต่อการเป็นโรคเบาหวานได้ในระยะยาว"
+            },
+            "needs_followup": true,
+            "followup_in_days": 7,
+            "followup_reason_th": "ติดตามผลการตรวจเลือด (Fasting Blood Sugar และ HbA1c) และประเมินการปรับเปลี่ยนพฤติกรรม"
+          }
+        }
+      }
     ]
   }
 }
