@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import type { TriageResult, SummaryResult } from '@/lib/llm/schemas';
+import { MOCK_PAYMENT_DELAY_MS, PAYMENT_SUCCESS_FLASH_MS } from '@/lib/constants';
 
 export type ChatMsg = { role: 'user' | 'assistant'; content: string };
 export type Gender = 'M' | 'F';
@@ -9,7 +10,13 @@ export type PatientPersona = { name: string; age: number; gender: Gender; histor
 export type RankedDoctor = { doctor_id: string; score: number; reason_th: string };
 
 export type BookingMode = 'now' | 'scheduled';
-export type PatientStep = 'symptom' | 'doctorList' | 'consult' | 'summary' | 'hospital';
+export type PatientStep =
+  | 'symptom'
+  | 'doctorList'
+  | 'consult'
+  | 'summary'
+  | 'hospital'
+  | 'scheduledConfirmed';
 
 const PERSONA_STORAGE_KEY = 'mordeeplus:patient_persona';
 const DEFAULT_PERSONA: PatientPersona = {
@@ -78,6 +85,7 @@ interface PatientState {
 
   paymentOpen: boolean;
   isPaying: boolean;
+  paymentSuccess: boolean;
   cancelPayment: () => void;
   completePayment: () => Promise<void>;
 
@@ -196,14 +204,24 @@ export const usePatientStore = create<PatientState>((set, get) => ({
 
   paymentOpen: false,
   isPaying: false,
-  cancelPayment: () => set({ paymentOpen: false, isPaying: false }),
+  paymentSuccess: false,
+  cancelPayment: () => set({ paymentOpen: false, isPaying: false, paymentSuccess: false }),
   completePayment: async () => {
-    set({ isPaying: true });
-    await new Promise((r) => setTimeout(r, 2000));
+    // Two-phase fake payment: processing spinner → success affirmation →
+    // close dialog and advance. The success flash needs to land *before*
+    // paymentOpen flips false, otherwise the dialog unmounts and the user
+    // sees nothing. Scheduled bookings route to a confirmation card; only
+    // 'now' bookings open the chat room — kickoff is gated on step==='consult'.
+    set({ isPaying: true, paymentSuccess: false });
+    await new Promise((r) => setTimeout(r, MOCK_PAYMENT_DELAY_MS));
+    set({ isPaying: false, paymentSuccess: true });
+    await new Promise((r) => setTimeout(r, PAYMENT_SUCCESS_FLASH_MS));
+    const nextStep: PatientStep =
+      get().bookingMode === 'scheduled' ? 'scheduledConfirmed' : 'consult';
     set({
-      isPaying: false,
+      paymentSuccess: false,
       paymentOpen: false,
-      step: 'consult',
+      step: nextStep,
       consultMessages: [],
       consultEnded: false,
       streamError: null,
@@ -302,6 +320,7 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       bookingSlot: null,
       paymentOpen: false,
       isPaying: false,
+      paymentSuccess: false,
       consultMessages: [],
       isStreaming: false,
       consultEnded: false,

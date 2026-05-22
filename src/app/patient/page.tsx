@@ -15,6 +15,7 @@ import { PatientConsultPanel } from '@/components/patient/PatientConsultPanel';
 import { BookingDialog } from '@/components/patient/BookingDialog';
 import { MockPaymentDialog } from '@/components/patient/MockPaymentDialog';
 import { FollowupCallout } from '@/components/patient/FollowupCallout';
+import { ScheduledConfirmationCard } from '@/components/patient/ScheduledConfirmationCard';
 import { getDoctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
 
@@ -34,6 +35,7 @@ export default function PatientPage() {
   const summaryError = usePatientStore((s) => s.summaryError);
   const consultEnded = usePatientStore((s) => s.consultEnded);
   const selectedDoctorId = usePatientStore((s) => s.selectedDoctorId);
+  const bookingSlot = usePatientStore((s) => s.bookingSlot);
   const endConsult = usePatientStore((s) => s.endConsult);
 
   const summaryRef = useRef<HTMLDivElement>(null);
@@ -54,9 +56,11 @@ export default function PatientPage() {
 
   const selectedDoctor = selectedDoctorId ? getDoctor(selectedDoctorId) : undefined;
   const showHero = step === 'symptom';
-  const showTriage = triage !== null && step !== 'symptom';
+  const showTriage = triage !== null && step !== 'symptom' && step !== 'scheduledConfirmed';
   const showHospital = step === 'hospital';
-  const showFlow = !showHospital && step !== 'symptom';
+  const showScheduledConfirmed = step === 'scheduledConfirmed';
+  const showFlow =
+    step === 'doctorList' || step === 'consult' || step === 'summary';
   const showSummary = consultEnded;
 
   return (
@@ -95,6 +99,12 @@ export default function PatientPage() {
           {showHospital ? (
             <motion.section {...fadeUp} key="hospital">
               <HospitalListCard />
+            </motion.section>
+          ) : null}
+
+          {showScheduledConfirmed && selectedDoctor && bookingSlot ? (
+            <motion.section {...fadeUp} key="scheduled-confirmed">
+              <ScheduledConfirmationCard doctor={selectedDoctor} slotIso={bookingSlot} />
             </motion.section>
           ) : null}
 
