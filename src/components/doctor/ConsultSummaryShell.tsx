@@ -64,7 +64,7 @@ function DoctorFollowupRow({
           <div>
             <div className="text-sm font-medium text-mint-900">นัดติดตาม {dateLabel} เรียบร้อย</div>
             <div className="text-xs text-mint-800/80">
-              ระบบส่ง SMS แจ้งคนไข้แล้ว · เพิ่มเข้าตารางอัตโนมัติ
+              ระบบจะส่งการแจ้งเตือนถึงคนไข้ก่อนถึงนัด · เพิ่มเข้าตารางอัตโนมัติ
             </div>
           </div>
         </div>
