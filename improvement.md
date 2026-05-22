@@ -2,6 +2,23 @@
 
 _Generated 2026-05-22 by adversarial QA pass. Targets demo 2026-05-30 (8 days out)._
 
+## 2026-05-22 update — quick-win batch landed
+
+Six commits shipped against this doc:
+
+| ID | Status | Commit | Notes |
+|---|---|---|---|
+| H-07 · Soften "ส่ง SMS แล้ว" copy | ✅ fixed | `521b3ac` | Future tense + in-app notification language |
+| H-02 · End-consult guard counts user msgs only | ✅ fixed | `88f5d57` | Now filters role==='user' before threshold |
+| H-03 · Sticky streamError on retry | ⚪ no-op | — | Re-read code: existing `set({streamError: null})` at start of each turn is sufficient. Original claim was incorrect. |
+| H-01 · "วันนี้ / พรุ่งนี้" labels | ✅ fixed | `af6c534` | thaiDateLabel extended with today/tomorrow comparison |
+| C-02 · D001 stale forecast dates | ✅ fixed | `3f932b1` | Runtime rebase in slotsFromDemandForecast; JSON untouched |
+| C-01 · Scheduled booking opens chat as instant | ✅ fixed | `d1a46c1` | New 'scheduledConfirmed' step + ScheduledConfirmationCard; completePayment branches on bookingMode |
+
+Outstanding criticals/highs (next batch): **C-03** (fallback when Gemini fails), **H-04** (AbortController on in-flight streams), **H-05/H-06** (persona validation). See sections below.
+
+---
+
 Each item: title · repro/evidence · file:line · suggested fix · effort (S = <30min, M = ~half day, L = ~full day). Surface tag in title. Check off as you go.
 
 Findings come from two sources:
