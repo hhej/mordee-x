@@ -74,13 +74,11 @@ export default function PatientPage() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-6 md:px-12 md:py-8">
         <div className="flex flex-col gap-5">
           {showHero ? (
-            <motion.section
-              {...fadeUp}
-              key="hero"
-              className="grid gap-5 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
-            >
-              <SymptomChat />
-              <InstantConsultCard />
+            <motion.section {...fadeUp} key="hero">
+              <div className="grid gap-5 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                <SymptomChat />
+                <InstantConsultCard />
+              </div>
             </motion.section>
           ) : (
             <motion.section {...fadeUp} key="symptom-collapsed">
