@@ -39,11 +39,18 @@ const LOAD_STYLES: Record<SlotLoad, { dot: string; chip: string; label: string }
 
 function thaiDateLabel(dateKey: string): string {
   const d = new Date(`${dateKey}T00:00:00`);
-  return d.toLocaleDateString('th-TH', {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dateStr = d.toLocaleDateString('th-TH', {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
   });
+  if (d.getTime() === today.getTime()) return `วันนี้ · ${dateStr}`;
+  if (d.getTime() === tomorrow.getTime()) return `พรุ่งนี้ · ${dateStr}`;
+  return dateStr;
 }
 
 function thaiHourLabel(iso: string): string {
