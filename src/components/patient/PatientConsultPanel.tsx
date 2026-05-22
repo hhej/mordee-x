@@ -113,9 +113,15 @@ export function PatientConsultPanel() {
               <Button
                 onClick={() => endConsult()}
                 variant="default"
-                disabled={isStreaming || isSummarizing || consultMessages.length < 2}
+                disabled={
+                  isStreaming ||
+                  isSummarizing ||
+                  consultMessages.filter((m) => m.role === 'user').length < 2
+                }
                 title={
-                  consultMessages.length < 2 ? 'แชทกับคุณหมอก่อนสักครู่' : undefined
+                  consultMessages.filter((m) => m.role === 'user').length < 2
+                    ? 'แชทกับคุณหมอก่อนสักครู่'
+                    : undefined
                 }
               >
                 {isSummarizing ? (
