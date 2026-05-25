@@ -1,6 +1,7 @@
 import doctorsData from '@/data/doctors.json';
 import hospitalsData from '@/data/hospitals.json';
 import demoData from '@/data/demo_scenarios.json';
+import checkupData from '@/data/checkup_programs.json';
 // ML JSONs are bundled as TS imports (not fs.readFileSync) so this module
 // stays client-safe — the patient page imports it from the browser. The
 // notebooks write to data/ml/; re-copy into src/data/ml/ after re-running.
@@ -20,6 +21,19 @@ export interface Doctor {
   price: number;
   langs: string[];
   avatar: string;
+}
+
+export interface CheckupProgram {
+  id: string;
+  hospital_th: string;
+  hospital_en: string;
+  name_th: string;
+  name_en: string;
+  price: number;
+  duration_th: string;
+  tests_th: string[];
+  ideal_for_th: string;
+  tags: string[];
 }
 
 export interface Hospital {
@@ -94,6 +108,7 @@ export interface DemandForecast {
 
 const doctors = doctorsData as Doctor[];
 const hospitals = hospitalsData as Hospital[];
+const checkupPrograms = checkupData as CheckupProgram[];
 const demoScenarios = demoData as DemoScenarios;
 const noShowMap = noShowData as Record<string, NoShowPrediction>;
 const demandMap = demandData as Record<string, DemandForecast>;
@@ -128,4 +143,12 @@ export function getDemand(id: string): DemandForecast | undefined {
 
 export function getRosterSpecialties(): string[] {
   return Array.from(new Set(doctors.map((d) => d.specialty))).sort();
+}
+
+export function getCheckupPrograms(): CheckupProgram[] {
+  return checkupPrograms;
+}
+
+export function getCheckupProgram(id: string): CheckupProgram | undefined {
+  return checkupPrograms.find((p) => p.id === id);
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import type { TriageResult, SummaryResult } from '@/lib/llm/schemas';
+import type { TriageResult, SummaryResult, CheckupResult } from '@/lib/llm/schemas';
 import {
   MOCK_PAYMENT_DELAY_MS,
   PAYMENT_SUCCESS_FLASH_MS,
@@ -186,6 +186,11 @@ interface PatientState {
   summaryError: string | null;
   endConsult: () => Promise<void>;
 
+  checkup: CheckupResult | null;
+  isMatchingCheckup: boolean;
+  checkupError: string | null;
+  fetchCheckup: () => Promise<void>;
+
   reset: () => void;
 }
 
@@ -231,6 +236,9 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       streamError: null,
       summary: null,
       summaryError: null,
+      checkup: null,
+      isMatchingCheckup: false,
+      checkupError: null,
       expandedPill: null,
     });
 
@@ -286,6 +294,9 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       streamError: null,
       summary: null,
       summaryError: null,
+      checkup: null,
+      isMatchingCheckup: false,
+      checkupError: null,
       expandedPill: null,
     }),
 
@@ -330,6 +341,9 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       streamError: null,
       summary: null,
       summaryError: null,
+      checkup: null,
+      isMatchingCheckup: false,
+      checkupError: null,
       inputText: '',
       expandedPill: null,
     });
@@ -387,6 +401,9 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       step: 'summary',
       summary: null,
       summaryError: null,
+      checkup: null,
+      isMatchingCheckup: false,
+      checkupError: null,
       expandedPill: null,
     });
 
@@ -413,6 +430,56 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       const isTimeout = err instanceof DOMException;
       const msg = isTimeout ? STREAM_TIMEOUT_TH : err instanceof Error ? err.message : String(err);
       set({ summaryError: msg, isSummarizing: false });
+    }
+  },
+
+  checkup: null,
+  isMatchingCheckup: false,
+  checkupError: null,
+  // Post-summary upsell: ask the advisor agent for one best-fit checkup program.
+  // Triggered by a button in the self-care tab, so it requires a resolved summary
+  // (we read the diagnosis from it). Patient-side only.
+  fetchCheckup: async () => {
+    const { summary, persona, triage, isMatchingCheckup } = get();
+    if (!summary || isMatchingCheckup) return;
+
+    const bmi =
+      persona.weightKg != null && persona.heightCm != null && persona.heightCm > 0
+        ? persona.weightKg / (persona.heightCm / 100) ** 2
+        : null;
+
+    set({ isMatchingCheckup: true, checkupError: null, checkup: null });
+
+    const handle = abortable.newSignal(JSON_TIMEOUT_MS);
+    try {
+      const res = await apiFetch('/api/checkup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          age: persona.age,
+          gender: persona.gender === 'F' ? 'female' : 'male',
+          conditions: persona.conditions,
+          allergies: persona.allergies,
+          bmi,
+          triage: triage?.triage,
+          specialty_hint: triage?.specialty_hint,
+          diagnosis: summary.diagnosis,
+          diagnosis_th: summary.diagnosis_th,
+          icd10: summary.icd10,
+        }),
+        signal: handle.signal,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const checkup = (await res.json()) as CheckupResult;
+      set({ checkup, isMatchingCheckup: false });
+    } catch (err) {
+      if (handle.isUserAbort()) {
+        set({ isMatchingCheckup: false });
+        return;
+      }
+      const isTimeout = err instanceof DOMException;
+      const msg = isTimeout ? STREAM_TIMEOUT_TH : err instanceof Error ? err.message : String(err);
+      set({ checkupError: msg, isMatchingCheckup: false });
     }
   },
 
@@ -444,6 +511,9 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       summary: null,
       isSummarizing: false,
       summaryError: null,
+      checkup: null,
+      isMatchingCheckup: false,
+      checkupError: null,
     });
   },
 }));

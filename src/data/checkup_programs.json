@@ -1,0 +1,141 @@
+[
+  {
+    "id": "CKP01",
+    "hospital_th": "โรงพยาบาลพญาไท 2",
+    "hospital_en": "Phyathai 2 Hospital",
+    "name_th": "โปรแกรมตรวจสุขภาพพื้นฐานประจำปี",
+    "name_en": "Annual Basic Health Check-up",
+    "price": 3500,
+    "duration_th": "ครึ่งวัน (ประมาณ 2 ชั่วโมง)",
+    "tests_th": [
+      "ตรวจความสมบูรณ์ของเม็ดเลือด (CBC)",
+      "ระดับน้ำตาลในเลือด (FBS)",
+      "ไขมันในเลือด (Cholesterol, Triglyceride)",
+      "การทำงานของตับและไต",
+      "ตรวจปัสสาวะ",
+      "เอกซเรย์ปอด"
+    ],
+    "ideal_for_th": "ผู้ใหญ่ทุกช่วงวัยที่ต้องการตรวจสุขภาพประจำปีเป็นพื้นฐาน",
+    "tags": ["basic", "general", "all_ages", "annual"]
+  },
+  {
+    "id": "CKP02",
+    "hospital_th": "โรงพยาบาลบำรุงราษฎร์",
+    "hospital_en": "Bumrungrad International Hospital",
+    "name_th": "โปรแกรมตรวจสุขภาพหัวใจ",
+    "name_en": "Heart Health Screening",
+    "price": 8900,
+    "duration_th": "ครึ่งวัน",
+    "tests_th": [
+      "ตรวจคลื่นไฟฟ้าหัวใจ (EKG)",
+      "ตรวจหัวใจด้วยคลื่นเสียงสะท้อน (Echocardiogram)",
+      "ทดสอบสมรรถภาพหัวใจขณะออกกำลังกาย (EST)",
+      "ไขมันในเลือดและ hs-CRP"
+    ],
+    "ideal_for_th": "ผู้ที่มีความเสี่ยงโรคหัวใจ ไขมันสูง ความดัน หรืออายุ 40 ปีขึ้นไป",
+    "tags": ["cardiology", "heart", "age40+", "cholesterol", "hypertension"]
+  },
+  {
+    "id": "CKP03",
+    "hospital_th": "โรงพยาบาลสมิติเวช สุขุมวิท",
+    "hospital_en": "Samitivej Sukhumvit Hospital",
+    "name_th": "โปรแกรมคัดกรองเบาหวานและต่อมไร้ท่อ",
+    "name_en": "Diabetes & Endocrine Screening",
+    "price": 4200,
+    "duration_th": "ครึ่งวัน",
+    "tests_th": [
+      "น้ำตาลสะสม (HbA1c) และน้ำตาลในเลือด (FBS)",
+      "ไขมันในเลือด",
+      "การทำงานของต่อมไทรอยด์ (TSH, Free T4)",
+      "ไมโครอัลบูมินในปัสสาวะ (คัดกรองไตจากเบาหวาน)"
+    ],
+    "ideal_for_th": "ผู้ที่มีภาวะเบาหวาน น้ำหนักเกิน มีประวัติครอบครัว หรือสงสัยปัญหาต่อมไทรอยด์",
+    "tags": ["endocrinology", "diabetes", "thyroid", "metabolic", "weight"]
+  },
+  {
+    "id": "CKP04",
+    "hospital_th": "โรงพยาบาลกรุงเทพ",
+    "hospital_en": "Bangkok Hospital",
+    "name_th": "โปรแกรมส่องกล้องคัดกรองมะเร็งทางเดินอาหาร",
+    "name_en": "GI Cancer Screening (Endoscopy)",
+    "price": 25000,
+    "duration_th": "ครึ่งวัน (งดน้ำงดอาหารก่อนตรวจ)",
+    "tests_th": [
+      "ส่องกล้องกระเพาะอาหาร (Gastroscopy)",
+      "ส่องกล้องลำไส้ใหญ่ (Colonoscopy)",
+      "ตรวจเชื้อ H. pylori",
+      "สารบ่งชี้มะเร็ง CEA"
+    ],
+    "ideal_for_th": "ผู้ที่มีอาการทางเดินอาหารเรื้อรัง มีประวัติครอบครัวเป็นมะเร็ง หรืออายุ 45 ปีขึ้นไป",
+    "tags": ["gastroenterology", "gi", "cancer_screening", "age45+"]
+  },
+  {
+    "id": "CKP05",
+    "hospital_th": "โรงพยาบาลบีเอ็นเอช",
+    "hospital_en": "BNH Hospital",
+    "name_th": "โปรแกรมตรวจสุขภาพสตรี",
+    "name_en": "Women's Health Screening",
+    "price": 6500,
+    "duration_th": "ครึ่งวัน",
+    "tests_th": [
+      "ตรวจคัดกรองมะเร็งปากมดลูก (Pap smear)",
+      "อัลตราซาวด์/แมมโมแกรมเต้านม",
+      "อัลตราซาวด์ช่องท้องส่วนล่าง",
+      "สารบ่งชี้มะเร็งรังไข่ CA-125"
+    ],
+    "ideal_for_th": "ผู้หญิงที่ต้องการตรวจคัดกรองมะเร็งปากมดลูก เต้านม และสุขภาพระบบสืบพันธุ์",
+    "tags": ["obgyn", "women", "female", "cancer_screening", "breast"]
+  },
+  {
+    "id": "CKP06",
+    "hospital_th": "โรงพยาบาลเวชธานี",
+    "hospital_en": "Vejthani Hospital",
+    "name_th": "โปรแกรมตรวจสุขภาพผู้สูงอายุ",
+    "name_en": "Senior Wellness Check-up",
+    "price": 9800,
+    "duration_th": "ครึ่งวัน",
+    "tests_th": [
+      "ตรวจความหนาแน่นของกระดูก (Bone Densitometry)",
+      "ตรวจคลื่นไฟฟ้าหัวใจ (EKG)",
+      "อัลตราซาวด์หลอดเลือดคอ (Carotid Doppler)",
+      "ประเมินความจำและภาวะสมองเสื่อมเบื้องต้น",
+      "ตรวจเลือดครบชุด"
+    ],
+    "ideal_for_th": "ผู้สูงอายุ 60 ปีขึ้นไป ที่ต้องการดูแลกระดูก หัวใจ และสมองอย่างครอบคลุม",
+    "tags": ["geriatric", "senior", "age60+", "bone", "brain"]
+  },
+  {
+    "id": "CKP07",
+    "hospital_th": "โรงพยาบาลรามคำแหง",
+    "hospital_en": "Ramkhamhaeng Hospital",
+    "name_th": "โปรแกรมตรวจสมรรถภาพปอดและภูมิแพ้",
+    "name_en": "Lung Function & Allergy Screening",
+    "price": 5400,
+    "duration_th": "ครึ่งวัน",
+    "tests_th": [
+      "ทดสอบสมรรถภาพปอด (Spirometry)",
+      "เอกซเรย์ปอด",
+      "ทดสอบภูมิแพ้ทางผิวหนัง (Skin Prick Test)",
+      "ระดับภูมิแพ้รวมในเลือด (Total IgE)"
+    ],
+    "ideal_for_th": "ผู้ที่มีอาการไอเรื้อรัง หอบหืด ภูมิแพ้ หรือทำงานในสภาพแวดล้อมที่มีฝุ่นควัน",
+    "tags": ["pulmonology", "allergy", "respiratory", "lung", "cough"]
+  },
+  {
+    "id": "CKP08",
+    "hospital_th": "โรงพยาบาลศิริราช ปิยมหาราชการุณย์",
+    "hospital_en": "Siriraj Piyamaharajkarun Hospital",
+    "name_th": "โปรแกรมตรวจสุขภาพเชิงลึกสำหรับผู้บริหาร",
+    "name_en": "Executive Comprehensive Check-up",
+    "price": 18000,
+    "duration_th": "เต็มวัน",
+    "tests_th": [
+      "ตรวจเลือดและสารบ่งชี้มะเร็งครบชุด",
+      "ตรวจหินปูนหลอดเลือดหัวใจ (CT Calcium Score)",
+      "อัลตราซาวด์ช่องท้องทั้งหมด",
+      "ทดสอบสมรรถภาพหัวใจขณะออกกำลังกาย (EST)"
+    ],
+    "ideal_for_th": "ผู้บริหารหรือผู้ที่ต้องการตรวจสุขภาพเชิงลึกครอบคลุมทุกระบบในครั้งเดียว",
+    "tags": ["executive", "comprehensive", "deep_screen", "stress", "cancer_screening"]
+  }
+]

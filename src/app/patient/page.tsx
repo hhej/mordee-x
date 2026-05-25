@@ -15,6 +15,7 @@ import { PatientConsultPanel } from '@/components/patient/PatientConsultPanel';
 import { BookingDialog } from '@/components/patient/BookingDialog';
 import { MockPaymentDialog } from '@/components/patient/MockPaymentDialog';
 import { FollowupCallout } from '@/components/patient/FollowupCallout';
+import { CheckupUpsell } from '@/components/patient/CheckupUpsell';
 import { ScheduledConfirmationCard } from '@/components/patient/ScheduledConfirmationCard';
 import { StepPill } from '@/components/patient/StepPill';
 import { getDoctor } from '@/lib/data';
@@ -244,6 +245,7 @@ export default function PatientPage() {
                 renderFollowup={({ daysFromNow, reason }) => (
                   <FollowupCallout daysFromNow={daysFromNow} reason={reason} />
                 )}
+                renderCheckupUpsell={() => <CheckupUpsell />}
               />
             </motion.section>
           ) : null}

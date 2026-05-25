@@ -4,7 +4,7 @@
 // quota or hitting the network.
 
 import { getDemoScenarios, getDoctors } from '@/lib/data';
-import type { TriageResult, SummaryResult, BriefResult } from '@/lib/llm/schemas';
+import type { TriageResult, SummaryResult, BriefResult, CheckupResult } from '@/lib/llm/schemas';
 
 const KEYWORD_MAP: Array<{ kw: RegExp; demoId: 'PD01' | 'PD02' | 'PD03' }> = [
   { kw: /เจ็บหน้าอก|หายใจลำบาก|chest pain/i, demoId: 'PD02' },
@@ -94,6 +94,18 @@ export function mockSummarize(): SummaryResult {
 
 export function mockBrief(): BriefResult {
   return getDemoScenarios().doctor_demo.today_appointments[0].cached!.brief;
+}
+
+// Fixed checkup pick for the ?mock=1 demo path. CKP01 (basic annual screening)
+// is the safe "fits everyone" default, so it reads sensibly for any scenario.
+export function mockCheckup(): CheckupResult {
+  return {
+    program_id: 'CKP01',
+    headline_th: 'ดูแลสุขภาพระยะยาวด้วยการตรวจสุขภาพประจำปี',
+    reason_th:
+      'หลังจากปรึกษาแพทย์แล้ว การตรวจสุขภาพพื้นฐานประจำปีจะช่วยติดตามภาพรวมสุขภาพของคุณ ทั้งระดับน้ำตาล ไขมัน และการทำงานของตับไต เพื่อป้องกันปัญหาก่อนลุกลามและดูแลตัวเองได้ดีขึ้นในระยะยาว',
+    relevance: 'medium',
+  };
 }
 
 // SSE-style chat: yield short Thai chunks with a small inter-token delay so

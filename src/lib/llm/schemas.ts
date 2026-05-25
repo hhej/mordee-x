@@ -54,6 +54,14 @@ export const SelfCarePlanSchema = z.object({
   recovery_timeline_th: z.string(),
 });
 
+export const CheckupRecommendationSchema = z.object({
+  program_id: z.string(),
+  headline_th: z.string(),
+  reason_th: z.string(),
+  relevance: z.enum(['high', 'medium', 'low']),
+});
+export type CheckupResult = z.infer<typeof CheckupRecommendationSchema>;
+
 export const SummarySchema = z.object({
   diagnosis: z.string(),
   diagnosis_th: z.string(),
@@ -114,3 +122,17 @@ export const PredictQuerySchema = z.object({
   type: z.enum(['no_show', 'demand']),
   id: z.string().min(1),
 });
+
+export const CheckupRequestSchema = z.object({
+  age: z.number().int().min(0),
+  gender: z.string(),
+  conditions: z.array(z.string()).default([]),
+  allergies: z.array(z.string()).default([]),
+  bmi: z.number().nullable().optional(),
+  triage: z.enum(['green', 'yellow', 'red']).optional(),
+  specialty_hint: z.string().optional(),
+  diagnosis: z.string(),
+  diagnosis_th: z.string(),
+  icd10: z.string(),
+});
+export type CheckupRequest = z.infer<typeof CheckupRequestSchema>;

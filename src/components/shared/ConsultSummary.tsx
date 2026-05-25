@@ -32,6 +32,12 @@ export interface ConsultSummaryProps {
   renderFollowup?: (args: { daysFromNow: number; reason: string | null }) => ReactNode;
 
   /**
+   * Optional post-summary upsell rendered at the bottom of the self-care tab.
+   * Patient side passes the health-checkup advisor; doctor side omits it.
+   */
+  renderCheckupUpsell?: () => ReactNode;
+
+  /**
    * Optional retry handler. When the summary fails and no `summary` is set
    * (pure-error state), the error block renders a "ลองอีกครั้ง" button that
    * invokes this callback. Doctor side omits it since it falls back to the
@@ -51,6 +57,7 @@ export function ConsultSummary({
   doctorSpecialty,
   defaultTab = 'cert',
   renderFollowup,
+  renderCheckupUpsell,
   onRetry,
 }: ConsultSummaryProps) {
   if (!visible) return null;
@@ -132,6 +139,7 @@ export function ConsultSummary({
                 </TabsContent>
                 <TabsContent value="care" className="pt-4">
                   <SelfCarePlan plan={summary.self_care_plan} />
+                  {renderCheckupUpsell ? renderCheckupUpsell() : null}
                 </TabsContent>
               </Tabs>
 
