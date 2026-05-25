@@ -2,7 +2,7 @@ import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { embedModel } from '@/lib/llm/client';
 import { topK } from '@/lib/rag';
-import { getDoctor, getNoShow, getDemand } from '@/lib/data';
+import { getDoctor, getNoShow, getDemandForDoctor } from '@/lib/data';
 
 export const lookupSymptomKb = tool(
   async ({ query }) => {
@@ -48,12 +48,14 @@ export const getNoShowRisk = tool(
 
 export const getDemandForecast = tool(
   async ({ doctor_id }) => {
-    const forecast = getDemand('DD01');
-    if (!forecast || forecast.doctor_id !== doctor_id) {
+    const forecast = getDemandForDoctor(doctor_id);
+    if (!forecast) {
       return JSON.stringify({ error: `No demand forecast for doctor ${doctor_id}` });
     }
     const summary = {
-      doctor_id: forecast.doctor_id,
+      doctor_id,
+      specialty: forecast.specialty,
+      doctor_count: forecast.doctor_count,
       horizon_days: forecast.horizon_days,
       recommended_online_slots: forecast.recommended_online_slots,
       expected_revenue_uplift_pct: forecast.expected_revenue_uplift_pct,
@@ -69,9 +71,9 @@ export const getDemandForecast = tool(
   {
     name: 'get_demand_forecast',
     description:
-      'Get the 7-day demand forecast for a doctor. Returns recommended online consultation slots, expected revenue uplift, model metadata, and the top-5 peak booking hours.',
+      "Get the 7-day demand forecast for a doctor (resolved by the doctor's specialty — pooled demand if several doctors share it). Returns the specialty, doctor_count, recommended online consultation slots, expected revenue uplift, model metadata, and the top-5 peak booking hours.",
     schema: z.object({
-      doctor_id: z.string().describe('Doctor id such as D001'),
+      doctor_id: z.string().describe('Doctor id, D001 through D033'),
     }),
   },
 );
@@ -87,7 +89,7 @@ export const getDoctorProfile = tool(
     description:
       'Get a doctor profile by id (e.g. D001). Returns name, specialty, years of experience, rating, price, languages, and avatar.',
     schema: z.object({
-      doctor_id: z.string().describe('Doctor id such as D001 through D015'),
+      doctor_id: z.string().describe('Doctor id such as D001 through D033'),
     }),
   },
 );

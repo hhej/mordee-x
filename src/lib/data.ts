@@ -112,6 +112,9 @@ export interface DoctorDemo {
   id: string;
   doctor_id: string;
   today_appointments: DoctorAppointment[];
+  /** Hidden pool that backfills the visible queue as consults finish.
+   *  Drawn from in order; ordering preserved across renders. */
+  standby_appointments?: DoctorAppointment[];
 }
 
 export interface DemoScenarios {
@@ -132,12 +135,23 @@ export interface NoShowPrediction {
 
 export interface DemandForecast {
   doctor_id: string;
+  /** Specialty this forecast covers. Present since the per-specialty refactor. */
+  specialty?: string;
+  /** Number of doctors in this specialty — pooled demand ≈ per-doctor × doctor_count. */
+  doctor_count?: number;
   horizon_days: number;
   by_hour: Array<{ datetime: string; expected_bookings: number; ci_low: number; ci_high: number }>;
   recommended_online_slots: Array<{ start: string; end: string; predicted_load: string; expected_consults: number }>;
   expected_revenue_uplift_pct: number;
   winning_model: string;
-  model_mae: number;
+  model_mae: number | null;
+}
+
+/** Shape of data/ml/demand_forecast_7d.json after the per-specialty refactor:
+ *  forecasts keyed by specialty slug, plus a back-compat `DD01` alias. */
+interface DemandData {
+  by_specialty: Record<string, DemandForecast>;
+  DD01: DemandForecast;
 }
 
 const doctors = doctorsData as Doctor[];
@@ -145,7 +159,7 @@ const hospitals = hospitalsData as Hospital[];
 const checkupPrograms = checkupData as CheckupProgram[];
 const demoScenarios = demoData as DemoScenarios;
 const noShowMap = noShowData as Record<string, NoShowPrediction>;
-const demandMap = demandData as Record<string, DemandForecast>;
+const demand = demandData as unknown as DemandData;
 
 export function getDoctors(): Doctor[] {
   return doctors;
@@ -187,8 +201,27 @@ export function getNoShow(id: string): NoShowPrediction | undefined {
   return noShowMap[id];
 }
 
+/** Compute the demand-forecast key for a specialty (mirrors the notebook's
+ *  slugify): lowercase, non-letters → '-', trimmed. e.g. "OB-GYN" → "ob-gyn". */
+export function specialtySlug(specialty: string): string {
+  return specialty
+    .toLowerCase()
+    .replace(/[^a-z]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/** Back-compat lookup by raw key (DD01 alias or a specialty slug). */
 export function getDemand(id: string): DemandForecast | undefined {
-  return demandMap[id];
+  if (id === 'DD01') return demand.DD01;
+  return demand.by_specialty[id];
+}
+
+/** Canonical resolver: a doctor inherits its specialty's pooled forecast.
+ *  Falls back to the GP/DD01 forecast if the specialty has no entry. */
+export function getDemandForDoctor(doctorId: string): DemandForecast | undefined {
+  const doc = getDoctor(doctorId);
+  if (!doc) return undefined;
+  return demand.by_specialty[specialtySlug(doc.specialty)] ?? demand.DD01;
 }
 
 export function getRosterSpecialties(): string[] {

@@ -1,6 +1,6 @@
 'use client';
 
-import { getDemand } from '@/lib/data';
+import { getDemandForDoctor } from '@/lib/data';
 import {
   generateSlotsFor,
   groupSlotsByDay,
@@ -9,6 +9,14 @@ import {
   type SlotLoad,
 } from '@/lib/slot-generator';
 import { usePatientStore } from '@/stores/store-patient';
+
+/** Friendly label for the forecasting model that drove these slots. */
+const MODEL_LABEL: Record<string, string> = {
+  prophet: 'Prophet',
+  lightgbm: 'LightGBM',
+  sarima: 'SARIMA',
+  seasonal_naive: 'โปรไฟล์ตามฤดูกาล',
+};
 
 interface ScheduleSlotGridProps {
   doctorId: string;
@@ -67,13 +75,12 @@ export function ScheduleSlotGrid({ doctorId, now }: ScheduleSlotGridProps) {
   const setSlot = usePatientStore((s) => s.setBookingSlot);
 
   const anchor = now ?? new Date();
-  const slots: Slot[] = (() => {
-    if (doctorId === 'D001') {
-      const forecast = getDemand('DD01');
-      if (forecast) return slotsFromDemandForecast(forecast, anchor);
-    }
-    return generateSlotsFor(doctorId, anchor);
-  })();
+  // Every doctor inherits its specialty's demand forecast; slots are driven by
+  // the real model output when available, else fall back to mock generation.
+  const forecast = getDemandForDoctor(doctorId);
+  const slots: Slot[] = forecast
+    ? slotsFromDemandForecast(forecast, anchor)
+    : generateSlotsFor(doctorId, anchor);
 
   const grouped = groupSlotsByDay(slots);
 
@@ -85,9 +92,9 @@ export function ScheduleSlotGrid({ doctorId, now }: ScheduleSlotGridProps) {
         <LegendDot tier="med" />
         <LegendDot tier="high" />
         <LegendDot tier="unavailable" />
-        {doctorId === 'D001' ? (
+        {forecast ? (
           <span className="ml-auto inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-mint-700">
-            ✨ จากโมเดล Prophet จริง
+            ✨ จากโมเดล {MODEL_LABEL[forecast.winning_model] ?? forecast.winning_model} จริง
           </span>
         ) : null}
       </div>
