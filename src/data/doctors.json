@@ -1,17 +1,754 @@
 [
-  {"id":"D001","name":"นพ. ธนพล ใจกล้า","name_en":"Dr. Tanapol Jaikla","specialty":"General Practice","specialty_th":"เวชศาสตร์ทั่วไป","gender":"M","years":12,"rating":4.7,"price":350,"langs":["th","en"],"avatar":"/avatars/D001.jpg"},
-  {"id":"D002","name":"พญ. สุภาพร ศรีวิไล","name_en":"Dr. Suphaporn Sriwilai","specialty":"Internal Medicine","specialty_th":"อายุรกรรม","gender":"F","years":15,"rating":4.9,"price":500,"langs":["th"],"avatar":"/avatars/D002.jpg"},
-  {"id":"D003","name":"นพ. วรเชษฐ์ พงศ์พิทักษ์","name_en":"Dr. Worachet Pongpitak","specialty":"Cardiology","specialty_th":"โรคหัวใจ","gender":"M","years":20,"rating":4.8,"price":900,"langs":["th","en"],"avatar":"/avatars/D003.jpg"},
-  {"id":"D004","name":"พญ. ปิยะดา แสงทอง","name_en":"Dr. Piyada Sangthong","specialty":"OB-GYN","specialty_th":"สูตินรีเวช","gender":"F","years":11,"rating":4.9,"price":700,"langs":["th","en"],"avatar":"/avatars/D004.jpg"},
-  {"id":"D005","name":"นพ. ณัฐกฤษฎ์ บุญมาก","name_en":"Dr. Natthakrit Boonmak","specialty":"Pediatrics","specialty_th":"กุมารเวช","gender":"M","years":8,"rating":4.8,"price":600,"langs":["th"],"avatar":"/avatars/D005.jpg"},
-  {"id":"D006","name":"พญ. รัตนาพร สิริวัฒน์","name_en":"Dr. Ratanaporn Siriwat","specialty":"Dermatology","specialty_th":"ผิวหนัง","gender":"F","years":10,"rating":4.7,"price":650,"langs":["th","en"],"avatar":"/avatars/D006.jpg"},
-  {"id":"D007","name":"นพ. กิตติพงษ์ สุวรรณคีรี","name_en":"Dr. Kittipong Suwannakiri","specialty":"Orthopedics","specialty_th":"กระดูกและข้อ","gender":"M","years":18,"rating":4.6,"price":800,"langs":["th"],"avatar":"/avatars/D007.jpg"},
-  {"id":"D008","name":"พญ. ธัญลักษณ์ พิทยานนท์","name_en":"Dr. Tanyaluck Pittayanon","specialty":"Psychiatry","specialty_th":"จิตเวช","gender":"F","years":9,"rating":4.9,"price":1000,"langs":["th","en"],"avatar":"/avatars/D008.jpg"},
-  {"id":"D009","name":"นพ. ชนนพัฒน์ เกียรติศักดิ์","name_en":"Dr. Chananaphat Kiattisak","specialty":"Gastroenterology","specialty_th":"ระบบทางเดินอาหาร","gender":"M","years":14,"rating":4.8,"price":750,"langs":["th"],"avatar":"/avatars/D009.jpg"},
-  {"id":"D010","name":"พญ. นรินทร์ แก้วประภา","name_en":"Dr. Narin Kaewprapha","specialty":"Pulmonology","specialty_th":"ระบบทางเดินหายใจ","gender":"F","years":16,"rating":4.7,"price":750,"langs":["th","en"],"avatar":"/avatars/D010.jpg"},
-  {"id":"D011","name":"นพ. ภาณุพงศ์ จันทร์โอภาส","name_en":"Dr. Panupong Chanopas","specialty":"Neurology","specialty_th":"ระบบประสาท","gender":"M","years":17,"rating":4.8,"price":850,"langs":["th","en"],"avatar":"/avatars/D011.jpg"},
-  {"id":"D012","name":"พญ. อรพินท์ บุญพิทักษ์","name_en":"Dr. Orapin Boonpitak","specialty":"Endocrinology","specialty_th":"ต่อมไร้ท่อ","gender":"F","years":13,"rating":4.7,"price":750,"langs":["th"],"avatar":"/avatars/D012.jpg"},
-  {"id":"D013","name":"นพ. ปรเมศวร์ ทองคำสุข","name_en":"Dr. Poramet Thongkhamsuk","specialty":"ENT","specialty_th":"หู คอ จมูก","gender":"M","years":7,"rating":4.6,"price":600,"langs":["th"],"avatar":"/avatars/D013.jpg"},
-  {"id":"D014","name":"พญ. กัญญารัตน์ วัฒนะ","name_en":"Dr. Kanyarat Wattana","specialty":"Allergy & Immunology","specialty_th":"ภูมิแพ้","gender":"F","years":10,"rating":4.8,"price":700,"langs":["th","en"],"avatar":"/avatars/D014.jpg"},
-  {"id":"D015","name":"นพ. ศุภชัย เลิศมงคล","name_en":"Dr. Suphachai Lertmongkol","specialty":"Urology","specialty_th":"ระบบทางเดินปัสสาวะ","gender":"M","years":19,"rating":4.7,"price":850,"langs":["th"],"avatar":"/avatars/D015.jpg"}
+  {
+    "id": "D001",
+    "name": "นพ. ธนพล ใจกล้า",
+    "name_en": "Dr. Tanapol Jaikla",
+    "specialty": "General Practice",
+    "specialty_th": "เวชศาสตร์ทั่วไป",
+    "gender": "M",
+    "years": 12,
+    "rating": 4.7,
+    "price": 350,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D001.jpg",
+    "expertise_tags": [
+      "ปวดศีรษะ",
+      "ไข้",
+      "ปวดท้อง",
+      "หวัด",
+      "ไอ",
+      "ตรวจสุขภาพทั่วไป"
+    ]
+  },
+  {
+    "id": "D002",
+    "name": "พญ. สุภาพร ศรีวิไล",
+    "name_en": "Dr. Suphaporn Sriwilai",
+    "specialty": "Internal Medicine",
+    "specialty_th": "อายุรกรรม",
+    "gender": "F",
+    "years": 15,
+    "rating": 4.9,
+    "price": 500,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D002.jpg",
+    "expertise_tags": [
+      "ความดันโลหิตสูง",
+      "เบาหวาน",
+      "ไขมันในเลือดสูง",
+      "อ่อนเพลียเรื้อรัง",
+      "ตรวจร่างกายผู้ใหญ่"
+    ]
+  },
+  {
+    "id": "D003",
+    "name": "นพ. วรเชษฐ์ พงศ์พิทักษ์",
+    "name_en": "Dr. Worachet Pongpitak",
+    "specialty": "Cardiology",
+    "specialty_th": "โรคหัวใจ",
+    "gender": "M",
+    "years": 20,
+    "rating": 4.8,
+    "price": 900,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D003.jpg",
+    "expertise_tags": [
+      "เจ็บหน้าอก",
+      "ใจสั่น",
+      "หัวใจเต้นผิดจังหวะ",
+      "ความดันสูง",
+      "เหนื่อยง่าย"
+    ]
+  },
+  {
+    "id": "D004",
+    "name": "พญ. ปิยะดา แสงทอง",
+    "name_en": "Dr. Piyada Sangthong",
+    "specialty": "OB-GYN",
+    "specialty_th": "สูตินรีเวช",
+    "gender": "F",
+    "years": 11,
+    "rating": 4.9,
+    "price": 700,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D004.jpg",
+    "expertise_tags": [
+      "ประจำเดือนผิดปกติ",
+      "ตั้งครรภ์",
+      "ตกขาว",
+      "ปวดท้องน้อย",
+      "ตรวจภายใน",
+      "คุมกำเนิด"
+    ]
+  },
+  {
+    "id": "D005",
+    "name": "นพ. ณัฐกฤษฎ์ บุญมาก",
+    "name_en": "Dr. Natthakrit Boonmak",
+    "specialty": "Pediatrics",
+    "specialty_th": "กุมารเวช",
+    "gender": "M",
+    "years": 8,
+    "rating": 4.8,
+    "price": 600,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D005.jpg",
+    "expertise_tags": [
+      "ไข้เด็ก",
+      "ไอเด็ก",
+      "ท้องเสียเด็ก",
+      "ผื่นเด็ก",
+      "วัคซีนเด็ก",
+      "พัฒนาการเด็ก"
+    ]
+  },
+  {
+    "id": "D006",
+    "name": "พญ. รัตนาพร สิริวัฒน์",
+    "name_en": "Dr. Ratanaporn Siriwat",
+    "specialty": "Dermatology",
+    "specialty_th": "ผิวหนัง",
+    "gender": "F",
+    "years": 10,
+    "rating": 4.7,
+    "price": 650,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D006.jpg",
+    "expertise_tags": [
+      "สิว",
+      "ผื่นแพ้",
+      "ผิวหนังอักเสบ",
+      "ฝ้า",
+      "กลาก",
+      "ไฝและขี้แมลงวัน"
+    ]
+  },
+  {
+    "id": "D007",
+    "name": "นพ. กิตติพงษ์ สุวรรณคีรี",
+    "name_en": "Dr. Kittipong Suwannakiri",
+    "specialty": "Orthopedics",
+    "specialty_th": "กระดูกและข้อ",
+    "gender": "M",
+    "years": 18,
+    "rating": 4.6,
+    "price": 800,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D007.jpg",
+    "expertise_tags": [
+      "ปวดหลัง",
+      "ปวดเข่า",
+      "กระดูกหัก",
+      "ข้อเสื่อม",
+      "ปวดคอบ่าไหล่",
+      "เอ็นอักเสบ"
+    ]
+  },
+  {
+    "id": "D008",
+    "name": "พญ. ธัญลักษณ์ พิทยานนท์",
+    "name_en": "Dr. Tanyaluck Pittayanon",
+    "specialty": "Psychiatry",
+    "specialty_th": "จิตเวช",
+    "gender": "F",
+    "years": 9,
+    "rating": 4.9,
+    "price": 1000,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D008.jpg",
+    "expertise_tags": [
+      "นอนไม่หลับ",
+      "ซึมเศร้า",
+      "วิตกกังวล",
+      "แพนิค",
+      "เครียดเรื้อรัง",
+      "สุขภาพจิตวัยรุ่น"
+    ]
+  },
+  {
+    "id": "D009",
+    "name": "นพ. ชนนพัฒน์ เกียรติศักดิ์",
+    "name_en": "Dr. Chananaphat Kiattisak",
+    "specialty": "Gastroenterology",
+    "specialty_th": "ระบบทางเดินอาหาร",
+    "gender": "M",
+    "years": 14,
+    "rating": 4.8,
+    "price": 750,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D009.jpg",
+    "expertise_tags": [
+      "ปวดท้อง",
+      "ท้องเสีย",
+      "กรดไหลย้อน",
+      "ลำไส้แปรปรวน",
+      "ตับอักเสบ",
+      "ส่องกล้องทางเดินอาหาร"
+    ]
+  },
+  {
+    "id": "D010",
+    "name": "พญ. นรินทร์ แก้วประภา",
+    "name_en": "Dr. Narin Kaewprapha",
+    "specialty": "Pulmonology",
+    "specialty_th": "ระบบทางเดินหายใจ",
+    "gender": "F",
+    "years": 16,
+    "rating": 4.7,
+    "price": 750,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D010.jpg",
+    "expertise_tags": [
+      "ไอเรื้อรัง",
+      "หอบหืด",
+      "ปอดอักเสบ",
+      "หายใจลำบาก",
+      "วัณโรค",
+      "ภูมิแพ้ทางเดินหายใจ"
+    ]
+  },
+  {
+    "id": "D011",
+    "name": "นพ. ภาณุพงศ์ จันทร์โอภาส",
+    "name_en": "Dr. Panupong Chanopas",
+    "specialty": "Neurology",
+    "specialty_th": "ระบบประสาท",
+    "gender": "M",
+    "years": 17,
+    "rating": 4.8,
+    "price": 850,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D011.jpg",
+    "expertise_tags": [
+      "ไมเกรน",
+      "ปวดศีรษะรุนแรง",
+      "ชา",
+      "อ่อนแรง",
+      "ลมชัก",
+      "เวียนหัวบ้านหมุน"
+    ]
+  },
+  {
+    "id": "D012",
+    "name": "พญ. อรพินท์ บุญพิทักษ์",
+    "name_en": "Dr. Orapin Boonpitak",
+    "specialty": "Endocrinology",
+    "specialty_th": "ต่อมไร้ท่อ",
+    "gender": "F",
+    "years": 13,
+    "rating": 4.7,
+    "price": 750,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D012.jpg",
+    "expertise_tags": [
+      "เบาหวาน",
+      "ไทรอยด์",
+      "ฮอร์โมน",
+      "น้ำหนักเปลี่ยนแปลงไม่ทราบสาเหตุ",
+      "กระดูกพรุน"
+    ]
+  },
+  {
+    "id": "D013",
+    "name": "นพ. ปรเมศวร์ ทองคำสุข",
+    "name_en": "Dr. Poramet Thongkhamsuk",
+    "specialty": "ENT",
+    "specialty_th": "หู คอ จมูก",
+    "gender": "M",
+    "years": 7,
+    "rating": 4.6,
+    "price": 600,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D013.jpg",
+    "expertise_tags": [
+      "เจ็บคอ",
+      "คัดจมูก",
+      "ไซนัสอักเสบ",
+      "หูอื้อ",
+      "น้ำมูกเรื้อรัง",
+      "นอนกรน"
+    ]
+  },
+  {
+    "id": "D014",
+    "name": "พญ. กัญญารัตน์ วัฒนะ",
+    "name_en": "Dr. Kanyarat Wattana",
+    "specialty": "Allergy & Immunology",
+    "specialty_th": "ภูมิแพ้",
+    "gender": "F",
+    "years": 10,
+    "rating": 4.8,
+    "price": 700,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D014.jpg",
+    "expertise_tags": [
+      "แพ้ฝุ่น",
+      "แพ้อาหาร",
+      "ผื่นภูมิแพ้",
+      "ลมพิษ",
+      "แพ้ยา",
+      "ภูมิคุ้มกันต่ำ"
+    ]
+  },
+  {
+    "id": "D015",
+    "name": "นพ. ศุภชัย เลิศมงคล",
+    "name_en": "Dr. Suphachai Lertmongkol",
+    "specialty": "Urology",
+    "specialty_th": "ระบบทางเดินปัสสาวะ",
+    "gender": "M",
+    "years": 19,
+    "rating": 4.7,
+    "price": 850,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D015.jpg",
+    "expertise_tags": [
+      "ปัสสาวะแสบขัด",
+      "นิ่วในไต",
+      "ต่อมลูกหมาก",
+      "ปัสสาวะเล็ด",
+      "ติดเชื้อทางเดินปัสสาวะ"
+    ]
+  },
+  {
+    "id": "D016",
+    "name": "พญ. มนัสนันท์ ปัญญาดี",
+    "name_en": "Dr. Manatsanan Panyadee",
+    "specialty": "General Practice",
+    "specialty_th": "เวชศาสตร์ทั่วไป",
+    "gender": "F",
+    "years": 6,
+    "rating": 4.6,
+    "price": 400,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D001.jpg",
+    "expertise_tags": [
+      "ไข้",
+      "หวัด",
+      "เจ็บคอ",
+      "ไอ",
+      "ท้องเสีย",
+      "ปวดเมื่อยทั่วไป"
+    ]
+  },
+  {
+    "id": "D017",
+    "name": "นพ. อภิวัฒน์ เกียรติคุณ",
+    "name_en": "Dr. Apiwat Kiatkun",
+    "specialty": "General Practice",
+    "specialty_th": "เวชศาสตร์ทั่วไป",
+    "gender": "M",
+    "years": 9,
+    "rating": 4.7,
+    "price": 380,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D001.jpg",
+    "expertise_tags": [
+      "ปวดศีรษะ",
+      "ปวดเมื่อย",
+      "ตรวจสุขภาพประจำปี",
+      "เครียดจากงาน",
+      "นอนไม่พอ"
+    ]
+  },
+  {
+    "id": "D018",
+    "name": "พญ. ชไมพร อนุรักษ์",
+    "name_en": "Dr. Chamaiporn Anurak",
+    "specialty": "General Practice",
+    "specialty_th": "เวชศาสตร์ทั่วไป",
+    "gender": "F",
+    "years": 11,
+    "rating": 4.8,
+    "price": 450,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D001.jpg",
+    "expertise_tags": [
+      "ตรวจสุขภาพประจำปี",
+      "แนะนำวัคซีน",
+      "ดูแลผู้สูงอายุเบื้องต้น",
+      "ปวดเล็กน้อย"
+    ]
+  },
+  {
+    "id": "D019",
+    "name": "นพ. ธีรภัทร อัศวเสถียร",
+    "name_en": "Dr. Teerapat Asawasathien",
+    "specialty": "Internal Medicine",
+    "specialty_th": "อายุรกรรม",
+    "gender": "M",
+    "years": 13,
+    "rating": 4.7,
+    "price": 550,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D002.jpg",
+    "expertise_tags": [
+      "ความดันโลหิตสูง",
+      "เบาหวาน",
+      "ปวดท้องเรื้อรัง",
+      "ไอเรื้อรัง",
+      "อ่อนเพลีย"
+    ]
+  },
+  {
+    "id": "D020",
+    "name": "พญ. กนกพร พิมพา",
+    "name_en": "Dr. Kanokporn Pimpa",
+    "specialty": "Internal Medicine",
+    "specialty_th": "อายุรกรรม",
+    "gender": "F",
+    "years": 22,
+    "rating": 4.9,
+    "price": 650,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D002.jpg",
+    "expertise_tags": [
+      "โรคเรื้อรังผู้สูงอายุ",
+      "ความดัน",
+      "เบาหวาน",
+      "ไขมัน",
+      "ตรวจร่างกายผู้ใหญ่"
+    ]
+  },
+  {
+    "id": "D021",
+    "name": "นพ. สรวิศ ภานุวงศ์",
+    "name_en": "Dr. Sorawit Panuwong",
+    "specialty": "Cardiology",
+    "specialty_th": "โรคหัวใจ",
+    "gender": "M",
+    "years": 11,
+    "rating": 4.7,
+    "price": 800,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D003.jpg",
+    "expertise_tags": [
+      "ใจสั่น",
+      "แน่นหน้าอก",
+      "เหนื่อยง่ายเวลาออกแรง",
+      "หน้ามืดเป็นลม",
+      "ความดันสูง"
+    ]
+  },
+  {
+    "id": "D022",
+    "name": "พญ. ปัทมาวดี วงศ์ใหญ่",
+    "name_en": "Dr. Pattamawadee Wongyai",
+    "specialty": "Cardiology",
+    "specialty_th": "โรคหัวใจ",
+    "gender": "F",
+    "years": 16,
+    "rating": 4.8,
+    "price": 950,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D003.jpg",
+    "expertise_tags": [
+      "หัวใจวาย",
+      "เจ็บหน้าอกเรื้อรัง",
+      "หัวใจเต้นผิดจังหวะ",
+      "ป้องกันโรคหัวใจ"
+    ]
+  },
+  {
+    "id": "D023",
+    "name": "นพ. ปฐมพงษ์ สุขเจริญ",
+    "name_en": "Dr. Patompong Sukcharoen",
+    "specialty": "Pediatrics",
+    "specialty_th": "กุมารเวช",
+    "gender": "M",
+    "years": 12,
+    "rating": 4.8,
+    "price": 650,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D005.jpg",
+    "expertise_tags": [
+      "ไข้เด็ก",
+      "ผื่นเด็ก",
+      "พัฒนาการเด็ก",
+      "วัคซีนเด็กเล็ก",
+      "ท้องเสียทารก"
+    ]
+  },
+  {
+    "id": "D024",
+    "name": "พญ. พิมพ์ใจ ทรงคุณ",
+    "name_en": "Dr. Pimjai Songkun",
+    "specialty": "Pediatrics",
+    "specialty_th": "กุมารเวช",
+    "gender": "F",
+    "years": 15,
+    "rating": 4.9,
+    "price": 700,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D005.jpg",
+    "expertise_tags": [
+      "ภูมิแพ้เด็ก",
+      "หอบหืดเด็ก",
+      "ลำไส้เด็ก",
+      "โภชนาการเด็ก",
+      "ปัญหานอนของเด็ก"
+    ]
+  },
+  {
+    "id": "D025",
+    "name": "พญ. ฐิติพร แสนใจ",
+    "name_en": "Dr. Thitiporn Saenjai",
+    "specialty": "OB-GYN",
+    "specialty_th": "สูตินรีเวช",
+    "gender": "F",
+    "years": 14,
+    "rating": 4.8,
+    "price": 750,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D004.jpg",
+    "expertise_tags": [
+      "ฝากครรภ์",
+      "ตรวจมะเร็งปากมดลูก",
+      "วัยทอง",
+      "ปวดประจำเดือนรุนแรง",
+      "ตกขาวผิดปกติ"
+    ]
+  },
+  {
+    "id": "D026",
+    "name": "นพ. ณัฐพล ภูริ",
+    "name_en": "Dr. Nattapol Phuri",
+    "specialty": "Dermatology",
+    "specialty_th": "ผิวหนัง",
+    "gender": "M",
+    "years": 8,
+    "rating": 4.7,
+    "price": 600,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D006.jpg",
+    "expertise_tags": [
+      "สิว",
+      "ผมร่วง",
+      "ผื่นคัน",
+      "สะเก็ดเงิน",
+      "โรคผิวหนังจากแสงแดด"
+    ]
+  },
+  {
+    "id": "D027",
+    "name": "นพ. วศิน รัตนกุล",
+    "name_en": "Dr. Wasin Rattanakul",
+    "specialty": "Psychiatry",
+    "specialty_th": "จิตเวช",
+    "gender": "M",
+    "years": 14,
+    "rating": 4.8,
+    "price": 1100,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D008.jpg",
+    "expertise_tags": [
+      "ซึมเศร้า",
+      "ไบโพลาร์",
+      "นอนไม่หลับเรื้อรัง",
+      "ติดสารเสพติด",
+      "ปรึกษาวัยทำงาน"
+    ]
+  },
+  {
+    "id": "D028",
+    "name": "นพ. ชัยพัฒน์ ลีลาวุธ",
+    "name_en": "Dr. Chaiyapat Leelawut",
+    "specialty": "Orthopedics",
+    "specialty_th": "กระดูกและข้อ",
+    "gender": "M",
+    "years": 10,
+    "rating": 4.7,
+    "price": 750,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D007.jpg",
+    "expertise_tags": [
+      "ปวดหลังเรื้อรัง",
+      "หมอนรองกระดูกทับเส้น",
+      "ปวดเข่าจากการวิ่ง",
+      "บาดเจ็บจากกีฬา"
+    ]
+  },
+  {
+    "id": "D029",
+    "name": "พญ. สุพิชญา โชติช่วง",
+    "name_en": "Dr. Supitchaya Chotchuang",
+    "specialty": "Ophthalmology",
+    "specialty_th": "จักษุ",
+    "gender": "F",
+    "years": 12,
+    "rating": 4.8,
+    "price": 700,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D006.jpg",
+    "expertise_tags": [
+      "ตาแห้ง",
+      "ตาแดง",
+      "ปวดตา",
+      "ตามัว",
+      "ต้อกระจก",
+      "ปวดศีรษะจากสายตา"
+    ]
+  },
+  {
+    "id": "D030",
+    "name": "นพ. ภัทรพล วิริยะ",
+    "name_en": "Dr. Pattarapol Wiriya",
+    "specialty": "Family Medicine",
+    "specialty_th": "เวชศาสตร์ครอบครัว",
+    "gender": "M",
+    "years": 17,
+    "rating": 4.7,
+    "price": 500,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D001.jpg",
+    "expertise_tags": [
+      "ดูแลสุขภาพครอบครัว",
+      "ผู้สูงอายุ",
+      "ป้องกันโรคเรื้อรัง",
+      "สุขภาพชายและหญิงทั่วไป"
+    ]
+  },
+  {
+    "id": "D031",
+    "name": "พญ. วรินทร อภิรักษ์",
+    "name_en": "Dr. Warintorn Apirak",
+    "specialty": "Emergency Medicine",
+    "specialty_th": "เวชศาสตร์ฉุกเฉิน",
+    "gender": "F",
+    "years": 9,
+    "rating": 4.7,
+    "price": 650,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D002.jpg",
+    "expertise_tags": [
+      "ปฐมพยาบาล",
+      "อุบัติเหตุ",
+      "บาดแผล",
+      "แมลงสัตว์กัดต่อย",
+      "หมดสติชั่วคราว"
+    ]
+  },
+  {
+    "id": "D032",
+    "name": "นพ. ฉัตรชัย ศักดา",
+    "name_en": "Dr. Chatchai Sakda",
+    "specialty": "Pulmonology",
+    "specialty_th": "ระบบทางเดินหายใจ",
+    "gender": "M",
+    "years": 21,
+    "rating": 4.8,
+    "price": 850,
+    "langs": [
+      "th"
+    ],
+    "avatar": "/avatars/D010.jpg",
+    "expertise_tags": [
+      "ปอดอุดกั้นเรื้อรัง",
+      "ไอเรื้อรังในผู้สูงอายุ",
+      "ปอดอักเสบ",
+      "หยุดหายใจขณะหลับ"
+    ]
+  },
+  {
+    "id": "D033",
+    "name": "พญ. นภาพร เกษมสุข",
+    "name_en": "Dr. Napaporn Kasemsuk",
+    "specialty": "Gastroenterology",
+    "specialty_th": "ระบบทางเดินอาหาร",
+    "gender": "F",
+    "years": 11,
+    "rating": 4.7,
+    "price": 700,
+    "langs": [
+      "th",
+      "en"
+    ],
+    "avatar": "/avatars/D009.jpg",
+    "expertise_tags": [
+      "กรดไหลย้อน",
+      "ลำไส้แปรปรวน",
+      "ตับและถุงน้ำดี",
+      "ท้องผูกเรื้อรัง",
+      "ตรวจคัดกรองมะเร็งลำไส้"
+    ]
+  }
 ]

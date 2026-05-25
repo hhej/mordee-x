@@ -21,6 +21,12 @@ export interface Doctor {
   price: number;
   langs: string[];
   avatar: string;
+  /** Thai keyword tags describing what this doctor commonly treats — feeds the embedding. */
+  expertise_tags?: string[];
+  // Pre-computed Gemini embeddings live in data/doctors_embeddings.json and
+  // are loaded server-side via src/lib/llm/doctor-embeddings.ts. They are
+  // intentionally NOT part of this client-visible interface — bundling them
+  // here would re-add ~1.3 MB to every page's first-load JS.
 }
 
 export interface CheckupProgram {

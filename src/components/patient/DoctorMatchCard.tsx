@@ -1,8 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import { CalendarDays, Sparkles, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DoctorAvatar } from '@/components/shared/DoctorAvatar';
 import type { Doctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
 
@@ -31,13 +31,7 @@ export function DoctorMatchCard({ doctor, reason, highlighted }: DoctorMatchCard
       ) : null}
 
       <div className="flex items-start gap-3">
-        <Image
-          src={doctor.avatar}
-          alt={doctor.name_en}
-          width={56}
-          height={56}
-          className="size-14 rounded-xl object-cover ring-1 ring-line/40"
-        />
+        <DoctorAvatar doctor={doctor} size={56} className="shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold text-ink">{doctor.name}</div>
           <div className="truncate text-[11px] text-muted-foreground">{doctor.name_en}</div>
