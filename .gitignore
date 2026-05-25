@@ -47,3 +47,15 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .python-cache/
+
+# playwright (Phase 6 e2e)
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+tests/e2e/__screenshots__/
+
+# Claude Code local config
+.claude/
+
+# Planning scratch docs (kept local, not part of project history)
+doctor-consult-shell.md
+patient-flow-collapse.md
