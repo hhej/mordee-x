@@ -1,6 +1,8 @@
 'use client';
 
 import { useDoctorStore } from '@/stores/store-doctor';
+import { useSessionAnchor } from '@/lib/use-now';
+import { rebaseAppointments } from '@/lib/appointment-times';
 import type { DemandForecast, DoctorAppointment, NoShowPrediction } from '@/lib/data';
 import { AppointmentsCard } from './AppointmentsCard';
 import { DemandForecastCard } from './DemandForecastCard';
@@ -26,10 +28,17 @@ export function DoctorPageBody({
   const selectedApptId = useDoctorStore((s) => s.selectedApptId);
   const inConsult = selectedApptId !== null;
 
+  // Rebase the static JSON times onto the live wall clock so the queue always
+  // straddles "now" on demo day. `anchor` is null during SSR + first paint
+  // (falls back to JSON times → no hydration mismatch), then fixed thereafter
+  // so the relative-time chips count down without the displayed HH:MM drifting.
+  const anchor = useSessionAnchor();
+  const appts = anchor ? rebaseAppointments(appointments, anchor) : appointments;
+
   if (inConsult) {
     return (
       <ConsultTakeover
-        appointments={appointments}
+        appointments={appts}
         doctorName={doctorName}
         doctorSpecialty={doctorSpecialty}
       />
@@ -38,12 +47,12 @@ export function DoctorPageBody({
 
   return (
     <div className="flex flex-col gap-5">
-      <DemandForecastCard forecast={forecast} />
       <AppointmentsCard
-        appointments={appointments}
+        appointments={appts}
         predictions={predictions}
         doctorId={doctorId}
       />
+      <DemandForecastCard forecast={forecast} />
     </div>
   );
 }

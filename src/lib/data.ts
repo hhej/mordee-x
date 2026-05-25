@@ -76,6 +76,26 @@ export interface DoctorAppointmentCache {
   summary: SummaryResult;
 }
 
+export interface PastConsultMessage {
+  role: 'patient' | 'doctor';
+  content: string;
+}
+
+/** A mock prior visit, shown to the doctor for continuity of care. */
+export interface PastConsult {
+  /** Thai display date, e.g. "12 เม.ย. 2569". */
+  date_label: string;
+  /** Chief complaint that visit. */
+  reason_th: string;
+  doctor_name?: string;
+  specialty_th?: string;
+  /** Diagnosis. */
+  dx_th?: string;
+  /** What was prescribed / advised. */
+  rx_th?: string;
+  transcript: PastConsultMessage[];
+}
+
 export interface DoctorAppointment {
   appt_id: string;
   patient: string;
@@ -84,6 +104,8 @@ export interface DoctorAppointment {
   prediction_id: string;
   profile?: DoctorAppointmentProfile;
   cached?: DoctorAppointmentCache;
+  /** Prior teleconsults for this patient (mock history). Absent/empty → none. */
+  past_consults?: PastConsult[];
 }
 
 export interface DoctorDemo {
