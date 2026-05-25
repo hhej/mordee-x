@@ -22,7 +22,12 @@ function relativeChip(time: string, now: Date): { label: string; tone: 'soon' | 
   const [h, m] = time.split(':').map(Number);
   const appt = new Date(now);
   appt.setHours(h, m, 0, 0);
-  const diffMin = Math.round((appt.getTime() - now.getTime()) / 60_000);
+  let diffMin = Math.round((appt.getTime() - now.getTime()) / 60_000);
+  // The queue only spans a few hours around "now", so if the HH:MM parse landed
+  // on the wrong side of midnight (e.g. 00:15 read as this morning when it's
+  // 23:33 tonight), fold it back into the nearest 24h window.
+  if (diffMin > 720) diffMin -= 1440;
+  else if (diffMin < -720) diffMin += 1440;
   if (diffMin < -5) return { label: `ผ่านไป ${Math.abs(diffMin)} น.`, tone: 'past' };
   if (diffMin <= 0) return { label: 'ถึงเวลาแล้ว', tone: 'soon' };
   if (diffMin <= 30) return { label: `อีก ${diffMin} น.`, tone: 'soon' };

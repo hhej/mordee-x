@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import type { DoctorAppointment } from '@/lib/data';
-import type { SummaryResult } from '@/lib/llm/schemas';
+import type { BriefResult, SummaryResult } from '@/lib/llm/schemas';
 import {
   createAbortable,
   STREAM_TIMEOUT_TH,
@@ -11,7 +11,12 @@ import {
 } from '@/lib/fetch-abort';
 import { apiFetch } from '@/lib/api-client';
 
+// Two independent slots so the brief fetch and the chat stream don't fight:
+// without this, sending a chat message would cancel an in-flight brief
+// (createAbortable's newSignal aborts the prior controller). They get
+// aborted together only on close/reset, never by each other.
 const abortable = createAbortable();
+const briefAbortable = createAbortable();
 
 const DOCTOR_PERSONA_KEY = 'mordeeplus:doctor_persona';
 
@@ -44,6 +49,11 @@ interface DoctorState {
   setDoctorId: (id: string) => void;
   hydrateDoctorId: () => void;
   clearDoctorId: () => void;
+  // Appointments the doctor has fully consulted on (chat → cert → close).
+  // Session-only: cleared on reload, persona switch, or full reset. The
+  // /doctor page filters these out of the visible queue and backfills from
+  // the persona's standby pool.
+  consumedApptIds: Set<string>;
   // The prebaked greeting is a UI artifact only — shown as the first bubble
   // but NOT sent to the chat LLM (Gemini rejects history that starts with
   // assistant). For the summarize transcript we DO include it though, since
@@ -53,6 +63,13 @@ interface DoctorState {
   isStreaming: boolean;
   consultEnded: boolean;
   streamError: string | null;
+
+  // Live brief: filled by /api/brief when the appointment ships without
+  // a pre-baked `cached.brief` (D003/D005 personas). D001 keeps using
+  // its cached brief instantly — fetch is skipped in that case.
+  liveBrief: BriefResult | null;
+  isFetchingBrief: boolean;
+  briefError: string | null;
 
   summary: SummaryResult | null;
   isSummarizing: boolean;
@@ -65,6 +82,7 @@ interface DoctorState {
 
   openAppt: (appt: DoctorAppointment, doctorId: string) => void;
   closeAppt: () => void;
+  fetchLiveBrief: (appt: DoctorAppointment) => Promise<void>;
   sendDoctorMessage: (text: string) => Promise<void>;
   endConsult: () => Promise<void>;
   reset: () => void;
@@ -81,13 +99,22 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
   hydrateDoctorId: () => set({ doctorId: loadDoctorId() }),
   clearDoctorId: () => {
     saveDoctorId('');
-    set({ doctorId: '', selectedApptId: null, appointment: null });
+    set({
+      doctorId: '',
+      selectedApptId: null,
+      appointment: null,
+      consumedApptIds: new Set(),
+    });
   },
+  consumedApptIds: new Set<string>(),
   seededGreeting: null,
   consultMessages: [],
   isStreaming: false,
   consultEnded: false,
   streamError: null,
+  liveBrief: null,
+  isFetchingBrief: false,
+  briefError: null,
   summary: null,
   isSummarizing: false,
   summaryError: null,
@@ -96,6 +123,7 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
   setInputText: (t) => set({ inputText: t }),
 
   openAppt: (appt, doctorId) => {
+    const hasCachedBrief = Boolean(appt.cached?.brief);
     set({
       selectedApptId: appt.appt_id,
       appointment: appt,
@@ -105,15 +133,34 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       isStreaming: false,
       consultEnded: false,
       streamError: null,
+      liveBrief: null,
+      // Skip the fetch entirely for cache-backed personas (D001) so we don't
+      // flash a skeleton; otherwise spinner shows until /api/brief lands.
+      isFetchingBrief: !hasCachedBrief && Boolean(appt.profile),
+      briefError: null,
       summary: null,
       isSummarizing: false,
       summaryError: null,
       inputText: '',
     });
+    if (!hasCachedBrief && appt.profile) {
+      // Fire-and-forget — chat input must stay usable while the brief loads.
+      void get().fetchLiveBrief(appt);
+    }
   },
 
   closeAppt: () => {
     abortable.abort();
+    briefAbortable.abort();
+    // Only the cert-completion path consumes: the [X] in ConsultPanel is
+    // reachable only before consultEnded flips, so an early bail-out does
+    // NOT remove the appt from the queue. Both the sticky-header chevron
+    // and the green "เสร็จสิ้น" button route here after consultEnded=true.
+    const { consultEnded, selectedApptId, consumedApptIds } = get();
+    const nextConsumed =
+      consultEnded && selectedApptId
+        ? new Set([...consumedApptIds, selectedApptId])
+        : consumedApptIds;
     set({
       selectedApptId: null,
       appointment: null,
@@ -122,15 +169,20 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       isStreaming: false,
       consultEnded: false,
       streamError: null,
+      liveBrief: null,
+      isFetchingBrief: false,
+      briefError: null,
       summary: null,
       isSummarizing: false,
       summaryError: null,
       inputText: '',
+      consumedApptIds: nextConsumed,
     });
   },
 
   reset: () => {
     abortable.abort();
+    briefAbortable.abort();
     set({
       selectedApptId: null,
       appointment: null,
@@ -139,11 +191,57 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       isStreaming: false,
       consultEnded: false,
       streamError: null,
+      liveBrief: null,
+      isFetchingBrief: false,
+      briefError: null,
       summary: null,
       isSummarizing: false,
       summaryError: null,
       inputText: '',
+      consumedApptIds: new Set(),
     });
+  },
+
+  fetchLiveBrief: async (appt) => {
+    const profile = appt.profile;
+    if (!profile) {
+      set({ isFetchingBrief: false, briefError: 'ขาดข้อมูลคนไข้' });
+      return;
+    }
+    const apptId = appt.appt_id;
+    const handle = briefAbortable.newSignal(JSON_TIMEOUT_MS);
+    try {
+      const res = await apiFetch('/api/brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patient_name: appt.patient,
+          age: profile.age,
+          gender: profile.gender,
+          symptom_text: appt.symptom,
+          triage: profile.triage,
+          history: profile.history,
+        }),
+        signal: handle.signal,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const brief = (await res.json()) as BriefResult;
+      // Stale-guard: the user may have switched appointments while we awaited.
+      if (get().selectedApptId !== apptId) return;
+      set({ liveBrief: brief, isFetchingBrief: false, briefError: null });
+    } catch (err) {
+      // Whatever happened — abort, timeout, or HTTP error — stop the spinner
+      // if we're still on this appointment. Otherwise (user already switched/
+      // closed) leave state alone; openAppt/closeAppt has reset it.
+      if (get().selectedApptId !== apptId) return;
+      if (handle.isUserAbort()) {
+        set({ isFetchingBrief: false });
+        return;
+      }
+      const isTimeout = err instanceof DOMException;
+      const msg = isTimeout ? STREAM_TIMEOUT_TH : err instanceof Error ? err.message : String(err);
+      set({ isFetchingBrief: false, briefError: msg });
+    }
   },
 
   endConsult: async () => {
@@ -211,7 +309,7 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
   },
 
   sendDoctorMessage: async (text: string) => {
-    const { appointment, doctorId, consultMessages, isStreaming } = get();
+    const { appointment, doctorId, consultMessages, isStreaming, liveBrief } = get();
     if (!appointment || isStreaming || !text.trim()) return;
     const profile = appointment.profile;
     if (!profile) {
@@ -246,7 +344,7 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
           history: profile.history,
           symptom_text: appointment.symptom,
           triage: profile.triage,
-          patient_demo_brief: appointment.cached?.brief.one_liner,
+          patient_demo_brief: (appointment.cached?.brief ?? liveBrief)?.one_liner,
           messages: messagesForApi,
         }),
         signal: handle.signal,

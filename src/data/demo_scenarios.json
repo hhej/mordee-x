@@ -417,6 +417,47 @@
           }
         ]
       }
+    ],
+    "standby_appointments": [
+      {
+        "appt_id": "A004",
+        "patient": "นาย กิตติพงษ์",
+        "time": "15:00",
+        "symptom": "ปวดหัวเรื้อรัง 2 เดือน รับประทานยาแก้ปวดบ่อย",
+        "prediction_id": "NS001",
+        "profile": {
+          "age": 40,
+          "gender": "male",
+          "history": "ทำงานหน้าจอวันละ 10 ชม. ไม่มีโรคประจำตัว",
+          "triage": "yellow"
+        }
+      },
+      {
+        "appt_id": "A005",
+        "patient": "นางสาว พรพิมล",
+        "time": "15:30",
+        "symptom": "ท้องเสียถ่ายเหลว 3 ครั้ง คลื่นไส้",
+        "prediction_id": "NS002",
+        "profile": {
+          "age": 28,
+          "gender": "female",
+          "history": "ไม่มีโรคประจำตัว ทานอาหารริมทางเมื่อเย็นวาน",
+          "triage": "yellow"
+        }
+      },
+      {
+        "appt_id": "A006",
+        "patient": "นาย วิชัย",
+        "time": "16:00",
+        "symptom": "เจ็บคอ ไอ มีไข้ต่ำ ๆ 2 วัน",
+        "prediction_id": "NS003",
+        "profile": {
+          "age": 52,
+          "gender": "male",
+          "history": "เบาหวานชนิดที่ 2 ทาน metformin 500mg วันละ 2 ครั้ง",
+          "triage": "yellow"
+        }
+      }
     ]
   },
   "doctor_demos": {
@@ -547,6 +588,47 @@
             }
           ]
         }
+      ],
+      "standby_appointments": [
+        {
+          "appt_id": "B004",
+          "patient": "นาง ปิยะนุช",
+          "time": "16:00",
+          "symptom": "ปรึกษาผลตรวจไขมันในเลือดสูง อยากปรับยา",
+          "prediction_id": "NS001",
+          "profile": {
+            "age": 50,
+            "gender": "female",
+            "history": "ไขมันในเลือดสูง ไม่ออกกำลังกาย ทาน simvastatin 20mg",
+            "triage": "green"
+          }
+        },
+        {
+          "appt_id": "B005",
+          "patient": "นาย สมพร",
+          "time": "16:30",
+          "symptom": "ใจเต้นแรงตอนกลางคืน ตื่นมานอนไม่หลับ 3 วัน",
+          "prediction_id": "NS002",
+          "profile": {
+            "age": 60,
+            "gender": "male",
+            "history": "ความดันโลหิตสูง คุมได้ระดับหนึ่ง ดื่มกาแฟวันละ 4 แก้ว",
+            "triage": "yellow"
+          }
+        },
+        {
+          "appt_id": "B006",
+          "patient": "นาง รัตนา",
+          "time": "17:00",
+          "symptom": "เจ็บแน่นหน้าอกร้าวไปแขนซ้าย 30 นาที เหงื่อแตก",
+          "prediction_id": "NS003",
+          "profile": {
+            "age": 67,
+            "gender": "female",
+            "history": "เคยใส่ stent หัวใจเมื่อ 3 ปีก่อน ทาน aspirin + clopidogrel",
+            "triage": "red"
+          }
+        }
       ]
     },
     "D005": {
@@ -648,6 +730,47 @@
             "triage": "green"
           },
           "past_consults": []
+        }
+      ],
+      "standby_appointments": [
+        {
+          "appt_id": "C004",
+          "patient": "น้องภูมิ (แม่พามา)",
+          "time": "15:00",
+          "symptom": "ปรึกษาเรื่องการกินยาก น้ำหนักขึ้นช้า 6 เดือน",
+          "prediction_id": "NS001",
+          "profile": {
+            "age": 3,
+            "gender": "male",
+            "history": "พัฒนาการปกติ ฉีดวัคซีนครบตามวัย ไม่มีโรคประจำตัว",
+            "triage": "green"
+          }
+        },
+        {
+          "appt_id": "C005",
+          "patient": "น้องอันนา (พ่อพามา)",
+          "time": "15:30",
+          "symptom": "ท้องเสียถ่ายเหลว 4 ครั้ง อาเจียน 2 ครั้ง ดูซึม ๆ",
+          "prediction_id": "NS002",
+          "profile": {
+            "age": 5,
+            "gender": "female",
+            "history": "ไม่มีโรคประจำตัว ทานอาหารโรงเรียนเมื่อเที่ยงวาน",
+            "triage": "yellow"
+          }
+        },
+        {
+          "appt_id": "C006",
+          "patient": "น้องโชค (แม่พามา)",
+          "time": "16:00",
+          "symptom": "หายใจหอบ มีเสียงหวีด ไข้ 39 องศา 1 วัน",
+          "prediction_id": "NS003",
+          "profile": {
+            "age": 4,
+            "gender": "male",
+            "history": "หอบหืดเป็นครั้งแรก ใช้พ่นยา salbutamol แล้ว 2 ครั้งไม่ดีขึ้น",
+            "triage": "red"
+          }
         }
       ]
     }

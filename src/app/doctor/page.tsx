@@ -7,7 +7,7 @@ import { DoctorPersonaPicker } from '@/components/doctor/DoctorPersonaPicker';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
 import {
-  getDemand,
+  getDemandForDoctor,
   getDoctor,
   getDoctorDemo,
   getNoShow,
@@ -15,8 +15,14 @@ import {
 } from '@/lib/data';
 import { useDoctorStore } from '@/stores/store-doctor';
 
+/** How many rows the doctor sees in the queue at once. The full pool
+ *  (today + standby) is larger; we slice down so finished consults are
+ *  visibly replaced by stand-by patients sliding in. */
+const QUEUE_SIZE = 3;
+
 export default function DoctorPage() {
   const doctorId = useDoctorStore((s) => s.doctorId);
+  const consumedApptIds = useDoctorStore((s) => s.consumedApptIds);
   const hydrate = useDoctorStore((s) => s.hydrateDoctorId);
   const clear = useDoctorStore((s) => s.clearDoctorId);
 
@@ -40,9 +46,9 @@ export default function DoctorPage() {
 
   const doctor = getDoctor(doctorId);
   const demo = getDoctorDemo(doctorId);
-  // Fallback to D001's demand forecast for personas without their own — keeps
-  // the demand-forecast card populated visually even though it's per-D001.
-  const forecast = (demo ? getDemand(demo.id) : null) ?? getDemand('DD01');
+  // Each doctor inherits its specialty's pooled demand forecast (4 GPs share
+  // one GP forecast, etc.); falls back to GP/DD01 only if the specialty is missing.
+  const forecast = getDemandForDoctor(doctorId);
 
   if (!doctor || !demo || !forecast) {
     return (
@@ -61,8 +67,16 @@ export default function DoctorPage() {
     );
   }
 
+  // Visible queue = (today + standby) − already-consulted, capped to QUEUE_SIZE.
+  // When the doctor finishes a consult, closeAppt adds the appt_id to the
+  // consumed set; the next render drops it and the next standby slides in.
+  const pool = [...demo.today_appointments, ...(demo.standby_appointments ?? [])];
+  const visibleAppointments = pool
+    .filter((a) => !consumedApptIds.has(a.appt_id))
+    .slice(0, QUEUE_SIZE);
+
   const predictions: Record<string, NoShowPrediction> = {};
-  for (const appt of demo.today_appointments) {
+  for (const appt of visibleAppointments) {
     const ns = getNoShow(appt.prediction_id);
     if (ns) predictions[appt.prediction_id] = ns;
   }
@@ -84,7 +98,7 @@ export default function DoctorPage() {
           doctorId={doctor.id}
           doctorName={doctor.name}
           doctorSpecialty={doctor.specialty_th}
-          appointments={demo.today_appointments}
+          appointments={visibleAppointments}
           predictions={predictions}
           forecast={forecast}
         />
