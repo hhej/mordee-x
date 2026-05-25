@@ -10,7 +10,7 @@ export default function Home() {
           MorDee+ 🌿
         </div>
         <p className="max-w-xl text-base text-muted-foreground md:text-lg">
-          AI telemedicine · ดูแลสุขภาพ ใกล้แค่ปลายนิ้ว
+          AI Telemedicine · ดูแลสุขภาพ ใกล้แค่ปลายนิ้ว
         </p>
       </div>
 
@@ -34,17 +34,17 @@ export default function Home() {
               </p>
             </div>
 
-            <ul className="mt-8 grid grid-cols-1 gap-2 text-sm text-ink md:grid-cols-3 md:text-base">
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint-600" />
+            <ul className="mt-8 flex flex-col gap-3 text-sm text-ink md:text-base">
+              <li className="flex items-center gap-2.5">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-mint-600" />
                 <span>ประเมินอาการเบื้องต้น · AI triage</span>
               </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint-600" />
-                <span>จองแพทย์ใน 1 นาที</span>
+              <li className="flex items-center gap-2.5">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-mint-600" />
+                <span>จองแพทย์ใน 1 นาที · Book in 60s</span>
               </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint-600" />
+              <li className="flex items-center gap-2.5">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-mint-600" />
                 <span>ใบรับรองแพทย์ + แผนดูแลตัวเอง</span>
               </li>
             </ul>
@@ -56,30 +56,37 @@ export default function Home() {
           </GlassCard>
         </Link>
 
-        {/* Doctor — col-span-1 */}
+        {/* Doctor — col-span-1 — inverted staff variant for visual differentiation */}
         <Link
           href="/doctor"
           className="group"
           aria-label="เข้าใช้งานในฐานะแพทย์"
         >
-          <GlassCard className="flex h-full min-h-[280px] flex-col justify-between p-8 group-hover:-translate-y-1 group-hover:shadow-xl md:min-h-[340px]">
-            <div>
-              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-mint-100 text-mint-700">
+          <div className="relative flex h-full min-h-[280px] flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-mint-700 to-mint-800 p-8 shadow-md ring-1 ring-mint-900/10 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl md:min-h-[340px]">
+            {/* Decorative mint orbs */}
+            <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-mint-400/25 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-mint-300/15 blur-3xl" />
+
+            <div className="relative">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur-sm">
                 <Stethoscope className="h-7 w-7" />
               </div>
-              <h2 className="mb-2 text-xl font-bold text-ink md:text-2xl">
+              <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-mint-50 backdrop-blur-sm">
+                Staff · พนักงาน
+              </div>
+              <h2 className="mb-2 text-xl font-bold text-white md:text-2xl">
                 สำหรับแพทย์
               </h2>
-              <p className="text-sm text-muted-foreground md:text-base">
+              <p className="text-sm text-mint-100/90 md:text-base">
                 Doctor dashboard
               </p>
             </div>
 
-            <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-mint-700 transition-transform group-hover:translate-x-1">
+            <div className="relative mt-6 inline-flex items-center gap-2 text-sm font-semibold text-mint-50 transition-transform group-hover:translate-x-1">
               เข้าสู่ระบบ · Enter
               <ArrowRight className="h-4 w-4" />
             </div>
-          </GlassCard>
+          </div>
         </Link>
       </section>
 
