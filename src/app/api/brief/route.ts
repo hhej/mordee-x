@@ -3,6 +3,8 @@ import { BriefRequestSchema } from '@/lib/llm/schemas';
 import { runBrief } from '@/lib/llm/graphs/brief';
 import { mockBrief } from '@/lib/mocks';
 
+export const maxDuration = 45;
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const parsed = BriefRequestSchema.safeParse(body);

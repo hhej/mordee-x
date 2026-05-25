@@ -1,6 +1,6 @@
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
-import { chatModel, embedModel } from '@/lib/llm/client';
+import { chatModel, embedModel, llmTimeoutSignal } from '@/lib/llm/client';
 import { SYSTEM_BRIEF } from '@/lib/llm/prompts';
 import { BriefSchema, type BriefResult } from '@/lib/llm/schemas';
 import { topK, type RagHit } from '@/lib/rag';
@@ -51,10 +51,10 @@ async function generateNode(state: typeof BriefState.State) {
     'Generate the pre-consult brief as JSON.',
   ].join('\n');
 
-  const brief = (await structured.invoke([
-    new SystemMessage(SYSTEM_BRIEF),
-    new HumanMessage(userMessage),
-  ])) as BriefResult;
+  const brief = (await structured.invoke(
+    [new SystemMessage(SYSTEM_BRIEF), new HumanMessage(userMessage)],
+    { signal: llmTimeoutSignal() },
+  )) as BriefResult;
   return { brief };
 }
 

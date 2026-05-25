@@ -1,6 +1,6 @@
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
-import { chatModel, embedModel } from '@/lib/llm/client';
+import { chatModel, embedModel, llmTimeoutSignal } from '@/lib/llm/client';
 import { SYSTEM_CHECKUP } from '@/lib/llm/prompts';
 import { CheckupRecommendationSchema, type CheckupResult } from '@/lib/llm/schemas';
 import { getCheckupPrograms, getCheckupProgram, type CheckupProgram } from '@/lib/data';
@@ -113,10 +113,10 @@ async function recommendNode(state: typeof CheckupGraphState.State) {
 
   const llm = chatModel({ temperature: 0.3 });
   const structured = llm.withStructuredOutput(CheckupRecommendationSchema);
-  const recommendation = (await structured.invoke([
-    new SystemMessage(SYSTEM_CHECKUP),
-    new HumanMessage(userMessage),
-  ])) as CheckupResult;
+  const recommendation = (await structured.invoke(
+    [new SystemMessage(SYSTEM_CHECKUP), new HumanMessage(userMessage)],
+    { signal: llmTimeoutSignal() },
+  )) as CheckupResult;
 
   // The pick must be one of the retrieved candidates; otherwise fall back to the
   // top similarity hit (belt-and-suspenders, mirrors the triage validator).

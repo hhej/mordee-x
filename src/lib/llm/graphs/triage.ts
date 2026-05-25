@@ -1,6 +1,6 @@
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
-import { chatModel, embedModel } from '@/lib/llm/client';
+import { chatModel, embedModel, llmTimeoutSignal } from '@/lib/llm/client';
 import { SYSTEM_TRIAGE } from '@/lib/llm/prompts';
 import { TriageSchema, type TriageResult } from '@/lib/llm/schemas';
 import { topK, type RagHit } from '@/lib/rag';
@@ -59,10 +59,10 @@ async function classifyNode(state: typeof TriageState.State) {
     'Classify and respond as JSON per the schema.',
   ].join('\n');
 
-  const llmTriage = (await structured.invoke([
-    new SystemMessage(SYSTEM_TRIAGE),
-    new HumanMessage(userMessage),
-  ])) as TriageResult;
+  const llmTriage = (await structured.invoke(
+    [new SystemMessage(SYSTEM_TRIAGE), new HumanMessage(userMessage)],
+    { signal: llmTimeoutSignal() },
+  )) as TriageResult;
 
   const sources =
     llmTriage.sources && llmTriage.sources.length > 0

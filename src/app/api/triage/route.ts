@@ -3,6 +3,8 @@ import { TriageRequestSchema } from '@/lib/llm/schemas';
 import { runTriage } from '@/lib/llm/graphs/triage';
 import { mockTriage } from '@/lib/mocks';
 
+export const maxDuration = 45;
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const parsed = TriageRequestSchema.safeParse(body);

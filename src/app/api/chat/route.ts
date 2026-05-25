@@ -3,6 +3,8 @@ import { ChatRequestSchema } from '@/lib/llm/schemas';
 import { streamChat } from '@/lib/llm/graphs/chat';
 import { mockChat } from '@/lib/mocks';
 
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const parsed = ChatRequestSchema.safeParse(body);

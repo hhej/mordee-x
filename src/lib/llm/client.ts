@@ -5,6 +5,17 @@ if (!apiKey) {
   console.warn('[mordee] GOOGLE_API_KEY not set — LLM calls will fail.');
 }
 
+// Hard per-call ceiling for a single LLM invocation. LangChain's
+// withStructuredOutput silently retries on schema-validation failures; without
+// an AbortSignal a Gemini hiccup can spiral into 30s+ of retries. 35s leaves
+// headroom under the route-level maxDuration (45s).
+export const LLM_TIMEOUT_MS = 35_000;
+
+/** AbortSignal that fires after LLM_TIMEOUT_MS — pass into `.invoke(msgs, { signal })`. */
+export function llmTimeoutSignal(): AbortSignal {
+  return AbortSignal.timeout(LLM_TIMEOUT_MS);
+}
+
 export function chatModel(opts: { temperature?: number } = {}) {
   return new ChatGoogleGenerativeAI({
     apiKey: apiKey ?? '',

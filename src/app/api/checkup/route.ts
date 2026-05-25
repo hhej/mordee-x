@@ -3,6 +3,8 @@ import { CheckupRequestSchema } from '@/lib/llm/schemas';
 import { runCheckup } from '@/lib/llm/graphs/checkup';
 import { mockCheckup } from '@/lib/mocks';
 
+export const maxDuration = 45;
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const parsed = CheckupRequestSchema.safeParse(body);

@@ -3,6 +3,8 @@ import { SummarizeRequestSchema } from '@/lib/llm/schemas';
 import { runSummarize } from '@/lib/llm/graphs/summarize';
 import { mockSummarize } from '@/lib/mocks';
 
+export const maxDuration = 45;
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const parsed = SummarizeRequestSchema.safeParse(body);
