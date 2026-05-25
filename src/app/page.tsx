@@ -37,7 +37,7 @@ export default function Home() {
             <ul className="mt-8 grid grid-cols-1 gap-2 text-sm text-ink md:grid-cols-3 md:text-base">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint-600" />
-                <span>🟢🟡🔴 ประเมินอาการเบื้องต้น</span>
+                <span>ประเมินอาการเบื้องต้น · AI triage</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint-600" />

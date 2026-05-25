@@ -22,7 +22,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-function hashDoctorId(id: string): number {
+export function hashDoctorId(id: string): number {
   let h = 2166136261;
   for (let i = 0; i < id.length; i++) {
     h = Math.imul(h ^ id.charCodeAt(i), 16777619);

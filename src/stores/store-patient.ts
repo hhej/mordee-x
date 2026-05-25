@@ -43,6 +43,7 @@ export type PatientStep =
   | 'scheduledConfirmed';
 
 const PERSONA_STORAGE_KEY = 'mordeeplus:patient_persona';
+const PERSONA_PICKED_KEY = 'mordeeplus:patient_persona_picked';
 export const DEFAULT_PERSONA: PatientPersona = {
   name: 'คุณสมชาย',
   age: 28,
@@ -54,6 +55,57 @@ export const DEFAULT_PERSONA: PatientPersona = {
   heightCm: null,
   bloodType: 'unknown',
 };
+
+/** Three fresh personas surfaced by PatientPersonaPicker. Separate from
+ *  demo_scenarios.json's scripted symptom cases — those remain a "load demo
+ *  case" affordance after persona selection. */
+export const PATIENT_PERSONA_PRESETS: ReadonlyArray<{ id: string; persona: PatientPersona; label_en: string }> = [
+  {
+    id: 'pp-1',
+    label_en: 'Working adult',
+    persona: {
+      name: 'คุณสมชาย ทองดี',
+      age: 42,
+      gender: 'M',
+      conditions: ['ความดันโลหิตสูง'],
+      allergies: [],
+      medications: 'amlodipine 5 mg วันละครั้ง',
+      weightKg: 78,
+      heightCm: 172,
+      bloodType: 'O+',
+    },
+  },
+  {
+    id: 'pp-2',
+    label_en: 'Young allergic',
+    persona: {
+      name: 'คุณมาลี สุขใจ',
+      age: 29,
+      gender: 'F',
+      conditions: ['ภูมิแพ้อากาศ'],
+      allergies: ['ฝุ่น', 'ขนสัตว์'],
+      medications: '',
+      weightKg: 54,
+      heightCm: 162,
+      bloodType: 'A+',
+    },
+  },
+  {
+    id: 'pp-3',
+    label_en: 'Child (parent-assisted)',
+    persona: {
+      name: 'น้องมิน (พ่อ-แม่พา)',
+      age: 6,
+      gender: 'F',
+      conditions: [],
+      allergies: [],
+      medications: '',
+      weightKg: 20,
+      heightCm: 115,
+      bloodType: 'unknown',
+    },
+  },
+];
 
 function loadPersona(): PatientPersona {
   if (typeof window === 'undefined') return DEFAULT_PERSONA;
@@ -132,9 +184,37 @@ function savePersona(p: PatientPersona): void {
   }
 }
 
+function loadPersonaPicked(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(PERSONA_PICKED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function savePersonaPicked(value: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (value) window.localStorage.setItem(PERSONA_PICKED_KEY, '1');
+    else window.localStorage.removeItem(PERSONA_PICKED_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 interface PatientState {
   persona: PatientPersona;
+  /** True once the persona picker has been used in this browser; gates the
+   *  /patient page so first-time visitors see the picker, not the symptom UI. */
+  personaPicked: boolean;
   setPersona: (p: Partial<PatientPersona>) => void;
+  /** Replace the entire persona (used by the picker presets) and flip
+   *  personaPicked = true. */
+  pickPersona: (p: PatientPersona) => void;
+  /** Drop the picked-state so the picker shows again — invoked from the
+   *  "เปลี่ยนบัญชี" header link. */
+  clearPersona: () => void;
   hydratePersona: () => void;
 
   step: PatientStep;
@@ -196,12 +276,22 @@ interface PatientState {
 
 export const usePatientStore = create<PatientState>((set, get) => ({
   persona: DEFAULT_PERSONA,
+  personaPicked: false,
   setPersona: (p) => {
     const next = { ...get().persona, ...p };
     savePersona(next);
     set({ persona: next });
   },
-  hydratePersona: () => set({ persona: loadPersona() }),
+  pickPersona: (p) => {
+    savePersona(p);
+    savePersonaPicked(true);
+    set({ persona: p, personaPicked: true });
+  },
+  clearPersona: () => {
+    savePersonaPicked(false);
+    set({ personaPicked: false });
+  },
+  hydratePersona: () => set({ persona: loadPersona(), personaPicked: loadPersonaPicked() }),
 
   step: 'symptom',
 
@@ -526,12 +616,15 @@ type SetFn = (
     | ((s: PatientState) => Partial<PatientState>),
 ) => void;
 
+// Consume /api/match SSE: each doctor frame appends to `matched` so the UI
+// paints the first card the instant Gemini returns it, instead of waiting for
+// the slowest of three parallel reasoning calls.
 async function runMatch(
   set: SetFn,
   symptomText: string,
   specialtyHint: string,
 ): Promise<void> {
-  const handle = abortable.newSignal(JSON_TIMEOUT_MS);
+  const handle = abortable.newSignal(STREAM_TIMEOUT_MS);
   try {
     const res = await apiFetch('/api/match', {
       method: 'POST',
@@ -539,9 +632,40 @@ async function runMatch(
       body: JSON.stringify({ symptom_text: symptomText, specialty_hint: specialtyHint }),
       signal: handle.signal,
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const body = (await res.json()) as { ranked: RankedDoctor[] };
-    set({ matched: body.ranked, isMatching: false });
+    if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+
+    set({ matched: [] });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let streamError: string | null = null;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const frames = buffer.split('\n\n');
+      buffer = frames.pop() ?? '';
+      for (const frame of frames) {
+        const trimmed = frame.trim();
+        if (!trimmed.startsWith('data:')) continue;
+        const payload = trimmed.slice(5).trim();
+        if (!payload) continue;
+        let event: { type: string; data?: unknown };
+        try {
+          event = JSON.parse(payload);
+        } catch {
+          continue;
+        }
+        if (event.type === 'doctor' && event.data) {
+          const ranked = event.data as RankedDoctor;
+          set((state) => ({ matched: [...state.matched, ranked] }));
+        } else if (event.type === 'error') {
+          const data = event.data as { message?: string } | undefined;
+          streamError = data?.message ?? 'Match stream error';
+        }
+      }
+    }
+    set({ isMatching: false, matchError: streamError });
   } catch (err) {
     if (handle.isUserAbort()) {
       set({ isMatching: false });

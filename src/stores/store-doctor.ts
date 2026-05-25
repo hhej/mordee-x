@@ -13,12 +13,37 @@ import { apiFetch } from '@/lib/api-client';
 
 const abortable = createAbortable();
 
+const DOCTOR_PERSONA_KEY = 'mordeeplus:doctor_persona';
+
+function loadDoctorId(): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    return window.localStorage.getItem(DOCTOR_PERSONA_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function saveDoctorId(id: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(DOCTOR_PERSONA_KEY, id);
+  } catch {
+    // localStorage may be unavailable (private mode, quota); ignore.
+  }
+}
+
 export type ChatMsg = { id: string; role: 'user' | 'assistant'; content: string };
 
 interface DoctorState {
   selectedApptId: string | null;
   appointment: DoctorAppointment | null;
+  /** Empty string until the persona picker selects one; the /doctor page
+   *  gates rendering on this so action methods never run without a doctor. */
   doctorId: string;
+  setDoctorId: (id: string) => void;
+  hydrateDoctorId: () => void;
+  clearDoctorId: () => void;
   // The prebaked greeting is a UI artifact only — shown as the first bubble
   // but NOT sent to the chat LLM (Gemini rejects history that starts with
   // assistant). For the summarize transcript we DO include it though, since
@@ -48,7 +73,16 @@ interface DoctorState {
 export const useDoctorStore = create<DoctorState>((set, get) => ({
   selectedApptId: null,
   appointment: null,
-  doctorId: 'D001',
+  doctorId: '',
+  setDoctorId: (id) => {
+    saveDoctorId(id);
+    set({ doctorId: id });
+  },
+  hydrateDoctorId: () => set({ doctorId: loadDoctorId() }),
+  clearDoctorId: () => {
+    saveDoctorId('');
+    set({ doctorId: '', selectedApptId: null, appointment: null });
+  },
   seededGreeting: null,
   consultMessages: [],
   isStreaming: false,

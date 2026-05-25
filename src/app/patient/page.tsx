@@ -18,6 +18,9 @@ import { FollowupCallout } from '@/components/patient/FollowupCallout';
 import { CheckupUpsell } from '@/components/patient/CheckupUpsell';
 import { ScheduledConfirmationCard } from '@/components/patient/ScheduledConfirmationCard';
 import { StepPill } from '@/components/patient/StepPill';
+import { PatientPersonaPicker } from '@/components/patient/PatientPersonaPicker';
+import { Button } from '@/components/ui/button';
+import { RotateCcw } from 'lucide-react';
 import { getDoctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
 import type { TriageResult } from '@/lib/llm/schemas';
@@ -58,6 +61,8 @@ function formatSlotShort(iso: string): string {
 
 export default function PatientPage() {
   const persona = usePatientStore((s) => s.persona);
+  const personaPicked = usePatientStore((s) => s.personaPicked);
+  const clearPersona = usePatientStore((s) => s.clearPersona);
   const hydratePersona = usePatientStore((s) => s.hydratePersona);
   const step = usePatientStore((s) => s.step);
   const triage = usePatientStore((s) => s.triage);
@@ -88,6 +93,17 @@ export default function PatientPage() {
     }
   }, [consultEnded]);
 
+  if (!personaPicked) {
+    return (
+      <>
+        <RoleHeader title="ผู้ป่วย · Patient" subtitle="กรุณาเลือกบทบาทก่อนเริ่ม" />
+        <main className="mx-auto w-full max-w-6xl flex-1">
+          <PatientPersonaPicker />
+        </main>
+      </>
+    );
+  }
+
   const selectedDoctor = selectedDoctorId ? getDoctor(selectedDoctorId) : undefined;
   const trimmedSymptom = symptomText.trim();
   const showSymptomPill = step !== 'symptom' && trimmedSymptom.length > 0;
@@ -105,6 +121,10 @@ export default function PatientPage() {
         actions={
           <>
             <PatientPersonaPopover />
+            <Button size="sm" variant="ghost" onClick={clearPersona} title="เปลี่ยนบทบาท">
+              <RotateCcw className="size-3.5" />
+              เปลี่ยนบทบาท
+            </Button>
             <ResetButton />
           </>
         }

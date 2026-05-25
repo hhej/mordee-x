@@ -94,7 +94,11 @@ export interface DoctorDemo {
 
 export interface DemoScenarios {
   patient_demos: PatientDemo[];
+  /** Legacy single-doctor demo (D001, fully pre-cached). Kept for back-compat. */
   doctor_demo: DoctorDemo;
+  /** Additional doctor demos keyed by doctor_id, used by the persona picker.
+   *  These are minimal (no `cached` blocks) — consult goes live via LLM. */
+  doctor_demos?: Record<string, DoctorDemo>;
 }
 
 export interface NoShowPrediction {
@@ -136,6 +140,22 @@ export function getHospitals(): Hospital[] {
 export function getDemoScenarios(): DemoScenarios {
   return demoScenarios;
 }
+
+/** Look up the demo (today's appointments + ML predictions key) for a given
+ *  logged-in doctor. Falls through `doctor_demos` map first, then the legacy
+ *  D001 entry. Returns undefined for doctors with no demo data. */
+export function getDoctorDemo(doctorId: string): DoctorDemo | undefined {
+  if (demoScenarios.doctor_demos && demoScenarios.doctor_demos[doctorId]) {
+    return demoScenarios.doctor_demos[doctorId];
+  }
+  if (demoScenarios.doctor_demo.doctor_id === doctorId) {
+    return demoScenarios.doctor_demo;
+  }
+  return undefined;
+}
+
+/** Doctor IDs that have an interactive demo queue — used by the persona picker. */
+export const DOCTOR_PERSONA_IDS = ['D001', 'D003', 'D005'] as const;
 
 export function getPatientDemo(id: string): PatientDemo | undefined {
   return demoScenarios.patient_demos.find((p) => p.id === id);

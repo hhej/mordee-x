@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
+import { LiveClock } from "./LiveClock";
 
 type RoleHeaderProps = {
   title: string;
@@ -20,6 +21,7 @@ export function RoleHeader({ title, subtitle, actions }: RoleHeaderProps) {
         <span>MorDee+ 🌿</span>
       </Link>
       <div className="flex items-center gap-3">
+        <LiveClock />
         {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
         <div className="text-right">
           <div className="text-sm font-semibold text-ink md:text-base">
