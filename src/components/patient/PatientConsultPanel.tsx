@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Loader2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { ChatStream } from '@/components/shared/ChatStream';
+import { DoctorAvatar } from '@/components/shared/DoctorAvatar';
 import { getDoctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
 
@@ -68,13 +68,7 @@ export function PatientConsultPanel() {
               <h2 className="text-base font-semibold text-ink md:text-lg">ห้องปรึกษา</h2>
             </div>
             <div className="flex items-center gap-2">
-              <Image
-                src={doctor.avatar}
-                alt={doctor.name_en}
-                width={28}
-                height={28}
-                className="size-7 rounded-full object-cover ring-1 ring-line/40"
-              />
+              <DoctorAvatar doctor={doctor} size={28} className="rounded-full" />
               <div className="text-right">
                 <div className="text-xs font-medium text-ink">{doctor.name}</div>
                 <div className="text-[10px] text-muted-foreground">{doctor.specialty_th}</div>

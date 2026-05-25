@@ -12,6 +12,10 @@ import { usePatientStore } from '@/stores/store-patient';
 
 interface ScheduleSlotGridProps {
   doctorId: string;
+  /** "Now" anchor — pass a Date that's refreshed when the booking modal opens
+   *  so a slot picked at 14:30 doesn't show '14:00 today' as still available
+   *  even if the dialog stays mounted across day boundaries. */
+  now?: Date;
 }
 
 const LOAD_STYLES: Record<SlotLoad, { dot: string; chip: string; label: string }> = {
@@ -58,16 +62,17 @@ function thaiHourLabel(iso: string): string {
   return `${d.getHours().toString().padStart(2, '0')}:00`;
 }
 
-export function ScheduleSlotGrid({ doctorId }: ScheduleSlotGridProps) {
+export function ScheduleSlotGrid({ doctorId, now }: ScheduleSlotGridProps) {
   const selected = usePatientStore((s) => s.bookingSlot);
   const setSlot = usePatientStore((s) => s.setBookingSlot);
 
+  const anchor = now ?? new Date();
   const slots: Slot[] = (() => {
     if (doctorId === 'D001') {
       const forecast = getDemand('DD01');
-      if (forecast) return slotsFromDemandForecast(forecast);
+      if (forecast) return slotsFromDemandForecast(forecast, anchor);
     }
-    return generateSlotsFor(doctorId);
+    return generateSlotsFor(doctorId, anchor);
   })();
 
   const grouped = groupSlotsByDay(slots);

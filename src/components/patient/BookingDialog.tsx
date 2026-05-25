@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { CalendarClock, Clock4 } from 'lucide-react';
 import {
   Dialog,
@@ -12,11 +11,15 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { DoctorAvatar } from '@/components/shared/DoctorAvatar';
 import { getDoctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
 import { INSTANT_CONSULT_WAIT_EN, INSTANT_CONSULT_WAIT_TH } from '@/lib/constants';
 import { ScheduleSlotGrid } from './ScheduleSlotGrid';
 
+// Radix Dialog mounts its children only while `open` is true, so the slot grid
+// gets a fresh `new Date()` anchor each time the user reopens the dialog — no
+// separate "anchor" state is needed.
 export function BookingDialog() {
   const open = usePatientStore((s) => s.bookingOpen);
   const doctorId = usePatientStore((s) => s.selectedDoctorId);
@@ -46,13 +49,7 @@ export function BookingDialog() {
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <Image
-              src={doctor.avatar}
-              alt={doctor.name_en}
-              width={36}
-              height={36}
-              className="size-9 rounded-full object-cover ring-1 ring-line/40"
-            />
+            <DoctorAvatar doctor={doctor} size={36} className="rounded-full" />
             <div>
               <div>จองคิว · Book · {doctor.name}</div>
               <div className="text-[11px] font-normal text-muted-foreground">

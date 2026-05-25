@@ -51,6 +51,15 @@ export function SymptomChat() {
         <span className="text-xs text-muted-foreground">· How are you feeling?</span>
       </div>
 
+      <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+        เล่าอาการทั้งหมดให้ละเอียดในข้อความเดียว — มีอาการอะไรบ้าง เป็นมานานแค่ไหน รุนแรงระดับใด
+        และมีโรคประจำตัวหรือยาที่ใช้อยู่หรือไม่ เพื่อให้ AI สรุปและแนะนำขั้นตอนถัดไปได้แม่นยำ
+        <span className="mt-0.5 block text-muted-foreground/70">
+          · Tell us everything in one message — symptoms, how long, how severe, plus any conditions
+          or medications — so our AI can summarize it and guide your next step.
+        </span>
+      </p>
+
       <div className="mb-3 flex flex-wrap gap-2">
         {CHIPS.map((c) => (
           <button
@@ -84,7 +93,7 @@ export function SymptomChat() {
           }}
           rows={3}
           disabled={disabled}
-          placeholder="พิมพ์อาการของคุณ... เช่น ปวดหัวมา 2 วัน คลื่นไส้ มีไข้เล็กน้อย"
+          placeholder="พิมพ์อาการทั้งหมดให้ละเอียด... เช่น ปวดหัวตุบ ๆ มา 2 วัน คลื่นไส้ มีไข้ต่ำ ๆ กินยาพาราแล้วไม่ดีขึ้น มีโรคประจำตัวความดัน"
           className="w-full resize-none rounded-xl border border-line/70 bg-white/80 px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 disabled:opacity-60"
         />
       </div>

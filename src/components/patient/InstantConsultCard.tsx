@@ -16,6 +16,7 @@ function topRated(): Doctor[] {
 export function InstantConsultCard() {
   const bypass = usePatientStore((s) => s.bypassToDoctorList);
   const featured = topRated();
+  const doctorCount = getDoctors().length;
 
   return (
     <GlassCard className="flex h-full flex-col border border-mint-300/60 bg-gradient-to-br from-mint-50/80 via-white/70 to-mint-100/40">
@@ -30,7 +31,7 @@ export function InstantConsultCard() {
       </div>
 
       <p className="mb-3 text-xs text-ink/80">
-        ข้ามขั้นตอนประเมินอาการ เลือกแพทย์จาก 15 ท่าน เริ่มแชทใน 3 นาที
+        ข้ามขั้นตอนประเมินอาการ เลือกแพทย์จาก {doctorCount} ท่าน เริ่มแชทใน 3 นาที
       </p>
 
       <div className="mb-4 grid gap-2 md:grid-cols-3">

@@ -129,18 +129,22 @@ body {
   }
 }
 
-/* Print-only: when the user clicks Print on the cert, hide everything
-   except the certificate frame so the browser's Save-as-PDF flow gives
-   a clean single-page cert. */
+/* Print-only: hide app chrome so the browser's Save-as-PDF flow gives a clean
+   single-page printout. Both the medical certificate and the self-care plan
+   use this pattern — only one is mounted at a time (different Tab content),
+   so the union selector here is safe. */
 @media print {
   body * {
     visibility: hidden;
   }
   #cert-print-area,
-  #cert-print-area * {
+  #cert-print-area *,
+  #care-print-area,
+  #care-print-area * {
     visibility: visible;
   }
-  #cert-print-area {
+  #cert-print-area,
+  #care-print-area {
     position: absolute;
     top: 0;
     left: 0;

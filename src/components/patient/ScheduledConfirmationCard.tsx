@@ -1,15 +1,32 @@
 'use client';
 
-import Image from 'next/image';
-import { BellRing, CalendarCheck2, RotateCcw } from 'lucide-react';
+import { BellRing, CalendarCheck2, RotateCcw, Clock4 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/shared/GlassCard';
+import { DoctorAvatar } from '@/components/shared/DoctorAvatar';
+import { useNow } from '@/lib/use-now';
 import type { Doctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
 
 interface ScheduledConfirmationCardProps {
   doctor: Doctor;
   slotIso: string;
+}
+
+function formatCountdown(slot: Date, now: Date): string {
+  const diffMs = slot.getTime() - now.getTime();
+  const past = diffMs < 0;
+  const totalMin = Math.round(Math.abs(diffMs) / 60_000);
+  const days = Math.floor(totalMin / (60 * 24));
+  const hours = Math.floor((totalMin - days * 60 * 24) / 60);
+  const minutes = totalMin % 60;
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days} วัน`);
+  if (hours > 0) parts.push(`${hours} ชั่วโมง`);
+  if (days === 0 && minutes > 0) parts.push(`${minutes} นาที`);
+  if (parts.length === 0) parts.push('ไม่ถึงนาที');
+  const body = parts.join(' ');
+  return past ? `เลยเวลานัด ${body} แล้ว` : `อีก ${body}`;
 }
 
 export function ScheduledConfirmationCard({ doctor, slotIso }: ScheduledConfirmationCardProps) {
@@ -22,6 +39,12 @@ export function ScheduledConfirmationCard({ doctor, slotIso }: ScheduledConfirma
     hour: '2-digit',
     minute: '2-digit',
   });
+
+  // Live countdown — refresh every 30s. 30s is fine because the smallest unit
+  // we render is minutes; sub-minute precision would just churn React.
+  const now = useNow();
+  const countdown = now ? formatCountdown(slotDate, now) : null;
+  const isPast = now ? slotDate.getTime() < now.getTime() : false;
 
   return (
     <GlassCard className="border border-mint-300/60 bg-gradient-to-br from-mint-50/80 via-white/70 to-mint-100/40">
@@ -36,13 +59,7 @@ export function ScheduledConfirmationCard({ doctor, slotIso }: ScheduledConfirma
       </div>
 
       <div className="mb-4 flex items-center gap-3 rounded-xl border border-line/60 bg-white/70 p-3">
-        <Image
-          src={doctor.avatar}
-          alt={doctor.name_en}
-          width={48}
-          height={48}
-          className="size-12 rounded-xl object-cover ring-1 ring-line/40"
-        />
+        <DoctorAvatar doctor={doctor} size={48} />
         <div className="flex-1">
           <div className="text-sm font-medium text-ink">{doctor.name}</div>
           <div className="text-[11px] text-muted-foreground">{doctor.specialty_th}</div>
@@ -52,6 +69,16 @@ export function ScheduledConfirmationCard({ doctor, slotIso }: ScheduledConfirma
       <div className="mb-4 rounded-xl bg-mint-50/70 px-4 py-3 ring-1 ring-mint-200/60">
         <div className="text-[11px] uppercase tracking-wide text-mint-700">เวลานัด · Appointment</div>
         <div className="mt-0.5 text-base font-semibold text-mint-900">{slotLabel}</div>
+        {countdown ? (
+          <div
+            className={`mt-1 inline-flex items-center gap-1 text-[11px] tabular-nums ${
+              isPast ? 'text-amber-700' : 'text-mint-700'
+            }`}
+          >
+            <Clock4 className="size-3" />
+            {countdown}
+          </div>
+        ) : null}
       </div>
 
       <div className="mb-4 flex items-start gap-2 rounded-md bg-white/60 px-3 py-2 text-[12px] text-ink/80 ring-1 ring-line/40">

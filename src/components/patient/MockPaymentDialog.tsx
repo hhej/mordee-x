@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, CreditCard, Loader2 } from 'lucide-react';
 import {
@@ -12,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { DoctorAvatar } from '@/components/shared/DoctorAvatar';
 import { getDoctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
 import { INSTANT_CONSULT_WAIT_TH } from '@/lib/constants';
@@ -61,13 +61,7 @@ export function MockPaymentDialog() {
         <div className="relative">
           <div className="space-y-3">
             <div className="flex items-center gap-3 rounded-xl border border-line/60 bg-white/70 p-3">
-              <Image
-                src={doctor.avatar}
-                alt={`รูปคุณหมอ ${doctor.name_en}`}
-                width={48}
-                height={48}
-                className="size-12 rounded-xl object-cover ring-1 ring-line/40"
-              />
+              <DoctorAvatar doctor={doctor} size={48} />
               <div className="flex-1">
                 <div className="text-sm font-medium text-ink">{doctor.name}</div>
                 <div className="text-[11px] text-muted-foreground">{doctor.specialty_th}</div>

@@ -138,7 +138,13 @@ export function ConsultSummary({
                   />
                 </TabsContent>
                 <TabsContent value="care" className="pt-4">
-                  <SelfCarePlan plan={summary.self_care_plan} />
+                  <SelfCarePlan
+                    plan={summary.self_care_plan}
+                    patientName={patientName}
+                    patientAge={patientAge}
+                    doctorName={doctorName}
+                    doctorSpecialty={doctorSpecialty}
+                  />
                   {renderCheckupUpsell ? renderCheckupUpsell() : null}
                 </TabsContent>
               </Tabs>
