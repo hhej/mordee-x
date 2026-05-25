@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, Loader2, MessageCircle, Pill, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,13 +23,6 @@ export function ConsultPanel() {
   const sendDoctorMessage = useDoctorStore((s) => s.sendDoctorMessage);
   const closeAppt = useDoctorStore((s) => s.closeAppt);
   const endConsult = useDoctorStore((s) => s.endConsult);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (selectedApptId && ref.current) {
-      setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-    }
-  }, [selectedApptId]);
 
   const suggestedRx = appointment?.cached?.summary
     ? buildPrescriptionThai(appointment.cached.summary)
@@ -41,7 +33,6 @@ export function ConsultPanel() {
     <AnimatePresence>
       {selectedApptId && appointment?.cached ? (
         <motion.div
-          ref={ref}
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}

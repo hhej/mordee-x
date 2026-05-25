@@ -6,10 +6,19 @@ import type { TriageResult } from '@/lib/llm/schemas';
 
 interface TriageResultCardProps {
   triage: TriageResult;
+  /**
+   * 'card' (default): full GlassCard with reasoning, warnings, sources.
+   * 'strip': one-line red banner. Used on the hospital step to avoid
+   * duplicating the 'กรณีฉุกเฉิน' heading that HospitalListCard owns.
+   */
+  variant?: 'card' | 'strip';
 }
 
 const TIER_STYLES: Record<TriageResult['triage'], {
   bar: string;
+  // iconText: color of the icon inside the colored square. White-on-yellow
+  // fails WCAG AA non-text contrast, so yellow tier uses a dark amber instead.
+  iconText: string;
   badge: string;
   icon: React.ReactNode;
   label: string;
@@ -18,6 +27,7 @@ const TIER_STYLES: Record<TriageResult['triage'], {
 }> = {
   green: {
     bar: 'bg-triage-green',
+    iconText: 'text-white',
     badge: 'bg-triage-green/15 text-triage-green ring-triage-green/40',
     icon: <ShieldCheck className="size-5" />,
     label: 'ดูแลตัวเองได้',
@@ -26,6 +36,7 @@ const TIER_STYLES: Record<TriageResult['triage'], {
   },
   yellow: {
     bar: 'bg-triage-yellow',
+    iconText: 'text-amber-950',
     badge: 'bg-triage-yellow/20 text-amber-700 ring-triage-yellow/50',
     icon: <Circle className="size-5" />,
     label: 'ควรปรึกษาแพทย์',
@@ -34,6 +45,7 @@ const TIER_STYLES: Record<TriageResult['triage'], {
   },
   red: {
     bar: 'bg-triage-red',
+    iconText: 'text-white',
     badge: 'bg-triage-red/15 text-triage-red ring-triage-red/40',
     icon: <ShieldAlert className="size-5" />,
     label: 'อาการฉุกเฉิน',
@@ -42,14 +54,26 @@ const TIER_STYLES: Record<TriageResult['triage'], {
   },
 };
 
-export function TriageResultCard({ triage }: TriageResultCardProps) {
+export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardProps) {
   const t = TIER_STYLES[triage.triage];
   const confidencePct = Math.round(triage.confidence * 100);
+
+  if (variant === 'strip') {
+    return (
+      <div
+        role="status"
+        className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800 ring-1 ring-red-200"
+      >
+        <span aria-hidden>🔴</span>
+        <span>ระบบแนะนำให้ไปโรงพยาบาลทันที — รายละเอียดด้านล่าง</span>
+      </div>
+    );
+  }
 
   return (
     <GlassCard>
       <div className="flex items-start gap-3">
-        <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl text-white ${t.bar}`}>
+        <div className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${t.iconText} ${t.bar}`}>
           {t.icon}
         </div>
         <div className="flex-1">
@@ -114,6 +138,9 @@ export function TriageResultCard({ triage }: TriageResultCardProps) {
 
       <p className="mt-4 rounded-md bg-slate-50 px-3 py-2 text-[11px] text-muted-foreground">
         ⚠ MorDee+ ให้คำแนะนำเบื้องต้นเท่านั้น ไม่ใช่การวินิจฉัยทางการแพทย์
+        <span className="mt-0.5 block opacity-70">
+          MorDee+ provides preliminary guidance only — not a medical diagnosis.
+        </span>
       </p>
     </GlassCard>
   );

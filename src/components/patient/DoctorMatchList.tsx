@@ -13,17 +13,45 @@ interface DoctorMatchListProps {
    * highlight banner is hidden. Used for the bypass-triage flow.
    */
   defaultExpandAll?: boolean;
+  /**
+   * When true, render only the selected doctor (from store.selectedDoctorId)
+   * as a single card. Used inside the doctor pill expand on consult/summary.
+   */
+  selectedDoctorOnly?: boolean;
 }
 
-export function DoctorMatchList({ defaultExpandAll = false }: DoctorMatchListProps) {
+export function DoctorMatchList({
+  defaultExpandAll = false,
+  selectedDoctorOnly = false,
+}: DoctorMatchListProps) {
   const matched = usePatientStore((s) => s.matched);
   const isMatching = usePatientStore((s) => s.isMatching);
   const matchError = usePatientStore((s) => s.matchError);
   const triage = usePatientStore((s) => s.triage);
+  const selectedDoctorId = usePatientStore((s) => s.selectedDoctorId);
   const [showRest, setShowRest] = useState(defaultExpandAll);
 
   const allDoctors = getDoctors();
   const byId = new Map(allDoctors.map((d) => [d.id, d]));
+
+  if (selectedDoctorOnly) {
+    const doctor = selectedDoctorId ? byId.get(selectedDoctorId) : undefined;
+    if (!doctor) return null;
+    const reason = matched.find((m) => m.doctor_id === selectedDoctorId)?.reason_th ?? '';
+    return (
+      <GlassCard>
+        <div className="mb-3 flex items-center gap-2">
+          <Users className="size-4 text-mint-700" />
+          <h2 className="text-base font-semibold text-ink md:text-lg">หมอที่คุณเลือก</h2>
+          <span className="text-xs text-muted-foreground">· Your doctor</span>
+        </div>
+        <div className="grid gap-3 md:grid-cols-1">
+          <DoctorMatchCard doctor={doctor} reason={reason} highlighted />
+        </div>
+      </GlassCard>
+    );
+  }
+
   const topThree: Array<{ doctor: Doctor; reason: string }> = matched
     .map((r) => {
       const doctor = byId.get(r.doctor_id);

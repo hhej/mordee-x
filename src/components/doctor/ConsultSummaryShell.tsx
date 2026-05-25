@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CalendarCheck, CalendarPlus } from 'lucide-react';
+import { ArrowLeft, CalendarCheck, CalendarPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConsultSummary } from '@/components/shared/ConsultSummary';
 import { useDoctorStore } from '@/stores/store-doctor';
@@ -23,26 +23,42 @@ export function ConsultSummaryShell({ doctorName, doctorSpecialty }: ConsultSumm
   const summary = useDoctorStore((s) => s.summary);
   const isSummarizing = useDoctorStore((s) => s.isSummarizing);
   const summaryError = useDoctorStore((s) => s.summaryError);
+  const closeAppt = useDoctorStore((s) => s.closeAppt);
+
+  const visible = Boolean(consultEnded && appointment);
 
   return (
-    <ConsultSummary
-      visible={Boolean(consultEnded && appointment)}
-      isSummarizing={isSummarizing}
-      summary={summary}
-      summaryError={summaryError}
-      patientName={appointment?.patient ?? ''}
-      patientAge={appointment?.profile?.age}
-      doctorName={doctorName}
-      doctorSpecialty={doctorSpecialty}
-      defaultTab="cert"
-      renderFollowup={({ daysFromNow, reason }) => (
-        <DoctorFollowupRow
-          key={`${appointment?.appt_id ?? ''}:${consultEnded ? '1' : '0'}`}
-          daysFromNow={daysFromNow}
-          reason={reason}
-        />
-      )}
-    />
+    <>
+      <ConsultSummary
+        visible={visible}
+        isSummarizing={isSummarizing}
+        summary={summary}
+        summaryError={summaryError}
+        patientName={appointment?.patient ?? ''}
+        patientAge={appointment?.profile?.age}
+        doctorName={doctorName}
+        doctorSpecialty={doctorSpecialty}
+        defaultTab="cert"
+        renderFollowup={({ daysFromNow, reason }) => (
+          <DoctorFollowupRow
+            key={`${appointment?.appt_id ?? ''}:${consultEnded ? '1' : '0'}`}
+            daysFromNow={daysFromNow}
+            reason={reason}
+          />
+        )}
+      />
+      {visible ? (
+        <Button
+          onClick={closeAppt}
+          variant="default"
+          size="lg"
+          className="mt-4 w-full"
+        >
+          <ArrowLeft className="size-4" />
+          เสร็จสิ้น · กลับไปคิวผู้ป่วย
+        </Button>
+      ) : null}
+    </>
   );
 }
 

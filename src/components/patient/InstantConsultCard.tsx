@@ -33,7 +33,7 @@ export function InstantConsultCard() {
         ข้ามขั้นตอนประเมินอาการ เลือกแพทย์จาก 15 ท่าน เริ่มแชทใน 3 นาที
       </p>
 
-      <div className="mb-4 space-y-2">
+      <div className="mb-4 grid gap-2 md:grid-cols-3">
         {featured.map((d) => (
           <div
             key={d.id}
@@ -45,7 +45,6 @@ export function InstantConsultCard() {
               width={32}
               height={32}
               className="size-8 rounded-full object-cover ring-1 ring-line/40"
-              unoptimized
             />
             <div className="min-w-0 flex-1">
               <div className="truncate text-xs font-medium text-ink">{d.name}</div>

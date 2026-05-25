@@ -1,8 +1,5 @@
 import { RoleHeader } from '@/components/shared/RoleHeader';
-import { AppointmentsCard } from '@/components/doctor/AppointmentsCard';
-import { ConsultPanel } from '@/components/doctor/ConsultPanel';
-import { ConsultSummaryShell } from '@/components/doctor/ConsultSummaryShell';
-import { DemandForecastCard } from '@/components/doctor/DemandForecastCard';
+import { DoctorPageBody } from '@/components/doctor/DoctorPageBody';
 import {
   getDemand,
   getDemoScenarios,
@@ -29,16 +26,14 @@ export default function DoctorPage() {
     <>
       <RoleHeader title="แพทย์ · Doctor" subtitle={`${doctor.name} · ${doctor.specialty_th}`} />
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-6 md:px-12 md:py-8">
-        <div className="flex flex-col gap-5">
-          <DemandForecastCard forecast={forecast} />
-          <AppointmentsCard
-            appointments={demo.today_appointments}
-            predictions={predictions}
-            doctorId={doctor.id}
-          />
-          <ConsultPanel />
-          <ConsultSummaryShell doctorName={doctor.name} doctorSpecialty={doctor.specialty_th} />
-        </div>
+        <DoctorPageBody
+          doctorId={doctor.id}
+          doctorName={doctor.name}
+          doctorSpecialty={doctor.specialty_th}
+          appointments={demo.today_appointments}
+          predictions={predictions}
+          forecast={forecast}
+        />
       </main>
     </>
   );
