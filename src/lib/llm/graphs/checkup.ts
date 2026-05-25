@@ -1,36 +1,51 @@
 import { StateGraph, START, END, Annotation } from '@langchain/langgraph';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
-import { chatModel } from '@/lib/llm/client';
+import { chatModel, embedModel } from '@/lib/llm/client';
 import { SYSTEM_CHECKUP } from '@/lib/llm/prompts';
 import { CheckupRecommendationSchema, type CheckupResult } from '@/lib/llm/schemas';
-import { getCheckupPrograms } from '@/lib/data';
+import { getCheckupPrograms, getCheckupProgram, type CheckupProgram } from '@/lib/data';
+import { cosineSimilarity } from '@/lib/rag';
 import type { CheckupRequest } from '@/lib/llm/schemas';
 
 export type CheckupInput = CheckupRequest;
 
-// Fallback when the model returns an id outside the catalog — the basic annual
-// screening is the safe "fits everyone" default (belt-and-suspenders, mirrors
-// the triage validator pattern).
-const FALLBACK_PROGRAM_ID = 'CKP01';
+// How many similarity-retrieved programs the LLM gets to choose its final pick from.
+const TOP_K = 3;
 
-const CheckupGraphState = Annotation.Root({
-  input: Annotation<CheckupInput>(),
-  recommendation: Annotation<CheckupResult | null>(),
-});
+// ----- Catalog embedding (RAG corpus) -----
+// The catalog is static, so we embed it once per server lifetime and cache the
+// vectors in-process (no external vector DB, per plan §16). We cache the promise
+// rather than the value so concurrent first-requests share a single embed call.
+type CatalogVector = { id: string; embedding: number[] };
+let catalogPromise: Promise<CatalogVector[]> | null = null;
 
-function catalogBlock(): string {
-  return getCheckupPrograms()
-    .map((p) =>
-      [
-        `- id: ${p.id}`,
-        `  hospital: ${p.hospital_th} (${p.hospital_en})`,
-        `  name: ${p.name_th} (${p.name_en})`,
-        `  price: ${p.price} THB`,
-        `  ideal_for: ${p.ideal_for_th}`,
-        `  tags: ${p.tags.join(', ')}`,
-      ].join('\n'),
-    )
-    .join('\n');
+function programEmbedText(p: CheckupProgram): string {
+  return `${p.name_th}. ${p.ideal_for_th}. ${p.match_text}. ${p.tags.join(' ')}`;
+}
+
+async function ensureCatalogEmbeddings(): Promise<CatalogVector[]> {
+  if (!catalogPromise) {
+    const programs = getCheckupPrograms();
+    catalogPromise = embedModel
+      .embedDocuments(programs.map(programEmbedText))
+      .then((vectors) => programs.map((p, i) => ({ id: p.id, embedding: vectors[i] })))
+      .catch((err) => {
+        catalogPromise = null; // allow retry on a later request if embedding failed
+        throw err;
+      });
+  }
+  return catalogPromise;
+}
+
+function buildQueryText(input: CheckupInput): string {
+  return [
+    input.diagnosis_th,
+    input.symptom_text ?? '',
+    input.summary_th ?? '',
+    input.conditions.length ? `โรคประจำตัว: ${input.conditions.join(', ')}` : '',
+  ]
+    .filter(Boolean)
+    .join('. ');
 }
 
 function patientBlock(input: CheckupInput): string {
@@ -47,13 +62,51 @@ function patientBlock(input: CheckupInput): string {
   return lines.join('\n');
 }
 
+function candidateBlock(ids: string[]): string {
+  return ids
+    .map((id) => getCheckupProgram(id))
+    .filter((p): p is CheckupProgram => Boolean(p))
+    .map((p) =>
+      [
+        `- id: ${p.id}`,
+        `  hospital: ${p.hospital_th} (${p.hospital_en})`,
+        `  name: ${p.name_th} (${p.name_en})`,
+        `  price: ${p.price} THB`,
+        `  ideal_for: ${p.ideal_for_th}`,
+        `  tags: ${p.tags.join(', ')}`,
+      ].join('\n'),
+    )
+    .join('\n');
+}
+
+const CheckupGraphState = Annotation.Root({
+  input: Annotation<CheckupInput>(),
+  queryEmbedding: Annotation<number[]>(),
+  topIds: Annotation<string[]>(),
+  recommendation: Annotation<CheckupResult | null>(),
+});
+
+async function embedQueryNode(state: typeof CheckupGraphState.State) {
+  const queryEmbedding = await embedModel.embedQuery(buildQueryText(state.input));
+  return { queryEmbedding };
+}
+
+async function retrieveNode(state: typeof CheckupGraphState.State) {
+  const catalog = await ensureCatalogEmbeddings();
+  const scored = catalog
+    .map((v) => ({ id: v.id, score: cosineSimilarity(state.queryEmbedding, v.embedding) }))
+    .sort((a, b) => b.score - a.score);
+  return { topIds: scored.slice(0, TOP_K).map((s) => s.id) };
+}
+
 async function recommendNode(state: typeof CheckupGraphState.State) {
+  const topIds = state.topIds;
   const userMessage = [
     'PATIENT CONTEXT:',
     patientBlock(state.input),
     '',
-    'AVAILABLE CHECKUP PROGRAMS (pick exactly one program_id from this list):',
-    catalogBlock(),
+    `CANDIDATE CHECKUP PROGRAMS (retrieved by similarity — pick exactly one program_id from this list):`,
+    candidateBlock(topIds),
     '',
     'Recommend the single best-fit program as JSON.',
   ].join('\n');
@@ -65,17 +118,21 @@ async function recommendNode(state: typeof CheckupGraphState.State) {
     new HumanMessage(userMessage),
   ])) as CheckupResult;
 
-  // Validate the chosen id against the real catalog; fall back if hallucinated.
-  const valid = getCheckupPrograms().some((p) => p.id === recommendation.program_id);
-  if (!valid) {
-    return { recommendation: { ...recommendation, program_id: FALLBACK_PROGRAM_ID } };
+  // The pick must be one of the retrieved candidates; otherwise fall back to the
+  // top similarity hit (belt-and-suspenders, mirrors the triage validator).
+  if (!topIds.includes(recommendation.program_id)) {
+    return { recommendation: { ...recommendation, program_id: topIds[0] } };
   }
   return { recommendation };
 }
 
 const graph = new StateGraph(CheckupGraphState)
+  .addNode('embedQuery', embedQueryNode)
+  .addNode('retrieve', retrieveNode)
   .addNode('recommend', recommendNode)
-  .addEdge(START, 'recommend')
+  .addEdge(START, 'embedQuery')
+  .addEdge('embedQuery', 'retrieve')
+  .addEdge('retrieve', 'recommend')
   .addEdge('recommend', END)
   .compile();
 

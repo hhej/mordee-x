@@ -134,5 +134,7 @@ export const CheckupRequestSchema = z.object({
   diagnosis: z.string(),
   diagnosis_th: z.string(),
   icd10: z.string(),
+  symptom_text: z.string().optional(),
+  summary_th: z.string().optional(),
 });
 export type CheckupRequest = z.infer<typeof CheckupRequestSchema>;

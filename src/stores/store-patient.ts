@@ -440,7 +440,7 @@ export const usePatientStore = create<PatientState>((set, get) => ({
   // Triggered by a button in the self-care tab, so it requires a resolved summary
   // (we read the diagnosis from it). Patient-side only.
   fetchCheckup: async () => {
-    const { summary, persona, triage, isMatchingCheckup } = get();
+    const { summary, persona, triage, symptomText, isMatchingCheckup } = get();
     if (!summary || isMatchingCheckup) return;
 
     const bmi =
@@ -466,6 +466,8 @@ export const usePatientStore = create<PatientState>((set, get) => ({
           diagnosis: summary.diagnosis,
           diagnosis_th: summary.diagnosis_th,
           icd10: summary.icd10,
+          symptom_text: symptomText.trim() || undefined,
+          summary_th: summary.self_care_plan.summary_th,
         }),
         signal: handle.signal,
       });

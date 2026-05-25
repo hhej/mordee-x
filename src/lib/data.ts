@@ -33,6 +33,8 @@ export interface CheckupProgram {
   duration_th: string;
   tests_th: string[];
   ideal_for_th: string;
+  /** Thai keyword blob of the symptoms/conditions this program targets — embedded for RAG retrieval. */
+  match_text: string;
   tags: string[];
 }
 
