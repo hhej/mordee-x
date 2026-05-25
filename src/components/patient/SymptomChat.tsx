@@ -69,7 +69,11 @@ export function SymptomChat() {
       <div
         className={`relative ${shake ? 'animate-pulse' : ''}`}
       >
+        <label htmlFor="symptom-input" className="sr-only">
+          อาการของคุณ · Describe your symptoms
+        </label>
         <textarea
+          id="symptom-input"
           value={symptomText}
           onChange={(e) => setSymptomText(e.target.value)}
           onKeyDown={(e) => {

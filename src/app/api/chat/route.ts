@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { ChatRequestSchema } from '@/lib/llm/schemas';
 import { streamChat } from '@/lib/llm/graphs/chat';
+import { mockChat } from '@/lib/mocks';
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -12,11 +13,14 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const isMock = req.nextUrl.searchParams.get('mock') === '1';
+  const source = isMock ? mockChat() : streamChat(parsed.data);
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        for await (const event of streamChat(parsed.data)) {
+        for await (const event of source) {
           const frame = `data: ${JSON.stringify(event)}\n\n`;
           controller.enqueue(encoder.encode(frame));
         }

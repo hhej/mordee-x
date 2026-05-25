@@ -5,7 +5,7 @@ import { Pill, Send, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export type ChatMsg = { role: 'user' | 'assistant'; content: string };
+export type ChatMsg = { id: string; role: 'user' | 'assistant'; content: string };
 
 export interface ChatStreamProps {
   messages: ChatMsg[];
@@ -70,7 +70,14 @@ export function ChatStream({
 
   return (
     <div className="flex h-full min-h-[420px] flex-col rounded-xl border border-line/60 bg-white/60">
-      <div ref={scrollRef} className="flex-1 space-y-2.5 overflow-y-auto p-3">
+      <div
+        ref={scrollRef}
+        role="log"
+        aria-live="polite"
+        aria-atomic="false"
+        aria-label="บทสนทนากับแพทย์"
+        className="flex-1 space-y-2.5 overflow-y-auto p-3"
+      >
         {!hasContent ? (
           <div className="grid h-full place-items-center text-xs text-muted-foreground">
             {emptyHint}
@@ -79,7 +86,7 @@ export function ChatStream({
           <>
             {seededGreeting ? (
               <Bubble
-                msg={{ role: 'assistant', content: seededGreeting }}
+                msg={{ id: 'seed-greeting', role: 'assistant', content: seededGreeting }}
                 streaming={false}
                 userLabel={userLabel}
                 assistantLabel={assistantLabel}
@@ -87,7 +94,7 @@ export function ChatStream({
             ) : null}
             {messages.map((m, i) => (
               <Bubble
-                key={i}
+                key={m.id}
                 msg={m}
                 streaming={isStreaming && i === messages.length - 1}
                 userLabel={userLabel}
@@ -166,9 +173,12 @@ function Bubble({
   assistantLabel: string;
 }) {
   const isUser = msg.role === 'user';
+  const speaker = isUser ? userLabel : assistantLabel;
   return (
     <div className={cn('flex', isUser ? 'justify-end' : 'justify-start')}>
       <div
+        role="article"
+        aria-label={speaker}
         className={cn(
           'max-w-[80%] rounded-2xl px-3 py-2 text-sm',
           isUser
@@ -182,17 +192,19 @@ function Bubble({
             isUser ? 'text-mint-100' : 'text-muted-foreground',
           )}
         >
-          {isUser ? userLabel : assistantLabel}
+          {speaker}
         </div>
         {msg.content ? <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div> : null}
         {streaming && !msg.content ? (
-          <div className="flex gap-1 py-1">
+          <div aria-hidden="true" className="flex gap-1 py-1">
             <Dot delay={0} />
             <Dot delay={150} />
             <Dot delay={300} />
           </div>
         ) : null}
-        {streaming && msg.content ? <span className="ml-0.5 inline-block animate-pulse">▍</span> : null}
+        {streaming && msg.content ? (
+          <span aria-hidden="true" className="ml-0.5 inline-block animate-pulse">▍</span>
+        ) : null}
       </div>
     </div>
   );

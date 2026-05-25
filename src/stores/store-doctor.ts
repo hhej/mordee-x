@@ -3,8 +3,17 @@
 import { create } from 'zustand';
 import type { DoctorAppointment } from '@/lib/data';
 import type { SummaryResult } from '@/lib/llm/schemas';
+import {
+  createAbortable,
+  STREAM_TIMEOUT_TH,
+  JSON_TIMEOUT_MS,
+  STREAM_TIMEOUT_MS,
+} from '@/lib/fetch-abort';
+import { apiFetch } from '@/lib/api-client';
 
-export type ChatMsg = { role: 'user' | 'assistant'; content: string };
+const abortable = createAbortable();
+
+export type ChatMsg = { id: string; role: 'user' | 'assistant'; content: string };
 
 interface DoctorState {
   selectedApptId: string | null;
@@ -33,6 +42,7 @@ interface DoctorState {
   closeAppt: () => void;
   sendDoctorMessage: (text: string) => Promise<void>;
   endConsult: () => Promise<void>;
+  reset: () => void;
 }
 
 export const useDoctorStore = create<DoctorState>((set, get) => ({
@@ -68,7 +78,8 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
     });
   },
 
-  closeAppt: () =>
+  closeAppt: () => {
+    abortable.abort();
     set({
       selectedApptId: null,
       appointment: null,
@@ -81,7 +92,25 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       isSummarizing: false,
       summaryError: null,
       inputText: '',
-    }),
+    });
+  },
+
+  reset: () => {
+    abortable.abort();
+    set({
+      selectedApptId: null,
+      appointment: null,
+      seededGreeting: null,
+      consultMessages: [],
+      isStreaming: false,
+      consultEnded: false,
+      streamError: null,
+      summary: null,
+      isSummarizing: false,
+      summaryError: null,
+      inputText: '',
+    });
+  },
 
   endConsult: async () => {
     const { appointment, seededGreeting, consultMessages, doctorId, isSummarizing } = get();
@@ -94,11 +123,14 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
     // the typing user, the mock patient is 'assistant'. Flip so the summary
     // correctly attributes drugs to the doctor's lines.
     const flipped: ChatMsg[] = consultMessages.map((m) => ({
+      id: m.id,
       role: m.role === 'user' ? 'assistant' : 'user',
       content: m.content,
     }));
     const transcript: ChatMsg[] = [
-      ...(seededGreeting ? [{ role: 'user' as const, content: seededGreeting }] : []),
+      ...(seededGreeting
+        ? [{ id: crypto.randomUUID(), role: 'user' as const, content: seededGreeting }]
+        : []),
       ...flipped,
     ];
 
@@ -114,8 +146,9 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       return;
     }
 
+    const handle = abortable.newSignal(JSON_TIMEOUT_MS);
     try {
-      const res = await fetch('/api/summarize', {
+      const res = await apiFetch('/api/summarize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -123,12 +156,18 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
           patient_name: appointment.patient,
           doctor_id: doctorId,
         }),
+        signal: handle.signal,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const summary = (await res.json()) as SummaryResult;
       set({ summary, isSummarizing: false });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
+      if (handle.isUserAbort()) {
+        set({ isSummarizing: false });
+        return;
+      }
+      const isTimeout = err instanceof DOMException;
+      const msg = isTimeout ? STREAM_TIMEOUT_TH : err instanceof Error ? err.message : String(err);
       set({
         summary: appointment.cached?.summary ?? null,
         summaryError: `สรุปสดล้มเหลว ใช้สรุปสำรอง (${msg})`,
@@ -146,8 +185,8 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       return;
     }
 
-    const userMsg: ChatMsg = { role: 'user', content: text.trim() };
-    const placeholder: ChatMsg = { role: 'assistant', content: '' };
+    const userMsg: ChatMsg = { id: crypto.randomUUID(), role: 'user', content: text.trim() };
+    const placeholder: ChatMsg = { id: crypto.randomUUID(), role: 'assistant', content: '' };
     set({
       consultMessages: [...consultMessages, userMsg, placeholder],
       isStreaming: true,
@@ -159,8 +198,9 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
     // lives in seededGreeting (UI-only) and is never in consultMessages.
     const messagesForApi: ChatMsg[] = [...consultMessages, userMsg];
 
+    const handle = abortable.newSignal(STREAM_TIMEOUT_MS);
     try {
-      const res = await fetch('/api/chat', {
+      const res = await apiFetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -175,6 +215,7 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
           patient_demo_brief: appointment.cached?.brief.one_liner,
           messages: messagesForApi,
         }),
+        signal: handle.signal,
       });
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
@@ -217,8 +258,21 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
         }
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      set({ streamError: msg });
+      if (handle.isUserAbort()) {
+        // User-initiated close/reset — state is being torn down by the caller.
+        return;
+      }
+      const isTimeout = err instanceof DOMException;
+      const msg = isTimeout ? STREAM_TIMEOUT_TH : err instanceof Error ? err.message : String(err);
+      // Strip the trailing empty assistant placeholder so the spinner doesn't linger.
+      set((state) => {
+        const msgs = state.consultMessages.slice();
+        const last = msgs[msgs.length - 1];
+        if (last && last.role === 'assistant' && last.content === '') {
+          msgs.pop();
+        }
+        return { consultMessages: msgs, streamError: msg };
+      });
     } finally {
       set({ isStreaming: false });
     }

@@ -67,7 +67,6 @@ export function MockPaymentDialog() {
                 width={48}
                 height={48}
                 className="size-12 rounded-xl object-cover ring-1 ring-line/40"
-                unoptimized
               />
               <div className="flex-1">
                 <div className="text-sm font-medium text-ink">{doctor.name}</div>

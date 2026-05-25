@@ -1,7 +1,52 @@
 [
-  {"name":"โรงพยาบาลรามาธิบดี","name_en":"Ramathibodi Hospital","phone":"02-201-1000","emergency":"1669"},
-  {"name":"โรงพยาบาลศิริราช","name_en":"Siriraj Hospital","phone":"02-419-7000","emergency":"1669"},
-  {"name":"โรงพยาบาลจุฬาลงกรณ์","name_en":"Chulalongkorn Hospital","phone":"02-256-4000","emergency":"1669"},
-  {"name":"โรงพยาบาลบำรุงราษฎร์","name_en":"Bumrungrad Hospital","phone":"02-066-8888","emergency":"1669"},
-  {"name":"โรงพยาบาลกรุงเทพ","name_en":"Bangkok Hospital","phone":"1719","emergency":"1669"}
+  {
+    "name": "โรงพยาบาลรามาธิบดี",
+    "name_en": "Ramathibodi Hospital",
+    "phone": "02-201-1000",
+    "emergency": "1669",
+    "address_th": "270 ถ.พระราม 6 พญาไท กรุงเทพฯ 10400",
+    "address_en": "270 Rama VI Rd, Phaya Thai, Bangkok 10400",
+    "hours": "เปิด 24 ชั่วโมง · Open 24/7",
+    "distance_label": "2.1 กม. · 2.1 km"
+  },
+  {
+    "name": "โรงพยาบาลศิริราช",
+    "name_en": "Siriraj Hospital",
+    "phone": "02-419-7000",
+    "emergency": "1669",
+    "address_th": "2 ถ.วังหลัง บางกอกน้อย กรุงเทพฯ 10700",
+    "address_en": "2 Wang Lang Rd, Bangkok Noi, Bangkok 10700",
+    "hours": "เปิด 24 ชั่วโมง · Open 24/7",
+    "distance_label": "3.8 กม. · 3.8 km"
+  },
+  {
+    "name": "โรงพยาบาลจุฬาลงกรณ์",
+    "name_en": "Chulalongkorn Hospital",
+    "phone": "02-256-4000",
+    "emergency": "1669",
+    "address_th": "1873 ถ.พระราม 4 ปทุมวัน กรุงเทพฯ 10330",
+    "address_en": "1873 Rama IV Rd, Pathum Wan, Bangkok 10330",
+    "hours": "เปิด 24 ชั่วโมง · Open 24/7",
+    "distance_label": "1.5 กม. · 1.5 km"
+  },
+  {
+    "name": "โรงพยาบาลบำรุงราษฎร์",
+    "name_en": "Bumrungrad Hospital",
+    "phone": "02-066-8888",
+    "emergency": "1669",
+    "address_th": "33 สุขุมวิท ซ.3 วัฒนา กรุงเทพฯ 10110",
+    "address_en": "33 Sukhumvit Soi 3, Watthana, Bangkok 10110",
+    "hours": "เปิด 24 ชั่วโมง · Open 24/7",
+    "distance_label": "5.4 กม. · 5.4 km"
+  },
+  {
+    "name": "โรงพยาบาลกรุงเทพ",
+    "name_en": "Bangkok Hospital",
+    "phone": "1719",
+    "emergency": "1669",
+    "address_th": "2 ซ.ศูนย์วิจัย ถ.เพชรบุรีตัดใหม่ กรุงเทพฯ 10310",
+    "address_en": "2 Soi Soonvijai, New Phetchaburi Rd, Bangkok 10310",
+    "hours": "เปิด 24 ชั่วโมง · Open 24/7",
+    "distance_label": "4.2 กม. · 4.2 km"
+  }
 ]

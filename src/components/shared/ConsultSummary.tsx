@@ -118,8 +118,8 @@ export function ConsultSummary({
             <>
               <Tabs defaultValue={defaultTab}>
                 <TabsList>
-                  <TabsTrigger value="cert">ใบรับรองแพทย์</TabsTrigger>
-                  <TabsTrigger value="care">แผนดูแลตัวเอง</TabsTrigger>
+                  <TabsTrigger value="cert">ใบรับรองแพทย์ · Certificate</TabsTrigger>
+                  <TabsTrigger value="care">แผนดูแลตัวเอง · Self-care</TabsTrigger>
                 </TabsList>
                 <TabsContent value="cert" className="pt-4">
                   <MedicalCertificate
@@ -146,11 +146,13 @@ export function ConsultSummary({
                 ) : (
                   <div className="mt-5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-muted-foreground">
                     แนะนำให้นัดติดตามใน {summary.followup_in_days ?? 7} วัน
+                    <span className="ml-1 opacity-70">· Follow-up in {summary.followup_in_days ?? 7} days</span>
                   </div>
                 )
               ) : (
                 <div className="mt-5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-muted-foreground">
                   ไม่จำเป็นต้องนัดติดตาม
+                  <span className="ml-1 opacity-70">· No follow-up needed</span>
                 </div>
               )}
             </>

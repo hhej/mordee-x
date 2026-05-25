@@ -1,10 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { UserRound } from 'lucide-react';
+import { UserRound, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { usePatientStore, type Gender } from '@/stores/store-patient';
+import {
+  usePatientStore,
+  DEFAULT_PERSONA,
+  type Gender,
+} from '@/stores/store-patient';
+import {
+  BLOOD_TYPES,
+  COMMON_CONDITIONS_TH,
+  COMMON_DRUG_ALLERGIES,
+  type BloodType,
+} from '@/lib/constants';
 
 export function PatientPersonaPopover() {
   const persona = usePatientStore((s) => s.persona);
@@ -14,28 +24,59 @@ export function PatientPersonaPopover() {
   const [name, setName] = useState(persona.name);
   const [age, setAge] = useState(persona.age);
   const [gender, setGender] = useState<Gender>(persona.gender);
-  const [history, setHistory] = useState(persona.history);
+  const [conditions, setConditions] = useState<string[]>(persona.conditions);
+  const [allergies, setAllergies] = useState<string[]>(persona.allergies);
+  const [medications, setMedications] = useState(persona.medications);
+  const [weightKg, setWeightKg] = useState<number | null>(persona.weightKg);
+  const [heightCm, setHeightCm] = useState<number | null>(persona.heightCm);
+  const [bloodType, setBloodType] = useState<BloodType>(persona.bloodType);
 
   const onOpenChange = (next: boolean) => {
     if (next) {
       setName(persona.name);
       setAge(persona.age);
       setGender(persona.gender);
-      setHistory(persona.history);
+      setConditions(persona.conditions);
+      setAllergies(persona.allergies);
+      setMedications(persona.medications);
+      setWeightKg(persona.weightKg);
+      setHeightCm(persona.heightCm);
+      setBloodType(persona.bloodType);
     }
     setOpen(next);
   };
 
+  const trimmedName = name.trim();
+  const nameValid = trimmedName.length > 0;
+  const ageValid = Number.isFinite(age) && age >= 1 && age <= 120;
+  const canSave = nameValid && ageValid;
+
   const onSave = () => {
-    setPersona({ name, age, gender, history });
+    if (!canSave) return;
+    setPersona({
+      name: trimmedName,
+      age,
+      gender,
+      conditions,
+      allergies,
+      medications,
+      weightKg,
+      heightCm,
+      bloodType,
+    });
     setOpen(false);
   };
 
   const onReset = () => {
-    setName('คุณ Pol');
-    setAge(28);
-    setGender('M');
-    setHistory('');
+    setName(DEFAULT_PERSONA.name);
+    setAge(DEFAULT_PERSONA.age);
+    setGender(DEFAULT_PERSONA.gender);
+    setConditions(DEFAULT_PERSONA.conditions);
+    setAllergies(DEFAULT_PERSONA.allergies);
+    setMedications(DEFAULT_PERSONA.medications);
+    setWeightKg(DEFAULT_PERSONA.weightKg);
+    setHeightCm(DEFAULT_PERSONA.heightCm);
+    setBloodType(DEFAULT_PERSONA.bloodType);
   };
 
   return (
@@ -56,60 +97,154 @@ export function PatientPersonaPopover() {
           </button>
         )}
       />
-      <PopoverContent align="end" sideOffset={8} className="w-80">
-        <div className="mb-3">
+      <PopoverContent
+        align="end"
+        sideOffset={8}
+        className="flex max-h-[min(80vh,38rem)] w-[22rem] flex-col p-0"
+      >
+        <div className="border-b border-line/60 px-4 pt-4 pb-3">
           <div className="text-sm font-semibold text-ink">ข้อมูลผู้ป่วย</div>
           <div className="text-[11px] text-muted-foreground">
             ใช้เป็นข้อมูลในการประเมินอาการ · เก็บไว้ในเครื่องคุณเท่านั้น
           </div>
         </div>
-        <div className="space-y-3">
-          <Field label="ชื่อ" labelEn="Name">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-line/70 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50"
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-2">
-            <Field label="อายุ" labelEn="Age">
+
+        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-3">
+          {/* Section: Basics */}
+          <div className="space-y-3">
+            <SectionLabel>ข้อมูลพื้นฐาน · Basics</SectionLabel>
+            <Field label="ชื่อ" labelEn="Name">
               <input
-                type="number"
-                min={0}
-                max={120}
-                value={age}
-                onChange={(e) => setAge(Number(e.target.value) || 0)}
-                className="w-full rounded-md border border-line/70 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                aria-invalid={!nameValid}
+                className="w-full rounded-md border border-line/70 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 aria-invalid:border-triage-red/60 aria-invalid:focus:ring-triage-red/20"
               />
             </Field>
-            <Field label="เพศ" labelEn="Gender">
-              <div className="flex gap-1.5">
-                <GenderChip value="M" current={gender} onSelect={setGender}>ชาย</GenderChip>
-                <GenderChip value="F" current={gender} onSelect={setGender}>หญิง</GenderChip>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="อายุ" labelEn="Age">
+                <input
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={Number.isFinite(age) ? age : ''}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setAge(raw === '' ? NaN : Number(raw));
+                  }}
+                  aria-invalid={!ageValid}
+                  className="w-full rounded-md border border-line/70 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 aria-invalid:border-triage-red/60 aria-invalid:focus:ring-triage-red/20"
+                />
+              </Field>
+              <Field label="เพศ" labelEn="Gender">
+                <div className="flex gap-1.5">
+                  <Chip active={gender === 'M'} onClick={() => setGender('M')}>ชาย</Chip>
+                  <Chip active={gender === 'F'} onClick={() => setGender('F')}>หญิง</Chip>
+                </div>
+              </Field>
+            </div>
+          </div>
+
+          {/* Section: Health profile */}
+          <div className="space-y-3 border-t border-line/60 pt-3">
+            <SectionLabel>ข้อมูลสุขภาพ · Health profile</SectionLabel>
+
+            <Field label="โรคประจำตัว" labelEn="Underlying diseases">
+              <ChipMultiSelect
+                value={conditions}
+                onChange={setConditions}
+                presets={COMMON_CONDITIONS_TH.map((c) => ({ value: c.th, label: c.th, sub: c.en }))}
+                customPlaceholder="เพิ่มโรคอื่น..."
+              />
+            </Field>
+
+            <Field label="แพ้ยา" labelEn="Drug allergies">
+              <ChipMultiSelect
+                value={allergies}
+                onChange={setAllergies}
+                presets={COMMON_DRUG_ALLERGIES.map((d) => ({ value: d, label: d }))}
+                customPlaceholder="เพิ่มยาที่แพ้..."
+              />
+            </Field>
+
+            <Field label="ยาที่ใช้ปัจจุบัน" labelEn="Current medications">
+              <textarea
+                value={medications}
+                onChange={(e) => setMedications(e.target.value)}
+                rows={2}
+                placeholder="เช่น metformin 500mg เช้า-เย็น"
+                className="w-full resize-none rounded-md border border-line/70 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50"
+              />
+            </Field>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="น้ำหนัก" labelEn="Weight">
+                <SuffixInput
+                  value={weightKg}
+                  onChange={setWeightKg}
+                  min={1}
+                  max={500}
+                  suffix="kg"
+                />
+              </Field>
+              <Field label="ส่วนสูง" labelEn="Height">
+                <SuffixInput
+                  value={heightCm}
+                  onChange={setHeightCm}
+                  min={30}
+                  max={260}
+                  suffix="cm"
+                />
+              </Field>
+            </div>
+
+            <Field label="กรุปเลือด" labelEn="Blood type">
+              <div className="grid grid-cols-4 gap-1.5">
+                {BLOOD_TYPES.map((bt) => (
+                  <Chip key={bt} active={bloodType === bt} onClick={() => setBloodType(bt)}>
+                    {bt}
+                  </Chip>
+                ))}
+                <Chip
+                  active={bloodType === 'unknown'}
+                  onClick={() => setBloodType('unknown')}
+                  className="col-span-4"
+                >
+                  ไม่ทราบ · Unknown
+                </Chip>
               </div>
             </Field>
           </div>
-          <Field label="ประวัติย่อ" labelEn="History (optional)">
-            <textarea
-              value={history}
-              onChange={(e) => setHistory(e.target.value)}
-              rows={2}
-              placeholder="เช่น เบาหวาน · ภูมิแพ้ละอองเกสร · ทานยา..."
-              className="w-full resize-none rounded-md border border-line/70 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50"
-            />
-          </Field>
         </div>
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <Button variant="ghost" size="sm" onClick={onReset}>
-            ใช้ค่าตั้งต้น
-          </Button>
-          <Button size="sm" onClick={onSave}>
-            บันทึก
-          </Button>
+
+        <div className="border-t border-line/60 px-4 pt-3 pb-4">
+          {!canSave ? (
+            <div className="mb-2 text-[11px] text-triage-red">
+              {!nameValid
+                ? 'กรุณากรอกชื่อ · Name required'
+                : 'อายุต้องอยู่ระหว่าง 1–120 · Age 1–120'}
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between gap-2">
+            <Button variant="ghost" size="sm" onClick={onReset}>
+              ใช้ค่าตั้งต้น
+            </Button>
+            <Button size="sm" onClick={onSave} disabled={!canSave}>
+              บันทึก
+            </Button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[11px] font-semibold uppercase tracking-wide text-mint-800">
+      {children}
+    </div>
   );
 }
 
@@ -132,29 +267,166 @@ function Field({
   );
 }
 
-function GenderChip({
-  value,
-  current,
-  onSelect,
+function Chip({
+  active,
+  onClick,
   children,
+  className,
 }: {
-  value: Gender;
-  current: Gender;
-  onSelect: (g: Gender) => void;
+  active: boolean;
+  onClick: () => void;
   children: React.ReactNode;
+  className?: string;
 }) {
-  const active = value === current;
   return (
     <button
       type="button"
-      onClick={() => onSelect(value)}
-      className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+      onClick={onClick}
+      className={`rounded-md border px-2 py-1.5 text-xs transition-colors ${
         active
           ? 'border-mint-400 bg-mint-50 text-mint-900'
           : 'border-line/70 bg-white text-muted-foreground hover:border-mint-200'
-      }`}
+      } ${className ?? ''}`}
     >
       {children}
     </button>
+  );
+}
+
+function ChipMultiSelect({
+  value,
+  onChange,
+  presets,
+  customPlaceholder,
+}: {
+  value: string[];
+  onChange: (next: string[]) => void;
+  presets: Array<{ value: string; label: string; sub?: string }>;
+  customPlaceholder: string;
+}) {
+  const [customMode, setCustomMode] = useState(false);
+  const [customInput, setCustomInput] = useState('');
+
+  const toggle = (v: string) => {
+    onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v]);
+  };
+
+  const addCustom = () => {
+    const v = customInput.trim();
+    if (!v || value.includes(v)) {
+      setCustomInput('');
+      setCustomMode(false);
+      return;
+    }
+    onChange([...value, v]);
+    setCustomInput('');
+    setCustomMode(false);
+  };
+
+  const presetValues = new Set(presets.map((p) => p.value));
+  const customSelected = value.filter((v) => !presetValues.has(v));
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex flex-wrap gap-1.5">
+        {presets.map((p) => (
+          <button
+            key={p.value}
+            type="button"
+            onClick={() => toggle(p.value)}
+            className={`rounded-md border px-2 py-1 text-xs transition-colors ${
+              value.includes(p.value)
+                ? 'border-mint-400 bg-mint-50 text-mint-900'
+                : 'border-line/70 bg-white text-muted-foreground hover:border-mint-200'
+            }`}
+            title={p.sub}
+          >
+            {p.label}
+          </button>
+        ))}
+        {customSelected.map((v) => (
+          <span
+            key={v}
+            className="inline-flex items-center gap-1 rounded-md border border-mint-400 bg-mint-50 px-2 py-1 text-xs text-mint-900"
+          >
+            {v}
+            <button
+              type="button"
+              onClick={() => onChange(value.filter((x) => x !== v))}
+              className="text-mint-700 hover:text-mint-900"
+              aria-label={`Remove ${v}`}
+            >
+              <X className="size-3" />
+            </button>
+          </span>
+        ))}
+      </div>
+      {customMode ? (
+        <div className="flex gap-1.5">
+          <input
+            autoFocus
+            type="text"
+            value={customInput}
+            onChange={(e) => setCustomInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addCustom();
+              } else if (e.key === 'Escape') {
+                setCustomInput('');
+                setCustomMode(false);
+              }
+            }}
+            onBlur={addCustom}
+            placeholder={customPlaceholder}
+            className="flex-1 rounded-md border border-line/70 bg-white px-2 py-1 text-xs outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50"
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setCustomMode(true)}
+          className="text-[11px] text-mint-700 hover:text-mint-900"
+        >
+          + อื่นๆ
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SuffixInput({
+  value,
+  onChange,
+  min,
+  max,
+  suffix,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+  min: number;
+  max: number;
+  suffix: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 rounded-md border border-line/70 bg-white pr-2 focus-within:border-mint-400 focus-within:ring-2 focus-within:ring-mint-200/50">
+      <input
+        type="number"
+        min={min}
+        max={max}
+        value={value ?? ''}
+        onChange={(e) => {
+          const raw = e.target.value;
+          if (raw === '') {
+            onChange(null);
+            return;
+          }
+          const n = Number(raw);
+          onChange(Number.isFinite(n) ? n : null);
+        }}
+        className="w-full rounded-md bg-transparent px-2.5 py-1.5 text-sm outline-none"
+      />
+      <span className="text-[11px] text-muted-foreground">{suffix}</span>
+    </div>
   );
 }

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Sarabun, Inter } from "next/font/google";
+import { ResetKeyListener } from "@/components/shared/ResetKeyListener";
+import { MockModeBanner } from "@/components/shared/MockModeBanner";
 import "./globals.css";
 
 const sarabun = Sarabun({
@@ -33,6 +35,8 @@ export default function RootLayout({
       className={`${sarabun.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans text-ink">
+        <ResetKeyListener />
+        <MockModeBanner />
         {children}
       </body>
     </html>

@@ -117,6 +117,16 @@ body {
   html {
     @apply font-sans;
   }
+  /* Keyboard focus ring for plain <a>/<button>/<input> not coming from the
+     shadcn Button primitive (which has its own focus-visible styling). Mint
+     ring matches the brand. */
+  a:focus-visible,
+  button:not([data-slot]):focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--color-mint-500);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
 }
 
 /* Print-only: when the user clicks Print on the cert, hide everything

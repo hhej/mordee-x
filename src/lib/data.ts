@@ -27,6 +27,10 @@ export interface Hospital {
   name_en: string;
   phone: string;
   emergency: string;
+  address_th: string;
+  address_en: string;
+  hours: string;
+  distance_label: string;
 }
 
 export interface PatientDemo {

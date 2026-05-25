@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { getDoctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
+import { INSTANT_CONSULT_WAIT_EN, INSTANT_CONSULT_WAIT_TH } from '@/lib/constants';
 import { ScheduleSlotGrid } from './ScheduleSlotGrid';
 
 export function BookingDialog() {
@@ -51,27 +52,28 @@ export function BookingDialog() {
               width={36}
               height={36}
               className="size-9 rounded-full object-cover ring-1 ring-line/40"
-              unoptimized
             />
             <div>
-              <div>จองคิว · {doctor.name}</div>
+              <div>จองคิว · Book · {doctor.name}</div>
               <div className="text-[11px] font-normal text-muted-foreground">
                 {doctor.specialty_th} · {doctor.price.toLocaleString('th-TH')} บาท
               </div>
             </div>
           </DialogTitle>
-          <DialogDescription>เลือกว่าจะปรึกษาทันทีหรือจองล่วงหน้า</DialogDescription>
+          <DialogDescription>
+            เลือกว่าจะปรึกษาทันทีหรือจองล่วงหน้า · Choose now or schedule
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as 'now' | 'scheduled')}>
           <TabsList>
             <TabsTrigger value="now">
               <Clock4 className="size-3.5" />
-              ปรึกษาตอนนี้
+              ปรึกษาตอนนี้ · Talk now
             </TabsTrigger>
             <TabsTrigger value="scheduled">
               <CalendarClock className="size-3.5" />
-              จองล่วงหน้า
+              จองล่วงหน้า · Schedule
             </TabsTrigger>
           </TabsList>
 
@@ -79,10 +81,11 @@ export function BookingDialog() {
             <div className="rounded-xl border border-mint-200/60 bg-mint-50/40 px-4 py-6 text-center">
               <Clock4 className="mx-auto mb-2 size-7 text-mint-700" />
               <div className="text-sm font-medium text-ink">
-                หมอพร้อมให้บริการใน ~3 นาที
+                หมอพร้อมให้บริการใน ~{INSTANT_CONSULT_WAIT_TH}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
                 ระบบจะจับคู่กับ {doctor.name} ทันทีที่คุณยืนยัน
+                <span className="block">Connecting in ~{INSTANT_CONSULT_WAIT_EN} once you confirm.</span>
               </p>
             </div>
           </TabsContent>

@@ -74,7 +74,6 @@ export function PatientConsultPanel() {
                 width={28}
                 height={28}
                 className="size-7 rounded-full object-cover ring-1 ring-line/40"
-                unoptimized
               />
               <div className="text-right">
                 <div className="text-xs font-medium text-ink">{doctor.name}</div>

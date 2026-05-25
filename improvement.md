@@ -15,7 +15,18 @@ Six commits shipped against this doc:
 | C-02 · D001 stale forecast dates | ✅ fixed | `3f932b1` | Runtime rebase in slotsFromDemandForecast; JSON untouched |
 | C-01 · Scheduled booking opens chat as instant | ✅ fixed | `d1a46c1` | New 'scheduledConfirmed' step + ScheduledConfirmationCard; completePayment branches on bookingMode |
 
-Outstanding criticals/highs (next batch): **C-03** (fallback when Gemini fails), **H-04** (AbortController on in-flight streams), **H-05/H-06** (persona validation). See sections below.
+## 2026-05-24 update — streaming resilience + persona validation batch landed
+
+| ID | Status | Notes |
+|---|---|---|
+| H-05 · Age coerces "abc" → 0 | ✅ fixed | Save button disabled when name blank or age ∉ [1,120]; aria-invalid + Thai hint. loadPersona now rejects NaN. |
+| H-06 · Empty name saves silently | ✅ fixed | Same Save-button guard as H-05. Spec: `tests/e2e/persona-validation.spec.ts` |
+| H-04 · No abort on close mid-stream | ✅ fixed | Module-scoped `createAbortable()` in both stores; aborted on `reset()` / `closeAppt()`. Helper in `src/lib/fetch-abort.ts`. Spec: `tests/e2e/abort-stream.spec.ts` |
+| C-03 layer 1 · Client fetch timeouts | ✅ fixed | All 6 fetch sites threaded with `AbortSignal.timeout` (20s JSON / 30s SSE). Friendly Thai message on TimeoutError. Spec: `tests/e2e/fetch-timeout.spec.ts` |
+| C-03 layer 2 · Branded error pages | ✅ fixed | New `error.tsx`, `not-found.tsx`, `global-error.tsx` with GlassCard + mint design. Subsumes L-01. Spec: `tests/e2e/error-pages.spec.ts` |
+| C-03 layer 3 · ?mock=1 backup demo path | ✅ fixed | `apiFetch()` forwards mock=1; every route short-circuits to `src/lib/mocks.ts`; floating "🎭 Demo mode" pill in layout. Spec: `tests/e2e/mock-mode.spec.ts` |
+
+Outstanding criticals/highs: **none** — the demo-day-blocker list is empty. Remaining items in the Medium/Low/Polish sections are post-demo polish.
 
 ---
 

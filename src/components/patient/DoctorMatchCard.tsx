@@ -37,7 +37,6 @@ export function DoctorMatchCard({ doctor, reason, highlighted }: DoctorMatchCard
           width={56}
           height={56}
           className="size-14 rounded-xl object-cover ring-1 ring-line/40"
-          unoptimized
         />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold text-ink">{doctor.name}</div>

@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Python notebooks env — not part of the Next.js app
+    ".venv/**",
+    // Playwright generated artifacts — html report bundles and trace zips
+    "tests/e2e/playwright-report/**",
+    "tests/e2e/test-results/**",
+    "tests/e2e/__screenshots__/**",
   ]),
 ]);
 
