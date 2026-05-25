@@ -14,7 +14,7 @@ Schema reference (also serialized at the top of nb00):
     province             str   — Thai province (BKK-heavy)
     language             str   — th/en
     booking_id           str   — unique booking id
-    doctor_id            str   — D001..D015 (matches §6 doctors)
+    doctor_id            str   — D001..D033 (matches src/data/doctors.json)
     specialty            str   — clinical specialty
     booked_at            ts    — when the user booked
     scheduled_at         ts    — when the visit is scheduled
@@ -41,9 +41,12 @@ Schema reference (also serialized at the top of nb00):
 
 from __future__ import annotations
 
+import json
 import math
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Iterable
 
 import holidays
@@ -53,24 +56,20 @@ import pandas as pd
 from . import thai_stats as ts
 
 
-# ── 15 doctors (LOCKED — verbatim from Mordee_Plus_VibeCoding_Plan.md §6) ──
-DOCTORS: list[dict] = [
-    {"id": "D001", "specialty": "General Practice"},
-    {"id": "D002", "specialty": "Internal Medicine"},
-    {"id": "D003", "specialty": "Cardiology"},
-    {"id": "D004", "specialty": "OB-GYN"},
-    {"id": "D005", "specialty": "Pediatrics"},
-    {"id": "D006", "specialty": "Dermatology"},
-    {"id": "D007", "specialty": "Orthopedics"},
-    {"id": "D008", "specialty": "Psychiatry"},
-    {"id": "D009", "specialty": "Gastroenterology"},
-    {"id": "D010", "specialty": "Pulmonology"},
-    {"id": "D011", "specialty": "Neurology"},
-    {"id": "D012", "specialty": "Endocrinology"},
-    {"id": "D013", "specialty": "ENT"},
-    {"id": "D014", "specialty": "Allergy & Immunology"},
-    {"id": "D015", "specialty": "Urology"},
-]
+# ── Doctor roster (read from the canonical catalog so it can never drift) ──
+# Source of truth = src/data/doctors.json. As of 2026-05-25 this holds 33
+# doctors across 18 specialties (some specialties have multiple doctors).
+# Anchored to the module location, not cwd, so direct imports work too.
+_REPO = Path(__file__).resolve().parents[2]  # notebooks/lib/synth.py -> repo root
+_DOCTORS_PATH = _REPO / "src" / "data" / "doctors.json"
+
+
+def _load_doctors() -> list[dict]:
+    raw = json.loads(_DOCTORS_PATH.read_text(encoding="utf-8"))
+    return [{"id": d["id"], "specialty": d["specialty"]} for d in raw]
+
+
+DOCTORS: list[dict] = _load_doctors()
 
 # Symptom category mapped per specialty for realism. Phase 3 RAG can
 # refine this; here we just need a categorical correlated with specialty.
@@ -90,6 +89,11 @@ SYMPTOM_CATEGORIES_PER_SPECIALTY = {
     "ENT": ["sore_throat", "ear_pain", "sinusitis"],
     "Allergy & Immunology": ["allergy_rhinitis", "urticaria", "asthma"],
     "Urology": ["uti", "kidney_stone", "bph"],
+    # New specialties added with the 33-doctor roster (2026-05-25). Categories
+    # align with each doctor's Thai expertise_tags in doctors.json.
+    "Ophthalmology": ["dry_eye", "red_eye", "blurred_vision"],
+    "Family Medicine": ["general", "chronic_followup", "preventive_care"],
+    "Emergency Medicine": ["minor_injury", "acute_pain", "first_aid"],
 }
 
 
@@ -174,11 +178,15 @@ def _draw_triage(rng: np.random.Generator, specialty: np.ndarray) -> np.ndarray:
     for i, sp in enumerate(specialty):
         if sp == "Cardiology":
             p = np.array([0.45, 0.40, 0.15])
-        elif sp in {"Dermatology", "Allergy & Immunology", "ENT"}:
+        elif sp == "Emergency Medicine":
+            # ER telemed skews acute — more yellow/red than baseline.
+            p = np.array([0.40, 0.40, 0.20])
+        elif sp in {"Dermatology", "Allergy & Immunology", "ENT", "Ophthalmology"}:
             p = np.array([0.85, 0.13, 0.02])
         elif sp in {"Psychiatry"}:
             p = np.array([0.55, 0.40, 0.05])
         else:
+            # General Practice, Family Medicine, NCD specialties, etc.
             p = base.copy()
         p = p / p.sum()
         out[i] = rng.choice(["green", "yellow", "red"], p=p)
@@ -222,9 +230,21 @@ def generate(cfg: GenConfig | None = None) -> pd.DataFrame:
 
     # ── specialty + doctor ──
     specialty = _weighted_choice(rng, ts.SPECIALTY_SHARE, n)
-    # map specialty back to doctor_id deterministically (we have 15 doctors, one per specialty in §6)
-    spec_to_doc = {d["specialty"]: d["id"] for d in DOCTORS}
-    doctor_id = np.array([spec_to_doc[s] for s in specialty])
+    # Map each booking to a doctor WITHIN the sampled specialty. Several
+    # specialties now have multiple doctors (e.g. 4 GPs), so we group then
+    # draw uniformly among that specialty's doctors — seed-deterministic, and
+    # it splits a specialty's demand evenly across its doctors.
+    spec_to_docs: dict[str, list[str]] = defaultdict(list)
+    for d in DOCTORS:
+        spec_to_docs[d["specialty"]].append(d["id"])
+    # Fail loud if the demand mix and the catalog ever drift apart.
+    missing = set(ts.SPECIALTY_SHARE) - set(spec_to_docs)
+    assert not missing, f"SPECIALTY_SHARE has specialties absent from doctors.json: {missing}"
+    doctor_id = np.empty(n, dtype=object)
+    for sp, docs in spec_to_docs.items():
+        mask = specialty == sp
+        if mask.any():
+            doctor_id[mask] = rng.choice(docs, size=int(mask.sum()))
 
     # ── timing ──
     scheduled_at = _draw_scheduled_at(rng, cfg)

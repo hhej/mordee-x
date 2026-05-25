@@ -59,21 +59,29 @@ PROVINCE_SHARE = {
 # Top conditions on Thai telemed (SAGE UCS 2024):
 #   mental health 25.6%, essential hypertension 12.6%, diabetes 9.2%.
 # We map those to MorDee+ specialties from §6.
+# Expanded 2026-05-25 to cover the 18 specialties in the 33-doctor catalog.
+# Family Medicine splits primary-care demand off General Practice; the new
+# entries are funded by shaving GP / Psychiatry / Internal Medicine while
+# keeping primary care + mental health as the dominant telemed segments.
+# Sums to exactly 1.000.
 SPECIALTY_SHARE = {
-    "General Practice": 0.22,        # walk-in equivalent
-    "Internal Medicine": 0.16,       # NCDs - hypertension, diabetes
-    "Psychiatry": 0.18,              # mental health (largest Thai telemed segment)
+    "General Practice": 0.17,        # walk-in equivalent (Family Medicine now absorbs some primary care)
+    "Psychiatry": 0.165,             # mental health (largest Thai telemed clinical segment)
+    "Internal Medicine": 0.15,       # NCDs - hypertension, diabetes
     "Dermatology": 0.08,
     "Pediatrics": 0.07,
+    "Family Medicine": 0.05,         # NEW — family primary care / chronic follow-up
     "OB-GYN": 0.05,
     "Endocrinology": 0.04,
     "Cardiology": 0.04,
     "Gastroenterology": 0.04,
-    "Orthopedics": 0.04,
+    "Orthopedics": 0.035,
     "Pulmonology": 0.03,
     "Neurology": 0.02,
+    "Emergency Medicine": 0.015,     # NEW — telemed triage / first-aid advice
+    "Ophthalmology": 0.015,          # NEW — dry-eye / red-eye / screening
     "ENT": 0.015,
-    "Allergy & Immunology": 0.015,
+    "Allergy & Immunology": 0.01,
     "Urology": 0.005,
 }
 

@@ -124,7 +124,8 @@ def build_nb00() -> Path:
         from lib.synth import generate, GenConfig, DOCTORS
         from lib import thai_stats as ts
 
-        print("Loaded helpers. 15 doctors:", len(DOCTORS))
+        print(f"Loaded helpers. {len(DOCTORS)} doctors across "
+              f"{len({d['specialty'] for d in DOCTORS})} specialties (from doctors.json).")
         print("Calibration constants module:", ts.__file__)
         """),
         md(r"""
@@ -889,12 +890,16 @@ def build_nb02() -> Path:
         **เปรียบเทียบ 3 โมเดล** — Prophet (Thai holidays), SARIMA (weekly seasonality), LightGBM (lag features) —
         เลือก winner ตาม MAE/RMSE/MAPE บน rolling-origin CV.
 
-        **เป้าหมาย** — ทำนาย hourly bookings สำหรับ specialty="General Practice" (เป็น proxy ของ D001) อีก 7 วัน
-        ข้างหน้า + แนะนำ top-K slot เปิดบริการ.
+        **เป้าหมาย** — เราพยากรณ์ความต้องการ**ราย "สาขา" (specialty)** เพราะ catalog ปัจจุบันมีแพทย์ 33 ท่าน
+        ใน 18 สาขา (บางสาขามีหลายคน เช่น GP มี 4 คน) — demand จึงเป็นของ"สาขา" ไม่ใช่หมอคนเดียว. §2–§11 เดินเรื่อง
+        เต็มรูปแบบบนสาขาที่ volume สูงสุด (General Practice) เป็นตัวอย่าง แล้ว §12 ขยายไปครบทั้ง 18 สาขาแบบ
+        tiered strategy.
 
-        **English**: predict hourly booking demand for D001 (General Practice) 7 days ahead.
-        Compare Prophet / SARIMA / LightGBM via rolling-origin CV. Winner picks the
-        7-day forecast and recommended online slots. Output schema matches §6.
+        **English**: forecast hourly booking demand **per specialty** (not per single doctor — the 33-doctor /
+        18-specialty catalog has several doctors sharing a specialty). §2–§11 walk through the full
+        Prophet/SARIMA/LightGBM bake-off + CV + tuning on the highest-volume specialty (General Practice);
+        §12 then generalizes to all 18 specialties with a volume-tiered strategy. Each doctor inherits its
+        specialty's forecast (per-doctor view = pooled ÷ doctor_count). Output schema matches §6.
         """),
         md(r"""
         ## 2. Data load + aggregation to hourly
@@ -958,7 +963,9 @@ def build_nb02() -> Path:
         3. **Monsoon effect** ถูก embed แล้วใน hourly profile (mean สูงขึ้นในเดือน 6-10)
         4. **ลูกค้าจองล่วงหน้าน้อย** (median 12h) — เลยใช้ short-horizon forecast (7 วัน) เป็นหลัก
         5. **อนาคต = อดีต** — ไม่มี structural break, ไม่มี promotion ในช่วง forecast window
-        6. **D001 GP demand ≈ specialty=GP demand**: เนื่องจาก 15 doctors มี 1:1 mapping specialty:doctor ในข้อมูล
+        6. **พยากรณ์ระดับสาขา (specialty-level)** — เรารวม booking ของทุกหมอในสาขาเดียวกันเป็น demand ของสาขา
+           แล้วให้หมอแต่ละคน "สืบทอด" forecast ของสาขาตน (per-doctor ≈ pooled ÷ doctor_count). เลิกใช้สมมติฐานเดิม
+           "D001 ≈ GP" เพราะตอนนี้ GP มี 4 คน.
         """),
         md(r"""
         ## 5. Feature engineering (สำหรับ LightGBM)
@@ -1180,12 +1187,14 @@ def build_nb02() -> Path:
         md(r"""
         ## 11. Revenue uplift simulation
 
-        เปรียบเทียบรายได้แพทย์เมื่อเปิดบริการตาม "top-K predicted hours" vs "K random hours". ใช้ราคา D001 = 350 บาท
-        (ตาม §6) ต่อ consult.
+        เปรียบเทียบรายได้แพทย์เมื่อเปิดบริการตาม "top-K predicted hours" vs "K random hours". ใช้ราคา median
+        ของสาขา GP (จาก doctors.json) ต่อ consult.
         """),
         code(r"""
         K = 30  # number of hours doctor is online per week
-        DOC_PRICE = 350  # D001 price from §6 doctors.json
+        _docs_df = pd.DataFrame(json.load(open("src/data/doctors.json")))
+        DOC_PRICE = float(_docs_df.loc[_docs_df["specialty"] == "General Practice", "price"].median())  # GP median price
+        print(f"GP median consult price: {DOC_PRICE:.0f} THB")
 
         # Forecast next 7 days hourly
         future_start = hourly["ds"].max() + pd.Timedelta(hours=1)
@@ -1258,64 +1267,257 @@ def build_nb02() -> Path:
         for s in slots: print(" ", s)
         """),
         md(r"""
-        ## 12. Business summary
+        ## 12. Generalize to all 18 specialties — tiered strategy
 
-        | ตัวชี้วัด | ค่า |
-        |---|---|
-        | Winning model | {{winner}} |
-        | Test MAE | {{mae}} |
-        | Expected revenue uplift | {{uplift}}% |
-        | Recommended weekly online slots | top 5 (HIGH load) |
-        | Forecast horizon | 7 days × 24 hours = 168 points |
+        §2–§11 was the worked example on the highest-volume specialty (General Practice). The 33-doctor
+        catalog has 18 specialties with very different volumes, so running the full Prophet+SARIMA+LightGBM
+        bake-off on a 0.5%-share specialty (Urology) would just overfit noise. We route by volume:
 
-        **Limitations**: 12 months of history. No promotion / structural break modelled.
-        Forecast confidence intervals use Prophet's native quantile output; for LightGBM
-        we approximate via residual standard deviation.
-        """),
-        md(r"""
-        ## 13. Export → `data/ml/demand_forecast_7d.json`
+        | Tier | Specialties | Method |
+        |---|---|---|
+        | **1 — full bake-off** | General Practice, Psychiatry, Internal Medicine | Prophet vs SARIMA vs LightGBM, pick winner by hold-out MAE |
+        | **2 — LightGBM** | share ≥ 3% (Dermatology, Pediatrics, Family Medicine, OB-GYN, Endocrinology, Cardiology, Gastroenterology, Orthopedics, Pulmonology) | LightGBM with lag features |
+        | **3 — seasonal-naive** | sparse (Neurology, Emergency Medicine, Ophthalmology, ENT, Allergy, Urology) or `< 30` non-zero hours | day-of-week × hour-of-day historical profile |
+
+        Each doctor inherits its specialty's forecast; per-doctor load ≈ pooled ÷ `doctor_count`.
         """),
         code(r"""
-        # Build by_hour list with CI
-        sigma = res.std()
-        by_hour = []
-        for ts, yp in zip(future_hours, future_y_pred):
-            by_hour.append({
-                "datetime": ts.strftime("%Y-%m-%dT%H:%M"),
-                "expected_bookings": round(float(yp), 2),
-                "ci_low": round(float(max(0, yp - 1.28*sigma)), 2),
-                "ci_high": round(float(yp + 1.28*sigma), 2),
-            })
+        import re
 
-        out = {
-            "DD01": {
-                "doctor_id": "D001",
+        # ── catalog-derived maps (price / headcount / representative doctor per specialty) ──
+        _cat = pd.DataFrame(json.load(open("src/data/doctors.json")))
+        DOCTOR_COUNT  = _cat.groupby("specialty")["id"].count().to_dict()
+        REP_DOCTOR    = _cat.sort_values("id").groupby("specialty")["id"].first().to_dict()
+        PRICE_MEDIAN  = _cat.groupby("specialty")["price"].median().to_dict()
+
+        def slugify(s):
+            return re.sub(r"[^a-z]+", "-", s.lower()).strip("-")
+
+        # Shared forecast window so every specialty spans the same history + future 168h
+        _gh = df["scheduled_at"].dt.floor("h")
+        HIST_START, HIST_END = _gh.min(), _gh.max()
+        FULL_IDX     = pd.date_range(HIST_START, HIST_END, freq="h")
+        FUTURE_HOURS = pd.date_range(HIST_END + pd.Timedelta(hours=1), periods=168, freq="h")
+        HOLDOUT_DAYS = 21
+        FEAT_COLS = ["hour","dow","month","is_weekend","is_holiday","is_monsoon",
+                     "lag_1","lag_24","lag_168","roll_24h_mean","roll_7d_mean"]
+
+        def specialty_hourly(sp):
+            sub = df[df["specialty"] == sp]
+            h = (sub.assign(_h=sub["scheduled_at"].dt.floor("h"))
+                    .groupby("_h").size().rename("y"))
+            return h.reindex(FULL_IDX, fill_value=0).rename_axis("ds").reset_index()
+
+        def _holdout(hourly):
+            cut = hourly["ds"].max() - pd.Timedelta(days=HOLDOUT_DAYS)
+            return hourly[hourly["ds"] <= cut], hourly[hourly["ds"] > cut], cut
+
+        def _add_feats(hourly):
+            f = hourly.copy()
+            f["hour"]=f["ds"].dt.hour; f["dow"]=f["ds"].dt.dayofweek; f["month"]=f["ds"].dt.month
+            f["is_weekend"]=(f["dow"]>=5).astype(int)
+            f["is_holiday"]=f["ds"].dt.date.isin(th_holidays).astype(int)
+            f["is_monsoon"]=f["month"].isin([6,7,8,9,10]).astype(int)
+            f["lag_1"]=f["y"].shift(1); f["lag_24"]=f["y"].shift(24); f["lag_168"]=f["y"].shift(168)
+            f["roll_24h_mean"]=f["y"].shift(1).rolling(24).mean()
+            f["roll_7d_mean"]=f["y"].shift(1).rolling(168).mean()
+            return f.dropna().reset_index(drop=True)
+        print("Helpers + catalog maps ready. Specialties:", df["specialty"].nunique())
+        """),
+        code(r"""
+        # ── individual forecasters: each returns (preds[168], holdout_mae, resid_sigma) ──
+        def f_seasonal_naive(hourly):
+            tr, te, _ = _holdout(hourly)
+            def profile(frame):
+                return (frame.assign(dow=frame["ds"].dt.dayofweek, h=frame["ds"].dt.hour)
+                             .groupby(["dow","h"])["y"].mean())
+            prof_tr = profile(tr); prof_full = profile(hourly)
+            proj = lambda prof, idx: np.array([prof.get((t.dayofweek, t.hour), 0.0) for t in idx])
+            mae   = mean_absolute_error(te["y"], proj(prof_tr, te["ds"])) if len(te) else np.nan
+            sigma = (te["y"].values - proj(prof_tr, te["ds"])).std() if len(te) else hourly["y"].std()
+            return proj(prof_full, FUTURE_HOURS), mae, float(sigma)
+
+        def f_lgbm(hourly):
+            feat = _add_feats(hourly); _, _, cut = _holdout(hourly)
+            ftr, fte = feat[feat["ds"] <= cut], feat[feat["ds"] > cut]
+            ev = lgb.LGBMRegressor(n_estimators=400, max_depth=6, learning_rate=0.05,
+                                   random_state=RANDOM_STATE, n_jobs=4, verbose=-1)
+            ev.fit(ftr[FEAT_COLS], ftr["y"])
+            pe  = ev.predict(fte[FEAT_COLS]).clip(min=0) if len(fte) else np.array([])
+            mae = mean_absolute_error(fte["y"], pe) if len(fte) else np.nan
+            sigma = (fte["y"].values - pe).std() if len(fte) else feat["y"].std()
+            full = lgb.LGBMRegressor(n_estimators=400, max_depth=6, learning_rate=0.05,
+                                     random_state=RANDOM_STATE, n_jobs=4, verbose=-1)
+            full.fit(feat[FEAT_COLS], feat["y"])
+            hist = hourly["y"].tolist(); preds = []
+            for t in FUTURE_HOURS:
+                row = {"hour":t.hour,"dow":t.dayofweek,"month":t.month,"is_weekend":int(t.dayofweek>=5),
+                       "is_holiday":int(t.date() in th_holidays),"is_monsoon":int(t.month in [6,7,8,9,10]),
+                       "lag_1":hist[-1],"lag_24":hist[-24],"lag_168":hist[-168],
+                       "roll_24h_mean":np.mean(hist[-24:]),"roll_7d_mean":np.mean(hist[-168:])}
+                p = max(0.0, float(full.predict(pd.DataFrame([row])[FEAT_COLS])[0]))
+                preds.append(p); hist.append(p)
+            return np.array(preds), mae, float(sigma)
+
+        def f_prophet(hourly):
+            tr, te, _ = _holdout(hourly)
+            def fit(frame):
+                m = Prophet(yearly_seasonality=False, weekly_seasonality=True,
+                            daily_seasonality=True, seasonality_mode="additive")
+                m.add_country_holidays(country_name="TH"); m.fit(frame[["ds","y"]]); return m
+            m_tr = fit(tr)
+            yhat = m_tr.predict(m_tr.make_future_dataframe(periods=len(te), freq="h")).set_index("ds")["yhat"]
+            pe  = yhat.reindex(te["ds"]).clip(lower=0).fillna(0).values if len(te) else np.array([])
+            mae = mean_absolute_error(te["y"], pe) if len(te) else np.nan
+            sigma = (te["y"].values - pe).std() if len(te) else hourly["y"].std()
+            m_full = fit(hourly)
+            out = m_full.predict(m_full.make_future_dataframe(periods=168, freq="h")).set_index("ds")["yhat"]
+            return out.reindex(FUTURE_HOURS).clip(lower=0).fillna(0).values, mae, float(sigma)
+
+        def f_sarima(hourly):
+            tr, te, _ = _holdout(hourly)
+            try:
+                s = tr.set_index("ds")["y"].astype(float).iloc[-24*60:]
+                m = SARIMAX(s, order=(1,1,1), seasonal_order=(1,1,0,24),
+                            enforce_stationarity=False, enforce_invertibility=False).fit(disp=False, maxiter=50)
+                pe = m.forecast(steps=len(te)).clip(lower=0).values if len(te) else np.array([])
+                mae = mean_absolute_error(te["y"], pe) if len(te) else np.nan
+                sigma = (te["y"].values - pe).std() if len(te) else hourly["y"].std()
+                sf = hourly.set_index("ds")["y"].astype(float).iloc[-24*60:]
+                mf = SARIMAX(sf, order=(1,1,1), seasonal_order=(1,1,0,24),
+                             enforce_stationarity=False, enforce_invertibility=False).fit(disp=False, maxiter=50)
+                return mf.forecast(steps=168).clip(lower=0).values, mae, float(sigma)
+            except Exception as e:
+                print("   SARIMA failed:", e); return None, np.inf, None
+
+        def make_slots(preds):
+            thr = np.percentile(preds, 80); hi = preds >= thr; slots = []; i = 0
+            while i < len(preds):
+                if hi[i]:
+                    j = i
+                    while j+1 < len(preds) and hi[j+1] and (FUTURE_HOURS[j+1]-FUTURE_HOURS[j]) == pd.Timedelta(hours=1):
+                        j += 1
+                    start, end = FUTURE_HOURS[i], FUTURE_HOURS[j] + pd.Timedelta(hours=1)
+                    if (end - start).total_seconds() >= 2*3600:
+                        slots.append({"start": start.strftime("%Y-%m-%dT%H:%M"),
+                                      "end": end.strftime("%Y-%m-%dT%H:%M"),
+                                      "predicted_load": "HIGH",
+                                      "expected_consults": round(float(preds[i:j+1].sum()))})
+                    i = j + 1
+                else:
+                    i += 1
+            return sorted(slots, key=lambda s: -s["expected_consults"])[:6]
+
+        def compute_uplift(preds, price, K=30):
+            top = np.argsort(preds)[::-1][:K]
+            rnd = np.random.default_rng(RANDOM_STATE).choice(len(preds), K, replace=False)
+            rt, rr = preds[top].sum()*price, preds[rnd].sum()*price
+            return (rt - rr)/rr*100 if rr > 0 else 0.0
+        print("Forecasters ready.")
+        """),
+        code(r"""
+        # ── tier router + per-specialty loop ──
+        TIER1            = {"General Practice", "Psychiatry", "Internal Medicine"}  # full 3-model bake-off
+        LGBM_MIN_SHARE   = 0.03    # ≥3% of bookings → enough signal for LightGBM
+        MIN_NONZERO_HRS  = 30      # below this, force seasonal-naive regardless of share
+
+        def forecast_specialty(sp, hourly, share):
+            nonzero = int((hourly["y"] > 0).sum())
+            if nonzero < MIN_NONZERO_HRS:
+                p, m, s = f_seasonal_naive(hourly); return p, m, s, "seasonal_naive"
+            if sp in TIER1:
+                cands = {}
+                for name, fn in [("prophet", f_prophet), ("sarima", f_sarima), ("lightgbm", f_lgbm)]:
+                    pr, mae, sig = fn(hourly)
+                    if pr is not None and np.isfinite(mae):
+                        cands[name] = (pr, mae, sig)
+                win = min(cands, key=lambda k: cands[k][1])
+                return (*cands[win], win)
+            if share >= LGBM_MIN_SHARE:
+                p, m, s = f_lgbm(hourly); return p, m, s, "lightgbm"
+            p, m, s = f_seasonal_naive(hourly); return p, m, s, "seasonal_naive"
+
+        forecasts, rows = {}, []
+        n_total = len(df)
+        for sp in sorted(df["specialty"].unique()):
+            hourly = specialty_hourly(sp)
+            share = len(df[df["specialty"] == sp]) / n_total
+            preds, mae, sigma, model = forecast_specialty(sp, hourly, share)
+            price = float(PRICE_MEDIAN.get(sp, 350.0))
+            by_hour = [{"datetime": t.strftime("%Y-%m-%dT%H:%M"),
+                        "expected_bookings": round(float(p), 2),
+                        "ci_low":  round(float(max(0, p - 1.28*sigma)), 2),
+                        "ci_high": round(float(p + 1.28*sigma), 2)}
+                       for t, p in zip(FUTURE_HOURS, preds)]
+            forecasts[slugify(sp)] = {
+                "specialty": sp,
+                "doctor_count": int(DOCTOR_COUNT.get(sp, 1)),
+                "doctor_id": REP_DOCTOR.get(sp),
                 "horizon_days": 7,
                 "by_hour": by_hour,
-                "recommended_online_slots": slots,
-                "expected_revenue_uplift_pct": round(float(uplift_pct), 1),
-                "winning_model": winner.lower(),
-                "model_mae": round(float(model_mae), 3),
+                "recommended_online_slots": make_slots(preds),
+                "expected_revenue_uplift_pct": round(float(compute_uplift(preds, price)), 1),
+                "winning_model": model,
+                "model_mae": round(float(mae), 3) if np.isfinite(mae) else None,
             }
+            rows.append({"specialty": sp, "doctors": int(DOCTOR_COUNT.get(sp, 1)),
+                         "share_%": round(100*share, 2), "model": model,
+                         "MAE": forecasts[slugify(sp)]["model_mae"],
+                         "uplift_%": forecasts[slugify(sp)]["expected_revenue_uplift_pct"]})
+            print(f"  {sp:<22} share={share:5.1%}  model={model:<14} mae={forecasts[slugify(sp)]['model_mae']}")
+        print(f"\\nForecasted {len(forecasts)} specialties.")
+        """),
+        md(r"""
+        ## 13. Model leaderboard across specialties
+        """),
+        code(r"""
+        summary = pd.DataFrame(rows).sort_values("share_%", ascending=False).reset_index(drop=True)
+        print(summary.to_string(index=False))
+
+        fig, ax = plt.subplots(figsize=(11, 4))
+        palette = {"prophet":"#0ea672","sarima":"#f59e0b","lightgbm":"#2563eb","seasonal_naive":"#9ca3af"}
+        ax.bar(summary["specialty"], summary["share_%"],
+               color=[palette[m] for m in summary["model"]])
+        ax.set_ylabel("share of bookings (%)"); ax.set_title("Specialty volume + winning model (color)")
+        ax.set_xticklabels(summary["specialty"], rotation=60, ha="right")
+        handles = [plt.Rectangle((0,0),1,1,color=c) for c in palette.values()]
+        ax.legend(handles, palette.keys(), title="model", fontsize=8)
+        plt.tight_layout(); plt.show()
+        """),
+        md(r"""
+        ## 14. Export → `data/ml/demand_forecast_7d.json`
+
+        Keyed by **specialty slug** (`general-practice`, `cardiology`, `family-medicine`, …). `DD01` is kept as a
+        back-compat alias of `general-practice` (doctor_id D001). Each entry preserves the §6 schema fields and adds
+        `specialty` + `doctor_count` so the app can frame pooled demand honestly (per-doctor ≈ pooled ÷ doctor_count).
+        """),
+        code(r"""
+        out = {
+            "by_specialty": forecasts,
+            "DD01": {**forecasts["general-practice"], "doctor_id": "D001"},  # back-compat alias
         }
         with open("data/ml/demand_forecast_7d.json", "w") as f:
             json.dump(out, f, indent=2, ensure_ascii=False)
-        print(f"Wrote {len(by_hour)} hourly points + {len(slots)} slot recommendations.")
-        print(f"Winning model: {winner}  MAE={model_mae:.3f}  uplift={uplift_pct:.1f}%")
+        total_points = sum(len(e["by_hour"]) for e in forecasts.values())
+        print(f"Wrote {len(forecasts)} specialty forecasts ({total_points} hourly points) + DD01 alias.")
         """),
         code(r"""
-        # Verify shape per §6
+        # Verify schema
         with open("data/ml/demand_forecast_7d.json") as f:
             v = json.load(f)
-        assert "DD01" in v
+        assert {"by_specialty", "DD01"} <= v.keys()
+        bs = v["by_specialty"]
+        assert len(bs) == 18, f"Expected 18 specialties, got {len(bs)}"
+        for slug, e in bs.items():
+            assert len(e["by_hour"]) == 168, f"{slug}: {len(e['by_hour'])} pts"
+            assert e["winning_model"] in {"prophet","sarima","lightgbm","seasonal_naive"}, e["winning_model"]
+            assert e["doctor_count"] >= 1 and e["specialty"]
+            for row in e["by_hour"][:3]:
+                assert {"datetime","expected_bookings","ci_low","ci_high"} <= row.keys()
         dd01 = v["DD01"]
-        assert dd01["doctor_id"] == "D001"
-        assert dd01["horizon_days"] == 7
-        assert len(dd01["by_hour"]) == 168, f"Expected 168 hourly points, got {len(dd01['by_hour'])}"
-        for row in dd01["by_hour"][:3]:
-            assert {"datetime","expected_bookings","ci_low","ci_high"} <= row.keys()
-        assert dd01["winning_model"] in {"prophet","sarima","lightgbm"}
-        print("✔ JSON schema matches §6")
+        assert dd01["doctor_id"] == "D001" and dd01["horizon_days"] == 7 and len(dd01["by_hour"]) == 168
+        print(f"✔ {len(bs)} specialties × 168h · DD01 alias present · all schema fields OK")
+        print("  models used:", pd.Series([e['winning_model'] for e in bs.values()]).value_counts().to_dict())
         """),
     ]
     return write_nb("02_demand_forecast_full_pipeline", cells)
