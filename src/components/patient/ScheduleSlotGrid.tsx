@@ -24,6 +24,14 @@ interface ScheduleSlotGridProps {
    *  so a slot picked at 14:30 doesn't show '14:00 today' as still available
    *  even if the dialog stays mounted across day boundaries. */
   now?: Date;
+  /** Controlled slot list. When provided, bypasses internal forecast/mock
+   *  generation — used by the follow-up dialog to feed availability.ts output
+   *  (taken slots removed, restricted to the follow-up window). */
+  slots?: Slot[];
+  /** Controlled selection. When `onSelect` is provided, the grid reads/writes
+   *  these instead of the patient store's bookingSlot. */
+  value?: string | null;
+  onSelect?: (iso: string) => void;
 }
 
 const LOAD_STYLES: Record<SlotLoad, { dot: string; chip: string; label: string }> = {
@@ -70,17 +78,28 @@ function thaiHourLabel(iso: string): string {
   return `${d.getHours().toString().padStart(2, '0')}:00`;
 }
 
-export function ScheduleSlotGrid({ doctorId, now }: ScheduleSlotGridProps) {
-  const selected = usePatientStore((s) => s.bookingSlot);
-  const setSlot = usePatientStore((s) => s.setBookingSlot);
+export function ScheduleSlotGrid({
+  doctorId,
+  now,
+  slots: slotsProp,
+  value,
+  onSelect,
+}: ScheduleSlotGridProps) {
+  // Hooks must run unconditionally; the controlled props (when present) take
+  // precedence over these store-backed defaults.
+  const storeSelected = usePatientStore((s) => s.bookingSlot);
+  const setStoreSlot = usePatientStore((s) => s.setBookingSlot);
+  const controlled = onSelect !== undefined;
+  const selected = controlled ? value ?? null : storeSelected;
+  const setSlot = controlled ? onSelect : setStoreSlot;
 
   const anchor = now ?? new Date();
   // Every doctor inherits its specialty's demand forecast; slots are driven by
   // the real model output when available, else fall back to mock generation.
-  const forecast = getDemandForDoctor(doctorId);
-  const slots: Slot[] = forecast
-    ? slotsFromDemandForecast(forecast, anchor)
-    : generateSlotsFor(doctorId, anchor);
+  // A `slots` prop short-circuits this (follow-up dialog feeds availability.ts).
+  const forecast = slotsProp ? undefined : getDemandForDoctor(doctorId);
+  const slots: Slot[] =
+    slotsProp ?? (forecast ? slotsFromDemandForecast(forecast, anchor) : generateSlotsFor(doctorId, anchor));
 
   const grouped = groupSlotsByDay(slots);
 

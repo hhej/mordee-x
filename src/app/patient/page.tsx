@@ -17,12 +17,14 @@ import { MockPaymentDialog } from '@/components/patient/MockPaymentDialog';
 import { FollowupCallout } from '@/components/patient/FollowupCallout';
 import { CheckupUpsell } from '@/components/patient/CheckupUpsell';
 import { ScheduledConfirmationCard } from '@/components/patient/ScheduledConfirmationCard';
+import { UpcomingAppointmentsCard } from '@/components/patient/UpcomingAppointmentsCard';
 import { StepPill } from '@/components/patient/StepPill';
 import { PatientPersonaPicker } from '@/components/patient/PatientPersonaPicker';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
 import { getDoctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
+import { useAppointmentStore } from '@/stores/store-appointments';
 import type { TriageResult } from '@/lib/llm/schemas';
 
 const fadeUp = {
@@ -64,6 +66,7 @@ export default function PatientPage() {
   const personaPicked = usePatientStore((s) => s.personaPicked);
   const clearPersona = usePatientStore((s) => s.clearPersona);
   const hydratePersona = usePatientStore((s) => s.hydratePersona);
+  const hydrateAppointments = useAppointmentStore((s) => s.hydrate);
   const step = usePatientStore((s) => s.step);
   const triage = usePatientStore((s) => s.triage);
   const summary = usePatientStore((s) => s.summary);
@@ -81,7 +84,8 @@ export default function PatientPage() {
 
   useEffect(() => {
     hydratePersona();
-  }, [hydratePersona]);
+    hydrateAppointments();
+  }, [hydratePersona, hydrateAppointments]);
 
   useEffect(() => {
     if (consultEnded && summaryRef.current) {
@@ -204,6 +208,7 @@ export default function PatientPage() {
           {step === 'symptom' ? (
             <motion.section {...fadeUp} key="hero">
               <div className="flex flex-col gap-4">
+                <UpcomingAppointmentsCard />
                 <SymptomChat />
                 <div className="flex items-center gap-3 px-1" aria-hidden>
                   <div className="h-px flex-1 bg-line/60" />

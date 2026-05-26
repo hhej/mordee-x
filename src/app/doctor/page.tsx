@@ -14,6 +14,7 @@ import {
   type NoShowPrediction,
 } from '@/lib/data';
 import { useDoctorStore } from '@/stores/store-doctor';
+import { useAppointmentStore } from '@/stores/store-appointments';
 
 /** How many rows the doctor sees in the queue at once. The full pool
  *  (today + standby) is larger; we slice down so finished consults are
@@ -25,13 +26,16 @@ export default function DoctorPage() {
   const consumedApptIds = useDoctorStore((s) => s.consumedApptIds);
   const hydrate = useDoctorStore((s) => s.hydrateDoctorId);
   const clear = useDoctorStore((s) => s.clearDoctorId);
+  const hydrateAppointments = useAppointmentStore((s) => s.hydrate);
 
   // Restore the previously-selected persona on first paint. Without this, a
   // page reload always drops back to the picker even when the user already
-  // chose a persona in this session.
+  // chose a persona in this session. Also hydrate the shared appointment ledger
+  // so AppointmentsCard can show scheduled follow-ups.
   useEffect(() => {
     hydrate();
-  }, [hydrate]);
+    hydrateAppointments();
+  }, [hydrate, hydrateAppointments]);
 
   if (!doctorId) {
     return (
