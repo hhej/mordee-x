@@ -1,4 +1,5 @@
 import type { DemandForecast } from '@/lib/data';
+import { makeForecastResolver } from '@/lib/demand-forecast';
 
 export type SlotLoad = 'low' | 'med' | 'high' | 'unavailable';
 
@@ -82,45 +83,47 @@ export function generateSlotsFor(doctorId: string, now: Date = new Date()): Slot
 }
 
 /**
- * Convert the real D001 demand forecast (from nb02 output) into the same
- * Slot[] shape so the booking grid renders identically for D001 and other
- * doctors. Tier thresholds chosen so the forecast's distribution roughly
- * matches the mock generator's mix.
+ * Convert a specialty's demand forecast (nb02 output) into the same Slot[] shape
+ * so the booking grid renders identically for forecast-backed and mock doctors.
+ *
+ * Date-aware: each of the next 7 days × 24h is resolved against the genuine dated
+ * forecast (real value for that calendar date — incl. holidays), falling back to
+ * the weekly-average pattern only past the model's static horizon. Tier thresholds
+ * come from the specialty's own distribution so the load mix reads sensibly at any
+ * scale (busy GP hour vs. quiet Urology hour).
  */
 export function slotsFromDemandForecast(
   forecast: DemandForecast,
   now: Date = new Date(),
 ): Slot[] {
-  // Find rough quantiles of expected_bookings so thresholds adapt to scale.
-  const values = forecast.by_hour.map((b) => b.expected_bookings);
-  const sorted = [...values].sort((a, b) => a - b);
+  if (forecast.by_hour.length === 0) return [];
+  const resolver = makeForecastResolver(forecast);
+
+  const sorted = forecast.by_hour.map((b) => b.expected_bookings).sort((a, b) => a - b);
   const q = (p: number) => sorted[Math.floor(sorted.length * p)] ?? 0;
   const lowThreshold = q(0.3);
   const medThreshold = q(0.6);
   const highThreshold = q(0.85);
 
-  // The Prophet output's load-by-hour pattern is what matters; its absolute
-  // calendar dates are an artifact of when nb02 ran. Rebase the series so
-  // the first bucket lands at startOfTomorrow(now) — keeps the grid fresh
-  // without re-running the notebook every week.
-  const firstIso = forecast.by_hour[0]?.datetime;
-  if (!firstIso) return [];
-  const firstAtNotebook = new Date(firstIso).getTime();
-  const target = new Date(now);
-  target.setHours(0, 0, 0, 0);
-  target.setDate(target.getDate() + 1);
-  const offsetMs = target.getTime() - firstAtNotebook;
-
-  return forecast.by_hour.map((b) => {
-    const rebasedIso = new Date(new Date(b.datetime).getTime() + offsetMs).toISOString();
-    let load: SlotLoad;
-    if (b.expected_bookings <= 0.05) load = 'unavailable';
-    else if (b.expected_bookings <= lowThreshold) load = 'low';
-    else if (b.expected_bookings <= medThreshold) load = 'med';
-    else if (b.expected_bookings <= highThreshold) load = 'high';
-    else load = 'high';
-    return { iso: rebasedIso, load };
-  });
+  const start = startOfTomorrow(now);
+  const out: Slot[] = [];
+  for (let day = 0; day < 7; day++) {
+    const date = new Date(start);
+    date.setDate(date.getDate() + day);
+    for (let hour = 0; hour < 24; hour++) {
+      const { expected } = resolver.at(date, hour);
+      let load: SlotLoad;
+      if (expected <= 0.05) load = 'unavailable';
+      else if (expected <= lowThreshold) load = 'low';
+      else if (expected <= medThreshold) load = 'med';
+      else if (expected <= highThreshold) load = 'high';
+      else load = 'high';
+      const slot = new Date(date);
+      slot.setHours(hour, 0, 0, 0);
+      out.push({ iso: slot.toISOString(), load });
+    }
+  }
+  return out;
 }
 
 /**

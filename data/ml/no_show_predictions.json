@@ -1,66 +1,66 @@
 {
   "NS001": {
-    "p_no_show": 0.0963,
+    "p_no_show": 0.092,
     "risk_tier": "LOW",
     "top_shap": [
       {
-        "feature": "symptom_category_first_aid",
+        "feature": "triage_color_red",
         "value": 1.0,
-        "shap": -0.9248427748680115
+        "shap": -0.9232423305511475
+      },
+      {
+        "feature": "age",
+        "value": 73.0,
+        "shap": -0.25761497020721436
       },
       {
         "feature": "paid_upfront",
         "value": 1.0,
-        "shap": -0.3652433156967163
-      },
-      {
-        "feature": "sms_confirmed",
-        "value": 1.0,
-        "shap": -0.2564143240451813
+        "shap": -0.20774787664413452
       }
     ],
     "recommended_action": "single_reminder"
   },
   "NS002": {
-    "p_no_show": 0.4499,
+    "p_no_show": 0.45,
     "risk_tier": "MED",
     "top_shap": [
       {
-        "feature": "paid_upfront",
-        "value": 0.0,
-        "shap": 0.26504620909690857
-      },
-      {
         "feature": "sms_confirmed",
-        "value": 1.0,
-        "shap": -0.22236192226409912
+        "value": 0.0,
+        "shap": 0.4798773527145386
       },
       {
-        "feature": "reminder_clicked",
+        "feature": "paid_upfront",
         "value": 1.0,
-        "shap": -0.17859838902950287
+        "shap": -0.30858173966407776
+      },
+      {
+        "feature": "lead_time_hours",
+        "value": 2.1083501569805323,
+        "shap": -0.1854242980480194
       }
     ],
     "recommended_action": "escalated_reminder"
   },
   "NS003": {
-    "p_no_show": 0.9296,
+    "p_no_show": 0.9291,
     "risk_tier": "HIGH",
     "top_shap": [
       {
         "feature": "prior_no_show_count",
         "value": 3.0,
-        "shap": 1.008061170578003
+        "shap": 0.8652743101119995
+      },
+      {
+        "feature": "lead_time_hours",
+        "value": 191.513909453544,
+        "shap": 0.4311985671520233
       },
       {
         "feature": "sms_confirmed",
         "value": 0.0,
-        "shap": 0.41169509291648865
-      },
-      {
-        "feature": "prior_completion_rate",
-        "value": 0.0,
-        "shap": 0.3345545828342438
+        "shap": 0.40987467765808105
       }
     ],
     "recommended_action": "require_confirmation"

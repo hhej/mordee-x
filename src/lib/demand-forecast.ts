@@ -103,84 +103,95 @@ function seasonalKey(dow: number, hour: number): number {
   return dow * 24 + hour;
 }
 
+interface ResolvedPoint {
+  expected: number;
+  ciLow: number;
+  ciHigh: number;
+}
+
+const ZERO_POINT: ResolvedPoint = { expected: 0, ciLow: 0, ciHigh: 0 };
+
+export interface ForecastResolver {
+  /** Specialty peak across the whole horizon — the stable level-scaling denominator. */
+  max: number;
+  /**
+   * Resolve the forecast for a specific local date + hour. The notebook now emits a
+   * ~14-day *dated* horizon, so within that window we return the model's genuine
+   * prediction for that exact calendar date (a real Jun 3 holiday dip shows up here).
+   * For dates outside the static horizon we fall back to the weekly-average seasonal
+   * pattern, so the rolling view never breaks.
+   */
+  at(date: Date, hour: number): ResolvedPoint;
+}
+
 /**
- * Build the doctor-facing weekly model: re-anchor `forecast` onto the 7 days
- * starting at `now`'s date, tag every cell with a relative level, and mark the
- * recommended windows + the live now cell.
+ * Index a forecast for date-aware lookup: a `${YYYY-MM-DD}|hour` map for exact dated
+ * hits, plus a `(dow,hour)` weekly-average map as the out-of-horizon fallback.
  */
-export function buildDemandWeek(forecast: DemandForecast, now: Date): DemandWeek {
-  // Seasonal lookup: (dow, hour) → forecast point.
-  const lookup = new Map<number, { expected: number; ciLow: number; ciHigh: number }>();
+export function makeForecastResolver(forecast: DemandForecast): ForecastResolver {
+  const byDate = new Map<string, ResolvedPoint>();
+  const acc = new Map<number, { e: number; lo: number; hi: number; n: number }>();
   let max = 0;
-  let weekTotal = 0;
   for (const p of forecast.by_hour) {
     const d = new Date(p.datetime);
-    lookup.set(seasonalKey(d.getDay(), d.getHours()), {
+    byDate.set(`${localDateStr(d)}|${d.getHours()}`, {
       expected: p.expected_bookings,
       ciLow: p.ci_low,
       ciHigh: p.ci_high,
     });
+    const sk = seasonalKey(d.getDay(), d.getHours());
+    const a = acc.get(sk) ?? { e: 0, lo: 0, hi: 0, n: 0 };
+    a.e += p.expected_bookings;
+    a.lo += p.ci_low;
+    a.hi += p.ci_high;
+    a.n += 1;
+    acc.set(sk, a);
     if (p.expected_bookings > max) max = p.expected_bookings;
-    weekTotal += p.expected_bookings;
   }
+  const seasonal = new Map<number, ResolvedPoint>();
+  for (const [sk, a] of acc) {
+    seasonal.set(sk, { expected: a.e / a.n, ciLow: a.lo / a.n, ciHigh: a.hi / a.n });
+  }
+  return {
+    max,
+    at(date, hour) {
+      return (
+        byDate.get(`${localDateStr(date)}|${hour}`) ??
+        seasonal.get(seasonalKey(date.getDay(), hour)) ??
+        ZERO_POINT
+      );
+    },
+  };
+}
+
+/**
+ * Build the doctor-facing weekly model: re-anchor `forecast` onto the 7 days
+ * starting at `now`'s date, tag every cell with a relative level, and mark the
+ * recommended windows + the live now cell. Cells are filled from the genuine
+ * dated forecast where available (rolling: the 7th day is a real new prediction),
+ * falling back to the weekly seasonal pattern only past the static horizon.
+ */
+export function buildDemandWeek(forecast: DemandForecast, now: Date): DemandWeek {
+  const resolver = makeForecastResolver(forecast);
+  const max = resolver.max;
 
   const today0 = startOfDay(now);
-  const todayDow = today0.getDay();
   const nowHour = now.getHours();
 
-  // Re-anchor recommended slots by shifting each to the next occurrence of its
-  // weekday on/after today, preserving hour-of-day and duration.
-  const slots: RebasedSlot[] = forecast.recommended_online_slots
-    .map((s) => {
-      const sd = new Date(s.start);
-      const ed = new Date(s.end);
-      const offset = (sd.getDay() - todayDow + 7) % 7;
-      const dayBase = addDays(today0, offset);
-      const newStart = new Date(dayBase);
-      newStart.setHours(sd.getHours(), sd.getMinutes(), 0, 0);
-      const newEnd = new Date(newStart.getTime() + (ed.getTime() - sd.getTime()));
-      // Level = busiest hour inside the window. Walk the original timestamps:
-      // re-anchoring preserves (dow,hour), so the seasonal values are identical.
-      let peakInWindow = 0;
-      for (let t = new Date(sd); t < ed; t = new Date(t.getTime() + 3_600_000)) {
-        const cell = lookup.get(seasonalKey(t.getDay(), t.getHours()));
-        if (cell && cell.expected > peakInWindow) peakInWindow = cell.expected;
-      }
-      return {
-        start: localStamp(newStart),
-        end: localStamp(newEnd),
-        predicted_load: s.predicted_load,
-        expected_consults: s.expected_consults,
-        level: demandLevel(peakInWindow, max),
-      };
-    })
-    // A window that has already ended isn't a recommendation anymore. The end
-    // stamp is local wall-time, so parse it back the same way for comparison.
-    .filter((s) => new Date(s.end).getTime() > now.getTime())
-    .sort((a, b) => a.start.localeCompare(b.start));
-
-  // Fast membership test for "is this (date,hour) inside a recommended window".
-  const recommended = new Set<string>();
-  for (const s of slots) {
-    const sd = new Date(s.start);
-    const ed = new Date(s.end);
-    for (let t = new Date(sd); t < ed; t = new Date(t.getTime() + 3_600_000)) {
-      recommended.add(`${localDateStr(t)}|${t.getHours()}`);
-    }
-  }
-
+  // 1) Build the 7×24 grid straight from the genuine dated forecast (real value
+  //    per calendar date; weekly-average fallback only past the static horizon).
   const rows: DemandRow[] = [];
   let nowCell: DemandCell | null = null;
   let peakCell: DemandCell | null = null;
+  let weekTotal = 0;
 
   for (let i = 0; i < 7; i++) {
     const date = addDays(today0, i);
-    const dow = date.getDay();
     const dateStr = localDateStr(date);
     const isToday = i === 0;
     const cells: DemandCell[] = [];
     for (let h = 0; h < 24; h++) {
-      const point = lookup.get(seasonalKey(dow, h)) ?? { expected: 0, ciLow: 0, ciHigh: 0 };
+      const point = resolver.at(date, h);
       const isNow = isToday && h === nowHour;
       const cell: DemandCell = {
         date: dateStr,
@@ -189,16 +200,69 @@ export function buildDemandWeek(forecast: DemandForecast, now: Date): DemandWeek
         ciLow: point.ciLow,
         ciHigh: point.ciHigh,
         level: demandLevel(point.expected, max),
-        recommended: recommended.has(`${dateStr}|${h}`),
+        recommended: false, // set in pass 2 once the windows are chosen
         isNow,
         isPast: isToday && h < nowHour,
       };
+      weekTotal += point.expected; // sum the DISPLAYED window only
       if (isNow) nowCell = cell;
       // Peak looks forward only — an already-elapsed hour isn't actionable.
       if (!cell.isPast && (!peakCell || cell.expected > peakCell.expected)) peakCell = cell;
       cells.push(cell);
     }
-    rows.push({ date, dow, isToday, cells });
+    rows.push({ date, dow: date.getDay(), isToday, cells });
+  }
+
+  // 2) Derive recommended windows from the displayed cells: contiguous runs of
+  //    level ≥ 3 lasting ≥ 2h, ranked by total expected demand, top 6, future-only.
+  const candidates: RebasedSlot[] = [];
+  for (const row of rows) {
+    let i = 0;
+    while (i < row.cells.length) {
+      if (row.cells[i].level >= 3 && !row.cells[i].isPast) {
+        let j = i;
+        while (j + 1 < row.cells.length && row.cells[j + 1].level >= 3 && !row.cells[j + 1].isPast) j += 1;
+        if (j - i + 1 >= 2) {
+          const run = row.cells.slice(i, j + 1);
+          const start = new Date(row.date);
+          start.setHours(run[0].hour, 0, 0, 0);
+          const end = new Date(row.date);
+          end.setHours(run[run.length - 1].hour + 1, 0, 0, 0);
+          let peakLevel: DemandLevel = 0;
+          let consults = 0;
+          for (const c of run) {
+            if (c.level > peakLevel) peakLevel = c.level;
+            consults += c.expected;
+          }
+          candidates.push({
+            start: localStamp(start),
+            end: localStamp(end),
+            predicted_load: peakLevel >= 4 ? 'PEAK' : 'HIGH',
+            expected_consults: Math.round(consults),
+            level: peakLevel,
+          });
+        }
+        i = j + 1;
+      } else {
+        i += 1;
+      }
+    }
+  }
+  const slots: RebasedSlot[] = candidates
+    .filter((s) => new Date(s.end).getTime() > now.getTime())
+    .sort((a, b) => b.expected_consults - a.expected_consults || a.start.localeCompare(b.start))
+    .slice(0, 6)
+    .sort((a, b) => a.start.localeCompare(b.start));
+
+  // Mark the chosen windows on their cells.
+  const recommended = new Set<string>();
+  for (const s of slots) {
+    for (let t = new Date(s.start); t < new Date(s.end); t = new Date(t.getTime() + 3_600_000)) {
+      recommended.add(`${localDateStr(t)}|${t.getHours()}`);
+    }
+  }
+  for (const row of rows) {
+    for (const cell of row.cells) cell.recommended = recommended.has(`${cell.date}|${cell.hour}`);
   }
 
   // peakCell is always assigned (7×24 > 0 cells), but satisfy the type.

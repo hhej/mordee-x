@@ -1293,11 +1293,16 @@ def build_nb02() -> Path:
         def slugify(s):
             return re.sub(r"[^a-z]+", "-", s.lower()).strip("-")
 
-        # Shared forecast window so every specialty spans the same history + future 168h
+        # Shared forecast window so every specialty spans the same history + future.
+        # HORIZON_DAYS=14 (not 7): the app shows a rolling 7-day slice, and the extra
+        # week is buffer so that slice always has real dated predictions through the
+        # demo window — incl. the 3 Jun 2026 Thai holiday — before falling back to the
+        # weekly seasonal pattern. 14 × 24 = 336 hourly points per specialty.
+        HORIZON_DAYS = 14
         _gh = df["scheduled_at"].dt.floor("h")
         HIST_START, HIST_END = _gh.min(), _gh.max()
         FULL_IDX     = pd.date_range(HIST_START, HIST_END, freq="h")
-        FUTURE_HOURS = pd.date_range(HIST_END + pd.Timedelta(hours=1), periods=168, freq="h")
+        FUTURE_HOURS = pd.date_range(HIST_END + pd.Timedelta(hours=1), periods=HORIZON_DAYS * 24, freq="h")
         HOLDOUT_DAYS = 21
         FEAT_COLS = ["hour","dow","month","is_weekend","is_holiday","is_monsoon",
                      "lag_1","lag_24","lag_168","roll_24h_mean","roll_7d_mean"]
@@ -1325,7 +1330,7 @@ def build_nb02() -> Path:
         print("Helpers + catalog maps ready. Specialties:", df["specialty"].nunique())
         """),
         code(r"""
-        # ── individual forecasters: each returns (preds[168], holdout_mae, resid_sigma) ──
+        # ── individual forecasters: each returns (preds[len(FUTURE_HOURS)], holdout_mae, resid_sigma) ──
         def f_seasonal_naive(hourly):
             tr, te, _ = _holdout(hourly)
             def profile(frame):
@@ -1371,7 +1376,7 @@ def build_nb02() -> Path:
             mae = mean_absolute_error(te["y"], pe) if len(te) else np.nan
             sigma = (te["y"].values - pe).std() if len(te) else hourly["y"].std()
             m_full = fit(hourly)
-            out = m_full.predict(m_full.make_future_dataframe(periods=168, freq="h")).set_index("ds")["yhat"]
+            out = m_full.predict(m_full.make_future_dataframe(periods=len(FUTURE_HOURS), freq="h")).set_index("ds")["yhat"]
             return out.reindex(FUTURE_HOURS).clip(lower=0).fillna(0).values, mae, float(sigma)
 
         def f_sarima(hourly):
@@ -1386,7 +1391,7 @@ def build_nb02() -> Path:
                 sf = hourly.set_index("ds")["y"].astype(float).iloc[-24*60:]
                 mf = SARIMAX(sf, order=(1,1,1), seasonal_order=(1,1,0,24),
                              enforce_stationarity=False, enforce_invertibility=False).fit(disp=False, maxiter=50)
-                return mf.forecast(steps=168).clip(lower=0).values, mae, float(sigma)
+                return mf.forecast(steps=len(FUTURE_HOURS)).clip(lower=0).values, mae, float(sigma)
             except Exception as e:
                 print("   SARIMA failed:", e); return None, np.inf, None
 
@@ -1453,7 +1458,7 @@ def build_nb02() -> Path:
                 "specialty": sp,
                 "doctor_count": int(DOCTOR_COUNT.get(sp, 1)),
                 "doctor_id": REP_DOCTOR.get(sp),
-                "horizon_days": 7,
+                "horizon_days": HORIZON_DAYS,
                 "by_hour": by_hour,
                 "recommended_online_slots": make_slots(preds),
                 "expected_revenue_uplift_pct": round(float(compute_uplift(preds, price)), 1),
@@ -1508,15 +1513,16 @@ def build_nb02() -> Path:
         assert {"by_specialty", "DD01"} <= v.keys()
         bs = v["by_specialty"]
         assert len(bs) == 18, f"Expected 18 specialties, got {len(bs)}"
+        n_pts = HORIZON_DAYS * 24
         for slug, e in bs.items():
-            assert len(e["by_hour"]) == 168, f"{slug}: {len(e['by_hour'])} pts"
+            assert len(e["by_hour"]) == n_pts, f"{slug}: {len(e['by_hour'])} pts"
             assert e["winning_model"] in {"prophet","sarima","lightgbm","seasonal_naive"}, e["winning_model"]
             assert e["doctor_count"] >= 1 and e["specialty"]
             for row in e["by_hour"][:3]:
                 assert {"datetime","expected_bookings","ci_low","ci_high"} <= row.keys()
         dd01 = v["DD01"]
-        assert dd01["doctor_id"] == "D001" and dd01["horizon_days"] == 7 and len(dd01["by_hour"]) == 168
-        print(f"✔ {len(bs)} specialties × 168h · DD01 alias present · all schema fields OK")
+        assert dd01["doctor_id"] == "D001" and dd01["horizon_days"] == HORIZON_DAYS and len(dd01["by_hour"]) == n_pts
+        print(f"✔ {len(bs)} specialties × {n_pts}h ({HORIZON_DAYS}d) · DD01 alias present · all schema fields OK")
         print("  models used:", pd.Series([e['winning_model'] for e in bs.values()]).value_counts().to_dict())
         """),
     ]

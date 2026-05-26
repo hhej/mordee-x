@@ -133,8 +133,11 @@ def _sigmoid(x: np.ndarray) -> np.ndarray:
 @dataclass
 class GenConfig:
     n_rows: int = 30_000
-    start: datetime = datetime(2025, 5, 20)
-    end: datetime = datetime(2026, 5, 19, 23, 59)
+    # 12-month window anchored to end ≈ "today" (the demo's reference date), so
+    # nb02's forward forecast brackets the presentation week. The forecast begins
+    # the hour after `end`; with a 14-day horizon that covers ~May 27 → Jun 9 2026.
+    start: datetime = datetime(2025, 5, 27)
+    end: datetime = datetime(2026, 5, 26, 23, 59)
     seed: int = 20260520
 
 
