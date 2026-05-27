@@ -74,6 +74,22 @@ export const SummarySchema = z.object({
 });
 export type SummaryResult = z.infer<typeof SummarySchema>;
 
+// Suggested-prescription output: a flat, deliberately minimal subset of the
+// summary. The doctor-side "ร่างคำสั่งยา" chip turns this into a Thai sentence
+// (buildPrescriptionThai) and drops it into the chat input for the doctor to
+// review/edit. Kept flat (all-required + one nullable) so withStructuredOutput
+// doesn't spiral on schema-validation retries.
+export const PrescribeSchema = z.object({
+  medications: z.array(MedicationSchema),
+  // Care/referral line used when `medications` is empty (red triage → ER, or
+  // pure self-care). Mirrors self_care_plan.summary_th.
+  summary_th: z.string(),
+  rest_advice_th: z.string(),
+  needs_followup: z.boolean(),
+  followup_in_days: z.number().nullable(),
+});
+export type PrescribeResult = z.infer<typeof PrescribeSchema>;
+
 // ----- Request body schemas -----
 
 export const TriageRequestSchema = z.object({
@@ -117,6 +133,23 @@ export const SummarizeRequestSchema = z.object({
   patient_name: z.string(),
   doctor_id: z.string(),
 });
+
+// Field names mirror BriefRequestSchema so the doctor store can build the body
+// the same way it builds the brief body. brief_summary/ddx/transcript are
+// optional context the model uses when present.
+export const PrescribeRequestSchema = z.object({
+  doctor_id: z.string(),
+  patient_name: z.string(),
+  age: z.number().int().min(0),
+  gender: z.string(),
+  symptom_text: z.string(),
+  triage: z.enum(['green', 'yellow', 'red']),
+  history: z.string().optional(),
+  brief_summary: z.string().optional(),
+  ddx: z.array(z.string()).optional(),
+  transcript: z.array(ChatMessageSchema).optional(),
+});
+export type PrescribeRequest = z.infer<typeof PrescribeRequestSchema>;
 
 export const PredictQuerySchema = z.object({
   type: z.enum(['no_show', 'demand']),

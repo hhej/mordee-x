@@ -7,7 +7,7 @@ import { GlassCard } from '@/components/shared/GlassCard';
 import { ChatStream } from '@/components/shared/ChatStream';
 import type { DoctorAppointment } from '@/lib/data';
 import { useDoctorStore } from '@/stores/store-doctor';
-import { buildPrescriptionThai } from '@/lib/prescription';
+import { buildPrescriptionThai, partsFromSummary } from '@/lib/prescription';
 import { cn } from '@/lib/utils';
 import { PatientBrief } from './PatientBrief';
 
@@ -28,11 +28,14 @@ export function ConsultPanel() {
   const sendDoctorMessage = useDoctorStore((s) => s.sendDoctorMessage);
   const closeAppt = useDoctorStore((s) => s.closeAppt);
   const endConsult = useDoctorStore((s) => s.endConsult);
+  const isFetchingRx = useDoctorStore((s) => s.isFetchingRx);
+  const fetchPrescription = useDoctorStore((s) => s.fetchPrescription);
 
-  const suggestedRx = appointment?.cached?.summary
-    ? buildPrescriptionThai(appointment.cached.summary)
-    : null;
-  const medCount = appointment?.cached?.summary?.self_care_plan.medications.length ?? 0;
+  // D001 ships a pre-baked summary → insert its Rx instantly (no network).
+  // Everyone else drafts live via /api/prescribe on click (with local fallback).
+  const cachedSummary = appointment?.cached?.summary ?? null;
+  const cachedRx = cachedSummary ? buildPrescriptionThai(partsFromSummary(cachedSummary)) : null;
+  const cachedMedCount = cachedSummary?.self_care_plan.medications.length ?? 0;
   // D001 ships with a pre-baked brief; D003/D005 fetch live via /api/brief.
   // If both miss (network/route failure), we degrade to a profile-only panel.
   const resolvedBrief = appointment?.cached?.brief ?? liveBrief;
@@ -84,13 +87,21 @@ export function ConsultPanel() {
                 inputPlaceholder="พิมพ์ข้อความถึงคนไข้…"
                 emptyHint="เริ่มการสนทนาด้วยการพิมพ์คำทักทาย…"
                 suggestedAction={
-                  suggestedRx
+                  cachedSummary
                     ? {
-                        label: medCount > 0 ? `ใส่คำสั่งยา (${medCount} ตัว)` : 'ใส่คำแนะนำการดูแล',
-                        value: suggestedRx,
+                        label:
+                          cachedMedCount > 0
+                            ? `ใส่คำสั่งยา (${cachedMedCount} ตัว)`
+                            : 'ใส่คำแนะนำการดูแล',
+                        value: cachedRx ?? undefined,
                         icon: <Pill className="size-3" />,
                       }
-                    : null
+                    : {
+                        label: isFetchingRx ? 'กำลังร่างคำสั่งยา…' : 'ร่างคำสั่งยา · AI',
+                        onAction: fetchPrescription,
+                        loading: isFetchingRx,
+                        icon: <Pill className="size-3" />,
+                      }
                 }
               />
             </div>

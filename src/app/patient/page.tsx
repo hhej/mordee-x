@@ -18,6 +18,7 @@ import { FollowupCallout } from '@/components/patient/FollowupCallout';
 import { CheckupUpsell } from '@/components/patient/CheckupUpsell';
 import { ScheduledConfirmationCard } from '@/components/patient/ScheduledConfirmationCard';
 import { UpcomingAppointmentsCard } from '@/components/patient/UpcomingAppointmentsCard';
+import { MyAppointmentsButton } from '@/components/patient/MyAppointmentsButton';
 import { StepPill } from '@/components/patient/StepPill';
 import { PatientPersonaPicker } from '@/components/patient/PatientPersonaPicker';
 import { Button } from '@/components/ui/button';
@@ -124,6 +125,7 @@ export default function PatientPage() {
         subtitle={persona.name}
         actions={
           <>
+            <MyAppointmentsButton />
             <PatientPersonaPopover />
             <Button size="sm" variant="ghost" onClick={clearPersona} title="เปลี่ยนบทบาท">
               <RotateCcw className="size-3.5" />

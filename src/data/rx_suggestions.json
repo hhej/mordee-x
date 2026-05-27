@@ -1,0 +1,323 @@
+{
+  "by_specialty": {
+    "General Practice": {
+      "medications": [
+        {
+          "name_th": "พาราเซตามอล (Paracetamol)",
+          "dose_th": "ครั้งละ 1 เม็ด (500 มก.)",
+          "frequency_th": "ทุก 6 ชั่วโมงเมื่อมีไข้หรือปวด",
+          "duration_th": "ไม่เกิน 5 วัน",
+          "with_food": false
+        }
+      ],
+      "summary_th": "ดูแลตามอาการ พักผ่อนให้เพียงพอและดื่มน้ำมาก ๆ ครับ",
+      "rest_advice_th": "พักผ่อนให้เพียงพอ งดออกแรงหนักจนกว่าอาการจะดีขึ้น",
+      "needs_followup": false,
+      "followup_in_days": null
+    },
+    "Family Medicine": {
+      "medications": [
+        {
+          "name_th": "พาราเซตามอล (Paracetamol)",
+          "dose_th": "ครั้งละ 1 เม็ด (500 มก.)",
+          "frequency_th": "ทุก 6 ชั่วโมงเมื่อมีไข้หรือปวด",
+          "duration_th": "ไม่เกิน 5 วัน",
+          "with_food": false
+        }
+      ],
+      "summary_th": "ดูแลตามอาการ พักผ่อนให้เพียงพอและสังเกตอาการอย่างใกล้ชิดครับ",
+      "rest_advice_th": "พักผ่อนให้เพียงพอ ดื่มน้ำมาก ๆ",
+      "needs_followup": false,
+      "followup_in_days": null
+    },
+    "Internal Medicine": {
+      "medications": [
+        {
+          "name_th": "พาราเซตามอล (Paracetamol)",
+          "dose_th": "ครั้งละ 1 เม็ด (500 มก.)",
+          "frequency_th": "ทุก 6 ชั่วโมงเมื่อมีไข้หรือปวด",
+          "duration_th": "ไม่เกิน 5 วัน",
+          "with_food": false
+        },
+        {
+          "name_th": "ยาลดกรด (Antacid)",
+          "dose_th": "ครั้งละ 1-2 เม็ด เคี้ยวก่อนกลืน",
+          "frequency_th": "หลังอาหารและก่อนนอนเมื่อมีอาการ",
+          "duration_th": "ตามอาการ",
+          "with_food": true
+        }
+      ],
+      "summary_th": "ดูแลตามอาการและติดตามอาการอย่างต่อเนื่องครับ",
+      "rest_advice_th": "พักผ่อนให้เพียงพอ หลีกเลี่ยงอาหารรสจัดและของมัน",
+      "needs_followup": true,
+      "followup_in_days": 7
+    },
+    "Gastroenterology": {
+      "medications": [
+        {
+          "name_th": "ผงเกลือแร่ ORS (Oral Rehydration Salts)",
+          "dose_th": "ผสมน้ำ 1 ซองต่อน้ำ 250 มล.",
+          "frequency_th": "จิบบ่อย ๆ หลังถ่ายเหลวแต่ละครั้ง",
+          "duration_th": "จนกว่าอาการท้องเสียจะดีขึ้น",
+          "with_food": false
+        },
+        {
+          "name_th": "ยาลดกรด (Antacid)",
+          "dose_th": "ครั้งละ 1-2 เม็ด เคี้ยวก่อนกลืน",
+          "frequency_th": "หลังอาหารและก่อนนอนเมื่อมีอาการ",
+          "duration_th": "ตามอาการ",
+          "with_food": true
+        }
+      ],
+      "summary_th": "เน้นชดเชยน้ำและเกลือแร่ ดูแลตามอาการของระบบทางเดินอาหารครับ",
+      "rest_advice_th": "พักผ่อน งดอาหารรสจัด ของมัน นม และเครื่องดื่มแอลกอฮอล์ชั่วคราว",
+      "needs_followup": true,
+      "followup_in_days": 3
+    },
+    "Pediatrics": {
+      "medications": [
+        {
+          "name_th": "พาราเซตามอลชนิดน้ำ (Paracetamol syrup)",
+          "dose_th": "ตามน้ำหนักตัว 10-15 มก./กก./ครั้ง",
+          "frequency_th": "ทุก 4-6 ชั่วโมงเมื่อมีไข้",
+          "duration_th": "ไม่เกิน 3 วัน",
+          "with_food": false
+        }
+      ],
+      "summary_th": "ดูแลตามอาการ เช็ดตัวลดไข้ และให้เด็กดื่มน้ำบ่อย ๆ ครับ",
+      "rest_advice_th": "ให้เด็กพักผ่อนมาก ๆ และสังเกตอาการอย่างใกล้ชิด",
+      "needs_followup": true,
+      "followup_in_days": 2
+    },
+    "Dermatology": {
+      "medications": [
+        {
+          "name_th": "ลอราทาดีน (Loratadine)",
+          "dose_th": "ครั้งละ 1 เม็ด (10 มก.)",
+          "frequency_th": "วันละ 1 ครั้ง",
+          "duration_th": "5-7 วัน",
+          "with_food": false
+        },
+        {
+          "name_th": "ครีมสเตียรอยด์อ่อน (Hydrocortisone 1% cream)",
+          "dose_th": "ทาบาง ๆ บริเวณที่มีผื่น",
+          "frequency_th": "วันละ 2 ครั้ง เช้า-เย็น",
+          "duration_th": "ไม่เกิน 7 วัน",
+          "with_food": false
+        }
+      ],
+      "summary_th": "บรรเทาอาการคันและผื่น หลีกเลี่ยงสิ่งที่กระตุ้นอาการครับ",
+      "rest_advice_th": "งดแกะเกา หลีกเลี่ยงสบู่/ผลิตภัณฑ์ที่ระคายเคือง",
+      "needs_followup": true,
+      "followup_in_days": 7
+    },
+    "ENT": {
+      "medications": [
+        {
+          "name_th": "ลอราทาดีน (Loratadine)",
+          "dose_th": "ครั้งละ 1 เม็ด (10 มก.)",
+          "frequency_th": "วันละ 1 ครั้ง",
+          "duration_th": "5-7 วัน",
+          "with_food": false
+        },
+        {
+          "name_th": "ยาอมแก้เจ็บคอ (Lozenge)",
+          "dose_th": "อมครั้งละ 1 เม็ด",
+          "frequency_th": "ทุก 2-3 ชั่วโมงเมื่อเจ็บคอ",
+          "duration_th": "ตามอาการ",
+          "with_food": false
+        }
+      ],
+      "summary_th": "บรรเทาอาการคัดจมูก น้ำมูก และเจ็บคอตามอาการครับ",
+      "rest_advice_th": "พักผ่อน ดื่มน้ำอุ่น และหลีกเลี่ยงอากาศเย็น/ฝุ่นควัน",
+      "needs_followup": false,
+      "followup_in_days": null
+    },
+    "Pulmonology": {
+      "medications": [
+        {
+          "name_th": "ยาละลายเสมหะ กัวเฟนิซิน (Guaifenesin)",
+          "dose_th": "ครั้งละ 1 เม็ด (200 มก.)",
+          "frequency_th": "ทุก 8 ชั่วโมงเมื่อมีเสมหะ",
+          "duration_th": "ตามอาการ",
+          "with_food": false
+        }
+      ],
+      "summary_th": "บรรเทาอาการไอและเสมหะ สังเกตอาการหายใจอย่างใกล้ชิดครับ",
+      "rest_advice_th": "พักผ่อน ดื่มน้ำอุ่นมาก ๆ และหลีกเลี่ยงควันบุหรี่",
+      "needs_followup": true,
+      "followup_in_days": 5
+    },
+    "Orthopedics": {
+      "medications": [
+        {
+          "name_th": "ไอบูโพรเฟน (Ibuprofen)",
+          "dose_th": "ครั้งละ 1 เม็ด (400 มก.)",
+          "frequency_th": "ทุก 8 ชั่วโมงหลังอาหารเมื่อปวด",
+          "duration_th": "ไม่เกิน 5 วัน",
+          "with_food": true
+        }
+      ],
+      "summary_th": "บรรเทาอาการปวดและอักเสบ พักการใช้งานส่วนที่บาดเจ็บครับ",
+      "rest_advice_th": "พักการใช้งาน ประคบเย็นใน 48 ชั่วโมงแรก และยกส่วนที่บาดเจ็บให้สูง",
+      "needs_followup": true,
+      "followup_in_days": 7
+    },
+    "Neurology": {
+      "medications": [
+        {
+          "name_th": "พาราเซตามอล (Paracetamol)",
+          "dose_th": "ครั้งละ 1 เม็ด (500 มก.)",
+          "frequency_th": "ทุก 6 ชั่วโมงเมื่อปวดศีรษะ",
+          "duration_th": "ไม่เกิน 5 วัน",
+          "with_food": false
+        }
+      ],
+      "summary_th": "บรรเทาอาการปวดศีรษะ จัดการความเครียดและการนอนหลับครับ",
+      "rest_advice_th": "พักผ่อนให้เพียงพอ ลดการจ้องจอ และหลีกเลี่ยงความเครียด",
+      "needs_followup": true,
+      "followup_in_days": 7
+    },
+    "Allergy & Immunology": {
+      "medications": [
+        {
+          "name_th": "ลอราทาดีน (Loratadine)",
+          "dose_th": "ครั้งละ 1 เม็ด (10 มก.)",
+          "frequency_th": "วันละ 1 ครั้ง",
+          "duration_th": "7 วัน",
+          "with_food": false
+        }
+      ],
+      "summary_th": "บรรเทาอาการแพ้ และหลีกเลี่ยงสารก่อภูมิแพ้ที่ทราบครับ",
+      "rest_advice_th": "หลีกเลี่ยงสิ่งกระตุ้นภูมิแพ้ ฝุ่น และอาหารที่แพ้",
+      "needs_followup": true,
+      "followup_in_days": 7
+    },
+    "Urology": {
+      "medications": [
+        {
+          "name_th": "พาราเซตามอล (Paracetamol)",
+          "dose_th": "ครั้งละ 1 เม็ด (500 มก.)",
+          "frequency_th": "ทุก 6 ชั่วโมงเมื่อปวด",
+          "duration_th": "ไม่เกิน 5 วัน",
+          "with_food": false
+        }
+      ],
+      "summary_th": "ดื่มน้ำมาก ๆ เพื่อช่วยขับปัสสาวะ และดูแลตามอาการครับ",
+      "rest_advice_th": "ดื่มน้ำอย่างน้อยวันละ 2-3 ลิตร และไม่กลั้นปัสสาวะ",
+      "needs_followup": true,
+      "followup_in_days": 5
+    },
+    "Ophthalmology": {
+      "medications": [
+        {
+          "name_th": "น้ำตาเทียม (Artificial tears)",
+          "dose_th": "หยอดครั้งละ 1-2 หยดต่อตา",
+          "frequency_th": "ทุก 4-6 ชั่วโมงเมื่อตาแห้งหรือระคายเคือง",
+          "duration_th": "ตามอาการ",
+          "with_food": false
+        }
+      ],
+      "summary_th": "บรรเทาอาการตาแห้ง/ระคายเคือง พักสายตาเป็นระยะครับ",
+      "rest_advice_th": "พักสายตาทุก 20 นาที หลีกเลี่ยงการขยี้ตา",
+      "needs_followup": true,
+      "followup_in_days": 7
+    },
+    "OB-GYN": {
+      "medications": [
+        {
+          "name_th": "พาราเซตามอล (Paracetamol)",
+          "dose_th": "ครั้งละ 1 เม็ด (500 มก.)",
+          "frequency_th": "ทุก 6 ชั่วโมงเมื่อปวด",
+          "duration_th": "ไม่เกิน 5 วัน",
+          "with_food": false
+        }
+      ],
+      "summary_th": "ดูแลตามอาการ และติดตามอาการกับสูตินรีแพทย์อย่างต่อเนื่องครับ",
+      "rest_advice_th": "พักผ่อนให้เพียงพอ และสังเกตอาการผิดปกติ",
+      "needs_followup": true,
+      "followup_in_days": 14
+    },
+    "Cardiology": {
+      "medications": [],
+      "summary_th": "ขอทบทวนผลตรวจและยาเดิมก่อนปรับการรักษา ยังไม่จ่ายยาใหม่ในขั้นนี้ครับ — ควรติดตามกับแพทย์โรคหัวใจอย่างต่อเนื่อง",
+      "rest_advice_th": "ควบคุมอาหารเค็ม/มัน ออกกำลังกายเบา ๆ ตามคำแนะนำ และวัดความดันสม่ำเสมอ",
+      "needs_followup": true,
+      "followup_in_days": 14
+    },
+    "Endocrinology": {
+      "medications": [],
+      "summary_th": "ขอทบทวนผลตรวจ (น้ำตาล/ไทรอยด์/ไขมัน) และยาเดิมก่อนปรับขนาดยา ยังไม่จ่ายยาใหม่ในขั้นนี้ครับ",
+      "rest_advice_th": "ควบคุมอาหาร ออกกำลังกายสม่ำเสมอ และติดตามค่าตรวจตามนัด",
+      "needs_followup": true,
+      "followup_in_days": 30
+    },
+    "Psychiatry": {
+      "medications": [],
+      "summary_th": "เน้นการพูดคุยประเมินอาการและให้คำแนะนำการดูแลใจในขั้นนี้ การจ่ายยาทางจิตเวชควรพิจารณาร่วมกันอย่างใกล้ชิดครับ",
+      "rest_advice_th": "พักผ่อนให้เพียงพอ จัดการความเครียด และมีกิจกรรมผ่อนคลาย",
+      "needs_followup": true,
+      "followup_in_days": 14
+    },
+    "Emergency Medicine": {
+      "medications": [],
+      "summary_th": "อาการเข้าข่ายต้องประเมินเร่งด่วน แนะนำให้มาพบแพทย์ที่ห้องฉุกเฉินทันที หรือโทร 1669 ครับ",
+      "rest_advice_th": "อย่ารอดูอาการ หากแย่ลงให้ไปโรงพยาบาลทันที",
+      "needs_followup": false,
+      "followup_in_days": null
+    }
+  },
+  "keyword_overrides": {
+    "antihistamine": {
+      "medications": [
+        {
+          "name_th": "ลอราทาดีน (Loratadine)",
+          "dose_th": "ครั้งละ 1 เม็ด (10 มก.)",
+          "frequency_th": "วันละ 1 ครั้ง",
+          "duration_th": "5-7 วัน",
+          "with_food": false
+        }
+      ],
+      "summary_th": "บรรเทาอาการแพ้/ผื่นคัน และหลีกเลี่ยงสิ่งที่กระตุ้นอาการครับ หากบวมที่หน้า/ปาก หรือหายใจลำบาก ให้ไปโรงพยาบาลทันที",
+      "rest_advice_th": "งดแกะเกา หลีกเลี่ยงอาหาร/สิ่งที่สงสัยว่าแพ้",
+      "needs_followup": true,
+      "followup_in_days": 3
+    },
+    "vaccination": {
+      "medications": [],
+      "summary_th": "เป็นการเข้ารับวัคซีนตามนัด ไม่ต้องจ่ายยาเพิ่ม สังเกตอาการหลังฉีดตามปกติครับ",
+      "rest_advice_th": "พักผ่อน ดื่มน้ำมาก ๆ หากมีไข้เล็กน้อยหลังฉีดสามารถเช็ดตัวและทานพาราเซตามอลได้",
+      "needs_followup": false,
+      "followup_in_days": null
+    },
+    "review": {
+      "medications": [],
+      "summary_th": "ขอทบทวนผลตรวจและยาเดิมก่อนพิจารณาปรับการรักษา ยังไม่จ่ายยาใหม่ในขั้นนี้ครับ",
+      "rest_advice_th": "ทานยาเดิมต่อเนื่องตามที่แพทย์สั่ง และนำผลตรวจมาในนัดถัดไป",
+      "needs_followup": true,
+      "followup_in_days": 14
+    }
+  },
+  "red_triage": {
+    "medications": [],
+    "summary_th": "อาการเข้าข่ายภาวะฉุกเฉิน แนะนำให้ไปโรงพยาบาลทันที หรือโทร 1669 ครับ ยังไม่จ่ายยาทางออนไลน์ในกรณีนี้",
+    "rest_advice_th": "อย่ารอดูอาการ หากแย่ลงให้ไปห้องฉุกเฉินทันที",
+    "needs_followup": false,
+    "followup_in_days": null
+  },
+  "default": {
+    "medications": [
+      {
+        "name_th": "พาราเซตามอล (Paracetamol)",
+        "dose_th": "ครั้งละ 1 เม็ด (500 มก.)",
+        "frequency_th": "ทุก 6 ชั่วโมงเมื่อมีไข้หรือปวด",
+        "duration_th": "ไม่เกิน 5 วัน",
+        "with_food": false
+      }
+    ],
+    "summary_th": "ดูแลตามอาการ พักผ่อนให้เพียงพอและดื่มน้ำมาก ๆ ครับ หากอาการไม่ดีขึ้นควรกลับมาพบแพทย์",
+    "rest_advice_th": "พักผ่อนให้เพียงพอ ดื่มน้ำมาก ๆ และสังเกตอาการ",
+    "needs_followup": false,
+    "followup_in_days": null
+  }
+}

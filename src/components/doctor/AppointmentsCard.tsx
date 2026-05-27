@@ -22,15 +22,14 @@ export function AppointmentsCard({ appointments, predictions, doctorId }: Appoin
   const now = useNow();
   const allAppointments = useAppointmentStore((s) => s.appointments);
 
-  // Scheduled future follow-ups for this doctor, from the shared ledger. Gated
-  // on `now` so SSR/first paint render nothing (matches the relative-chip
-  // discipline above). These have no no-show prediction → distinct row.
-  const followups = now
+  // Scheduled future appointments for this doctor (initial + follow-up), from the
+  // shared ledger. Gated on `now` so SSR/first paint render nothing (matches the
+  // relative-chip discipline above). These have no no-show prediction → distinct row.
+  const upcoming = now
     ? allAppointments
         .filter(
           (a) =>
             a.doctorId === doctorId &&
-            a.kind === 'followup' &&
             a.status === 'scheduled' &&
             new Date(a.slotIso).getTime() >= now.getTime(),
         )
@@ -87,16 +86,16 @@ export function AppointmentsCard({ appointments, predictions, doctorId }: Appoin
         </div>
       )}
 
-      {followups.length > 0 ? (
+      {upcoming.length > 0 ? (
         <div className="mt-5">
           <div className="mb-2.5 flex items-center gap-2 border-t border-line/50 pt-4">
             <CalendarPlus className="size-4 text-mint-700" />
-            <h3 className="text-sm font-semibold text-ink">นัดติดตามที่จะถึง</h3>
-            <span className="text-xs text-muted-foreground">Upcoming follow-ups</span>
-            <span className="ml-auto text-xs text-muted-foreground">{followups.length} ราย</span>
+            <h3 className="text-sm font-semibold text-ink">นัดหมายที่จะถึง</h3>
+            <span className="text-xs text-muted-foreground">Upcoming appointments</span>
+            <span className="ml-auto text-xs text-muted-foreground">{upcoming.length} ราย</span>
           </div>
           <div className="flex flex-col gap-2.5">
-            {followups.map((appt) => (
+            {upcoming.map((appt) => (
               <FollowupAppointmentRow key={appt.id} appointment={appt} now={now} />
             ))}
           </div>

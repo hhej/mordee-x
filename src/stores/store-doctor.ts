@@ -1,8 +1,8 @@
 'use client';
 
 import { create } from 'zustand';
-import type { DoctorAppointment } from '@/lib/data';
-import type { BriefResult, SummaryResult } from '@/lib/llm/schemas';
+import { getDoctor, type DoctorAppointment } from '@/lib/data';
+import type { BriefResult, SummaryResult, PrescribeResult } from '@/lib/llm/schemas';
 import {
   createAbortable,
   STREAM_TIMEOUT_TH,
@@ -10,6 +10,8 @@ import {
   STREAM_TIMEOUT_MS,
 } from '@/lib/fetch-abort';
 import { apiFetch } from '@/lib/api-client';
+import { buildPrescriptionThai, partsFromPrescribe } from '@/lib/prescription';
+import { suggestRxLocal } from '@/lib/rx-suggest';
 
 // Two independent slots so the brief fetch and the chat stream don't fight:
 // without this, sending a chat message would cancel an in-flight brief
@@ -17,6 +19,10 @@ import { apiFetch } from '@/lib/api-client';
 // aborted together only on close/reset, never by each other.
 const abortable = createAbortable();
 const briefAbortable = createAbortable();
+// Third independent slot: the "ร่างคำสั่งยา" chip's live /api/prescribe call.
+// Kept separate so it never cancels (or gets cancelled by) the chat stream or
+// the brief fetch; aborted together with them only on close/reset.
+const rxAbortable = createAbortable();
 
 const DOCTOR_PERSONA_KEY = 'mordeeplus:doctor_persona';
 
@@ -75,6 +81,12 @@ interface DoctorState {
   isSummarizing: boolean;
   summaryError: string | null;
 
+  // Live "ร่างคำสั่งยา" chip: D001 inserts its prebaked Rx instantly (no fetch);
+  // every other appointment hits /api/prescribe on click, falling back to the
+  // local Rx KB on failure. isFetchingRx drives the chip's spinner/label.
+  isFetchingRx: boolean;
+  rxError: string | null;
+
   // Lifted chat-input text so other components (brief panel, prescribe button)
   // can insert suggested text with a click.
   inputText: string;
@@ -83,6 +95,7 @@ interface DoctorState {
   openAppt: (appt: DoctorAppointment, doctorId: string) => void;
   closeAppt: () => void;
   fetchLiveBrief: (appt: DoctorAppointment) => Promise<void>;
+  fetchPrescription: () => Promise<void>;
   sendDoctorMessage: (text: string) => Promise<void>;
   endConsult: () => Promise<void>;
   reset: () => void;
@@ -118,6 +131,8 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
   summary: null,
   isSummarizing: false,
   summaryError: null,
+  isFetchingRx: false,
+  rxError: null,
   inputText: '',
 
   setInputText: (t) => set({ inputText: t }),
@@ -141,6 +156,8 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       summary: null,
       isSummarizing: false,
       summaryError: null,
+      isFetchingRx: false,
+      rxError: null,
       inputText: '',
     });
     if (!hasCachedBrief && appt.profile) {
@@ -152,6 +169,7 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
   closeAppt: () => {
     abortable.abort();
     briefAbortable.abort();
+    rxAbortable.abort();
     // Only the cert-completion path consumes: the [X] in ConsultPanel is
     // reachable only before consultEnded flips, so an early bail-out does
     // NOT remove the appt from the queue. Both the sticky-header chevron
@@ -175,6 +193,8 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       summary: null,
       isSummarizing: false,
       summaryError: null,
+      isFetchingRx: false,
+      rxError: null,
       inputText: '',
       consumedApptIds: nextConsumed,
     });
@@ -183,6 +203,7 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
   reset: () => {
     abortable.abort();
     briefAbortable.abort();
+    rxAbortable.abort();
     set({
       selectedApptId: null,
       appointment: null,
@@ -197,6 +218,8 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       summary: null,
       isSummarizing: false,
       summaryError: null,
+      isFetchingRx: false,
+      rxError: null,
       inputText: '',
       consumedApptIds: new Set(),
     });
@@ -241,6 +264,80 @@ export const useDoctorStore = create<DoctorState>((set, get) => ({
       const isTimeout = err instanceof DOMException;
       const msg = isTimeout ? STREAM_TIMEOUT_TH : err instanceof Error ? err.message : String(err);
       set({ isFetchingBrief: false, briefError: msg });
+    }
+  },
+
+  fetchPrescription: async () => {
+    const { appointment, doctorId, consultMessages, seededGreeting, liveBrief, isFetchingRx } =
+      get();
+    if (!appointment || isFetchingRx) return;
+    const apptId = appointment.appt_id;
+    const profile = appointment.profile;
+    const specialty = getDoctor(doctorId)?.specialty;
+    const brief = appointment.cached?.brief ?? liveBrief;
+
+    const insertRx = (result: PrescribeResult) =>
+      set({ inputText: buildPrescriptionThai(partsFromPrescribe(result)) });
+
+    // No structured profile → can't call the live route (needs age/gender/
+    // triage). Insert a local-KB suggestion synchronously instead.
+    if (!profile) {
+      insertRx(suggestRxLocal(specialty, appointment.symptom, 'yellow'));
+      return;
+    }
+
+    set({ isFetchingRx: true, rxError: null });
+
+    // The doctor types as 'user' on this side; flip so the model reads the
+    // doctor's lines as the doctor (same convention as endConsult).
+    const transcript: ChatMsg[] = [
+      ...(seededGreeting
+        ? [{ id: crypto.randomUUID(), role: 'user' as const, content: seededGreeting }]
+        : []),
+      ...consultMessages.map((m) => ({
+        id: m.id,
+        role: m.role === 'user' ? ('assistant' as const) : ('user' as const),
+        content: m.content,
+      })),
+    ];
+
+    const handle = rxAbortable.newSignal(JSON_TIMEOUT_MS);
+    try {
+      const res = await apiFetch('/api/prescribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctor_id: doctorId,
+          patient_name: appointment.patient,
+          age: profile.age,
+          gender: profile.gender,
+          symptom_text: appointment.symptom,
+          triage: profile.triage,
+          history: profile.history,
+          brief_summary: brief?.one_liner,
+          ddx: brief?.ddx.map((d) => d.diagnosis),
+          transcript: transcript.length ? transcript : undefined,
+        }),
+        signal: handle.signal,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const result = (await res.json()) as PrescribeResult;
+      // Stale-guard: the doctor may have switched/closed appts while we awaited.
+      // Without this, a slow response would clobber a different appt's input.
+      if (get().selectedApptId !== apptId) return;
+      insertRx(result);
+      set({ isFetchingRx: false });
+    } catch (err) {
+      if (get().selectedApptId !== apptId) return;
+      if (handle.isUserAbort()) {
+        set({ isFetchingRx: false });
+        return;
+      }
+      const isTimeout = err instanceof DOMException;
+      const msg = isTimeout ? STREAM_TIMEOUT_TH : err instanceof Error ? err.message : String(err);
+      // Live call failed — still hand the doctor a usable draft from the local KB.
+      insertRx(suggestRxLocal(specialty, appointment.symptom, profile.triage));
+      set({ isFetchingRx: false, rxError: msg });
     }
   },
 

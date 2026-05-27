@@ -28,6 +28,10 @@ interface ScheduleSlotGridProps {
    *  generation — used by the follow-up dialog to feed availability.ts output
    *  (taken slots removed, restricted to the follow-up window). */
   slots?: Slot[];
+  /** Slots this doctor is already booked into — marked 'unavailable' so no two
+   *  bookings land on the same slot. Applied only on the internal-generation
+   *  path; the `slots` prop is assumed pre-filtered (follow-up dialog). */
+  takenIsoSet?: Set<string>;
   /** Controlled selection. When `onSelect` is provided, the grid reads/writes
    *  these instead of the patient store's bookingSlot. */
   value?: string | null;
@@ -82,6 +86,7 @@ export function ScheduleSlotGrid({
   doctorId,
   now,
   slots: slotsProp,
+  takenIsoSet,
   value,
   onSelect,
 }: ScheduleSlotGridProps) {
@@ -98,8 +103,14 @@ export function ScheduleSlotGrid({
   // the real model output when available, else fall back to mock generation.
   // A `slots` prop short-circuits this (follow-up dialog feeds availability.ts).
   const forecast = slotsProp ? undefined : getDemandForDoctor(doctorId);
-  const slots: Slot[] =
+  const generated: Slot[] =
     slotsProp ?? (forecast ? slotsFromDemandForecast(forecast, anchor) : generateSlotsFor(doctorId, anchor));
+  // On the internal-generation path, grey out slots the doctor is already booked
+  // for. The `slots` prop path is assumed pre-filtered, so leave it untouched.
+  const slots: Slot[] =
+    slotsProp || !takenIsoSet
+      ? generated
+      : generated.map((s) => (takenIsoSet.has(s.iso) ? { ...s, load: 'unavailable' } : s));
 
   const grouped = groupSlotsByDay(slots);
 

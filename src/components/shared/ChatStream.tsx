@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useRef } from 'react';
-import { Pill, Send, Sparkles, X } from 'lucide-react';
+import { Loader2, Pill, Send, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -29,12 +29,17 @@ export interface ChatStreamProps {
 
   /**
    * Optional suggested-action chip rendered above the textbox.
-   * Used on the doctor side to suggest inserting the prebaked Rx into the chat.
+   * Used on the doctor side to suggest inserting an Rx into the chat. Either:
+   *  - `value`: insert this text immediately on click (prebaked path), or
+   *  - `onAction`: run an async handler on click (live /api/prescribe path);
+   *    set `loading` to show a spinner + disable while it runs.
    * Pass `null` to hide the chip entirely.
    */
   suggestedAction?: {
     label: string;
-    value: string;
+    value?: string;
+    onAction?: () => void;
+    loading?: boolean;
     icon?: ReactNode;
     eyebrow?: string;
   } | null;
@@ -117,12 +122,19 @@ export function ChatStream({
           </div>
           <button
             type="button"
-            onClick={() => setInputText(suggestedAction.value)}
-            disabled={isStreaming}
+            onClick={() => {
+              if (suggestedAction.onAction) suggestedAction.onAction();
+              else if (suggestedAction.value) setInputText(suggestedAction.value);
+            }}
+            disabled={isStreaming || suggestedAction.loading}
             className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[11px] text-mint-800 ring-1 ring-mint-300/60 transition-colors hover:bg-mint-100 disabled:opacity-50"
-            title={suggestedAction.value}
+            title={suggestedAction.value ?? suggestedAction.label}
           >
-            {suggestedAction.icon ?? <Pill className="size-3" />}
+            {suggestedAction.loading ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : (
+              suggestedAction.icon ?? <Pill className="size-3" />
+            )}
             {suggestedAction.label}
           </button>
           {inputText ? (

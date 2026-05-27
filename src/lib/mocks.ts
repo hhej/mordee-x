@@ -3,8 +3,16 @@
 // what the audience would have seen live — only without burning the Gemini
 // quota or hitting the network.
 
-import { getDemoScenarios, getDoctors } from '@/lib/data';
-import type { TriageResult, SummaryResult, BriefResult, CheckupResult } from '@/lib/llm/schemas';
+import { getDemoScenarios, getDoctor, getDoctors } from '@/lib/data';
+import { suggestRxLocal } from '@/lib/rx-suggest';
+import type {
+  TriageResult,
+  SummaryResult,
+  BriefResult,
+  CheckupResult,
+  PrescribeResult,
+  PrescribeRequest,
+} from '@/lib/llm/schemas';
 
 const KEYWORD_MAP: Array<{ kw: RegExp; demoId: 'PD01' | 'PD02' | 'PD03' }> = [
   { kw: /เจ็บหน้าอก|หายใจลำบาก|chest pain/i, demoId: 'PD02' },
@@ -94,6 +102,15 @@ export function mockSummarize(): SummaryResult {
 
 export function mockBrief(): BriefResult {
   return getDemoScenarios().doctor_demo.today_appointments[0].cached!.brief;
+}
+
+// Unlike mockBrief/mockSummarize (which lift D001's cached blocks), the
+// prescribe mock derives from the local Rx KB — non-D001 personas have no
+// cached summary to lift. Takes the parsed request so it can key on specialty
+// (via doctor_id), symptom, and triage.
+export function mockPrescribe(req: PrescribeRequest): PrescribeResult {
+  const specialty = getDoctor(req.doctor_id)?.specialty;
+  return suggestRxLocal(specialty, req.symptom_text, req.triage);
 }
 
 // Fixed checkup pick for the ?mock=1 demo path. CKP01 (basic annual screening)

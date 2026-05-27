@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { DoctorAvatar } from '@/components/shared/DoctorAvatar';
 import { getDoctor } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
+import { useAppointmentStore } from '@/stores/store-appointments';
 import { INSTANT_CONSULT_WAIT_EN, INSTANT_CONSULT_WAIT_TH } from '@/lib/constants';
 import { ScheduleSlotGrid } from './ScheduleSlotGrid';
 
@@ -28,9 +29,18 @@ export function BookingDialog() {
   const setMode = usePatientStore((s) => s.setBookingMode);
   const cancel = usePatientStore((s) => s.cancelBooking);
   const confirm = usePatientStore((s) => s.confirmBooking);
+  const appointments = useAppointmentStore((s) => s.appointments);
 
   const doctor = doctorId ? getDoctor(doctorId) : undefined;
   if (!doctor) return null;
+
+  // Slots this doctor is already booked into → render unavailable in the grid so
+  // two bookings can't land on the same slot (mirrors FollowupSlotDialog).
+  const takenIsoSet = new Set(
+    appointments
+      .filter((a) => a.doctorId === doctor.id && a.status === 'scheduled')
+      .map((a) => a.slotIso),
+  );
 
   const canConfirm = mode === 'now' || (mode === 'scheduled' && slot !== null);
 
@@ -88,7 +98,7 @@ export function BookingDialog() {
           </TabsContent>
 
           <TabsContent value="scheduled" className="pt-4">
-            <ScheduleSlotGrid doctorId={doctor.id} />
+            <ScheduleSlotGrid doctorId={doctor.id} takenIsoSet={takenIsoSet} />
             {slotLabel ? (
               <div className="mt-3 rounded-md bg-mint-50 px-3 py-1.5 text-xs text-mint-900 ring-1 ring-mint-200/60">
                 เลือก: {slotLabel}

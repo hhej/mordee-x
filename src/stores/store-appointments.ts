@@ -156,7 +156,8 @@ interface AppointmentState {
   addAppointment: (input: NewAppointment) => Appointment;
   cancel: (id: string) => void;
   decline: (id: string) => void;
-  undoDecline: (id: string) => void;
+  /** Put a cancelled/declined appointment back to 'scheduled' (drives undo). */
+  restore: (id: string) => void;
 
   /** Scheduled future appointments for a patient by name, sorted by slot. */
   upcomingForPatient: (name: string, now: Date) => Appointment[];
@@ -197,19 +198,9 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
   cancel: (id) => updateStatus(set, get, id, 'cancelled'),
   decline: (id) => updateStatus(set, get, id, 'declined'),
-  undoDecline: (id) => updateStatus(set, get, id, 'scheduled'),
+  restore: (id) => updateStatus(set, get, id, 'scheduled'),
 
-  upcomingForPatient: (name, now) => {
-    const t = now.getTime();
-    return get()
-      .appointments.filter(
-        (a) =>
-          a.patientName === name &&
-          a.status === 'scheduled' &&
-          new Date(a.slotIso).getTime() >= t,
-      )
-      .sort((a, b) => a.slotIso.localeCompare(b.slotIso));
-  },
+  upcomingForPatient: (name, now) => upcomingForPatientFrom(get().appointments, name, now),
 
   forDoctor: (doctorId, now) => {
     const t = now.getTime();
@@ -228,6 +219,22 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       (a) => a.doctorId === doctorId && a.slotIso === iso && a.status === 'scheduled',
     ),
 }));
+
+/** Pure filter+sort for a patient's upcoming scheduled appointments. Exported so
+ *  components can subscribe to the raw `appointments` array (for reactivity on
+ *  add/cancel) and derive the list, while the store method reuses the same logic. */
+export function upcomingForPatientFrom(
+  list: Appointment[],
+  name: string,
+  now: Date,
+): Appointment[] {
+  const t = now.getTime();
+  return list
+    .filter(
+      (a) => a.patientName === name && a.status === 'scheduled' && new Date(a.slotIso).getTime() >= t,
+    )
+    .sort((a, b) => a.slotIso.localeCompare(b.slotIso));
+}
 
 type SetFn = (partial: Partial<AppointmentState>) => void;
 type GetFn = () => AppointmentState;

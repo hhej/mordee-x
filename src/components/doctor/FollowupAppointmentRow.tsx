@@ -21,14 +21,15 @@ function relativeDay(slotIso: string, now: Date): string {
   return `อีก ${days} วัน`;
 }
 
-// Distinct from AppointmentRow: a follow-up is a FUTURE booking with no no-show
-// prediction, so it must NOT flow through AppointmentRow (which returns null
-// without a matching prediction). No NoShowBadge, no "เปิด" — these aren't in
-// today's live queue yet.
+// Distinct from AppointmentRow: an upcoming booking (initial or follow-up) is a
+// FUTURE booking with no no-show prediction, so it must NOT flow through
+// AppointmentRow (which returns null without a matching prediction). No
+// NoShowBadge, no "เปิด" — these aren't in today's live queue yet.
 export function FollowupAppointmentRow({ appointment, now }: FollowupAppointmentRowProps) {
   const slot = new Date(appointment.slotIso);
   const timeLabel = slot.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
   const dateLabel = slot.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  const isFollowup = appointment.kind === 'followup';
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-mint-200/70 bg-mint-50/40 p-3.5 md:flex-row md:items-center md:gap-4">
@@ -52,7 +53,7 @@ export function FollowupAppointmentRow({ appointment, now }: FollowupAppointment
       <div className="flex shrink-0 items-center">
         <span className="inline-flex items-center gap-1 rounded-full bg-mint-100 px-2.5 py-1 text-[11px] font-medium text-mint-800">
           <CalendarPlus className="size-3" />
-          นัดติดตาม · Follow-up
+          {isFollowup ? 'นัดติดตาม · Follow-up' : 'นัดใหม่ · New'}
         </span>
       </div>
     </div>

@@ -15,6 +15,7 @@ import {
   STREAM_TIMEOUT_MS,
 } from '@/lib/fetch-abort';
 import { apiFetch } from '@/lib/api-client';
+import { useAppointmentStore } from '@/stores/store-appointments';
 
 const abortable = createAbortable();
 
@@ -420,8 +421,20 @@ export const usePatientStore = create<PatientState>((set, get) => ({
     await new Promise((r) => setTimeout(r, MOCK_PAYMENT_DELAY_MS));
     set({ isPaying: false, paymentSuccess: true });
     await new Promise((r) => setTimeout(r, PAYMENT_SUCCESS_FLASH_MS));
-    const nextStep: PatientStep =
-      get().bookingMode === 'scheduled' ? 'scheduledConfirmed' : 'consult';
+    const { bookingMode, bookingSlot, selectedDoctorId, persona } = get();
+    const nextStep: PatientStep = bookingMode === 'scheduled' ? 'scheduledConfirmed' : 'consult';
+    // A scheduled (future) booking joins the shared ledger so it persists across
+    // reset, surfaces in the patient's "นัดหมายของฉัน" list + the doctor queue, and
+    // marks the slot taken everywhere. 'now' bookings open the chat room instead.
+    if (bookingMode === 'scheduled' && bookingSlot && selectedDoctorId) {
+      useAppointmentStore.getState().addAppointment({
+        doctorId: selectedDoctorId,
+        patientName: persona.name,
+        slotIso: bookingSlot,
+        kind: 'initial',
+        createdByRole: 'patient',
+      });
+    }
     set({
       paymentSuccess: false,
       paymentOpen: false,
