@@ -152,8 +152,10 @@ export const PrescribeRequestSchema = z.object({
 export type PrescribeRequest = z.infer<typeof PrescribeRequestSchema>;
 
 export const PredictQuerySchema = z.object({
-  type: z.enum(['no_show', 'demand', 'segment']),
-  id: z.string().min(1),
+  // 'segments' (plural) returns the whole patient-segmentation payload for the
+  // doctor dashboard; the others look up a single record by id.
+  type: z.enum(['no_show', 'demand', 'segment', 'segments']),
+  id: z.string().min(1).optional(),
 });
 
 export const CheckupRequestSchema = z.object({

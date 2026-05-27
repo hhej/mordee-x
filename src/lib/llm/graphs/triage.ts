@@ -39,7 +39,7 @@ async function embedNode(state: typeof TriageState.State) {
 }
 
 async function retrieveNode(state: typeof TriageState.State) {
-  const ragHits = topK(state.embedding, 3);
+  const ragHits = await topK(state.embedding, 3);
   return { ragHits };
 }
 

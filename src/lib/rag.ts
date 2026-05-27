@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { dbTopKSymptoms } from '@/lib/db';
 
 export interface SymptomKbEntry {
   id: string;
@@ -33,7 +34,13 @@ export interface RagHit {
   score: number;
 }
 
-export function topK(queryEmbedding: number[], k = 3): RagHit[] {
+// DB-first: similarity search runs in Postgres/pgvector. On any DB miss/error
+// (e.g. unprovisioned or unreachable) we fall back to in-memory cosine over the
+// bundled symptom_kb.json so retrieval never fails during the demo.
+export async function topK(queryEmbedding: number[], k = 3): Promise<RagHit[]> {
+  const dbHits = await dbTopKSymptoms(queryEmbedding, k);
+  if (dbHits) return dbHits;
+
   const scored = kb.map((entry) => ({
     entry,
     score: cosineSimilarity(queryEmbedding, entry.embedding),

@@ -25,10 +25,10 @@ Architecture, tech stack, file structure, design system, and LLM prompts are pre
 
 ## Hard rules (plan §16)
 
-- **No database.** All data in `src/data/*.json`. Demo persistence via Zustand stores.
-- **No live ML.** Notebooks export to `data/ml/*.json`; API routes look up by scenario ID.
+- **Backend DB for ML + RAG (override, 2026-05-27).** Managed **Neon Postgres** (Vercel Marketplace, Free plan) with **pgvector** is the runtime source of truth for ML outputs (`ml_artifacts` for no-show/demand; normalized `patient_segments` + `segment_assignments` + `segment_scatter` + `segment_meta` for the k-means cohorts), the RAG knowledge base (`symptom_kb` vector table), and doctor-matching embeddings (`doctor_embeddings`). Access via `src/lib/db.ts`; seed with `pnpm db:seed` (`scripts/seed-neon.mjs`). **DB-first with automatic JSON fallback** — if `DATABASE_URL`/`POSTGRES_URL` is unset or the DB is unreachable, everything falls back to the bundled JSON so the demo can't break. This deliberately relaxes the original "No database / No external vector DB" rules (user-initiated, for the rubrics). Demo write-state (appointments, sessions) is still Zustand + localStorage — NOT in the DB.
+- **No live ML.** Notebooks export to `data/ml/*.json`; `pnpm db:seed` loads those into Postgres, API routes look up by scenario ID.
 - **No Python sidecar in production.** ML stays in Jupyter.
-- **No external vector DB.** RAG = pre-embedded vectors in `data/symptom_kb.json` + manual cosine in `lib/rag.ts`.
+- **RAG = pgvector, fallback to in-memory cosine.** Pre-embedded **3072-d** vectors in `symptom_kb` (pgvector `<=>`); `lib/rag.ts` falls back to manual cosine over `data/symptom_kb.json` when the DB is unavailable. **Embedding dim MUST be 3072** (gemini-embedding-001 native) to match the app's runtime query (`lib/llm/client.ts` `embedModel`) — nb03's `EMBED_DIM`. The earlier 768-d KB silently NaN'd against the 3072-d query (retrieval returned the first-3 entries); fixed 2026-05-27. Doctor-matching embeddings (`doctor_embeddings`) are also 3072-d.
 - **No auth, no login screens.**
 - **No navigation between flows.** Each role page is one route; everything else is modal + scroll.
 - **Don't regenerate the 15 doctor names** (plan §6) — copy verbatim.

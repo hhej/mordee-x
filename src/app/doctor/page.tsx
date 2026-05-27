@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { RoleHeader } from '@/components/shared/RoleHeader';
 import { DoctorPageBody } from '@/components/doctor/DoctorPageBody';
 import { DoctorPersonaPicker } from '@/components/doctor/DoctorPersonaPicker';
@@ -12,7 +12,10 @@ import {
   getDoctorDemo,
   getNoShow,
   getSegments,
+  specialtySlug,
+  type DemandForecast,
   type NoShowPrediction,
+  type PatientSegmentsData,
 } from '@/lib/data';
 import { useDoctorStore } from '@/stores/store-doctor';
 import { useAppointmentStore } from '@/stores/store-appointments';
@@ -22,12 +25,22 @@ import { useAppointmentStore } from '@/stores/store-appointments';
  *  visibly replaced by stand-by patients sliding in. */
 const QUEUE_SIZE = 3;
 
+/** ML pulled live from the DB-backed /api/predict, tagged with the doctor it
+ *  belongs to so a persona switch can't briefly show the previous doctor's data. */
+type MlFromDb = {
+  forDoctor: string;
+  forecast?: DemandForecast;
+  predictions: Record<string, NoShowPrediction>;
+  segments?: PatientSegmentsData;
+};
+
 export default function DoctorPage() {
   const doctorId = useDoctorStore((s) => s.doctorId);
   const consumedApptIds = useDoctorStore((s) => s.consumedApptIds);
   const hydrate = useDoctorStore((s) => s.hydrateDoctorId);
   const clear = useDoctorStore((s) => s.clearDoctorId);
   const hydrateAppointments = useAppointmentStore((s) => s.hydrate);
+  const [mlFromDb, setMlFromDb] = useState<MlFromDb | null>(null);
 
   // Restore the previously-selected persona on first paint. Without this, a
   // page reload always drops back to the picker even when the user already
@@ -37,6 +50,65 @@ export default function DoctorPage() {
     hydrate();
     hydrateAppointments();
   }, [hydrate, hydrateAppointments]);
+
+  // Synchronous lookups from the bundled JSON. These render instantly and serve
+  // as the fallback whenever the DB fetch below hasn't landed (or failed).
+  const doctor = doctorId ? getDoctor(doctorId) : undefined;
+  const demo = doctorId ? getDoctorDemo(doctorId) : undefined;
+  // Each doctor inherits its specialty's pooled demand forecast (4 GPs share
+  // one GP forecast, etc.); falls back to GP/DD01 only if the specialty is missing.
+  const forecastFallback = doctorId ? getDemandForDoctor(doctorId) : undefined;
+
+  // Visible queue = (today + standby) − already-consulted, capped to QUEUE_SIZE.
+  // When the doctor finishes a consult, closeAppt adds the appt_id to the
+  // consumed set; the next render drops it and the next standby slides in.
+  const pool = demo ? [...demo.today_appointments, ...(demo.standby_appointments ?? [])] : [];
+  const visibleAppointments = pool
+    .filter((a) => !consumedApptIds.has(a.appt_id))
+    .slice(0, QUEUE_SIZE);
+  const predictionIds = visibleAppointments.map((a) => a.prediction_id);
+  const predictionIdsKey = predictionIds.join(',');
+
+  // Step 5 — pull the dashboard's ML (demand forecast, no-show risk, patient
+  // segments) from the DB-backed /api/predict (Neon + pgvector). Each fetch is
+  // independent; a failure just leaves that card on its JSON fallback, so the
+  // demo can never break. Re-runs when the doctor or the visible queue changes.
+  useEffect(() => {
+    if (!doctorId) return;
+    const doc = getDoctor(doctorId);
+    if (!doc) return;
+    const ids = predictionIdsKey ? predictionIdsKey.split(',') : [];
+    let cancelled = false;
+
+    (async () => {
+      const slug = specialtySlug(doc.specialty);
+      const [demandRes, segRes, ...nsResults] = await Promise.allSettled([
+        fetch(`/api/predict?type=demand&id=${encodeURIComponent(slug)}`),
+        fetch('/api/predict?type=segments'),
+        ...ids.map((id) => fetch(`/api/predict?type=no_show&id=${encodeURIComponent(id)}`)),
+      ]);
+
+      const next: MlFromDb = { forDoctor: doctorId, predictions: {} };
+      if (demandRes.status === 'fulfilled' && demandRes.value.ok) {
+        next.forecast = (await demandRes.value.json()) as DemandForecast;
+      }
+      if (segRes.status === 'fulfilled' && segRes.value.ok) {
+        next.segments = (await segRes.value.json()) as PatientSegmentsData;
+      }
+      await Promise.all(
+        nsResults.map(async (r, i) => {
+          if (r.status === 'fulfilled' && r.value.ok) {
+            next.predictions[ids[i]] = (await r.value.json()) as NoShowPrediction;
+          }
+        }),
+      );
+      if (!cancelled) setMlFromDb(next);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [doctorId, predictionIdsKey]);
 
   if (!doctorId) {
     return (
@@ -49,13 +121,7 @@ export default function DoctorPage() {
     );
   }
 
-  const doctor = getDoctor(doctorId);
-  const demo = getDoctorDemo(doctorId);
-  // Each doctor inherits its specialty's pooled demand forecast (4 GPs share
-  // one GP forecast, etc.); falls back to GP/DD01 only if the specialty is missing.
-  const forecast = getDemandForDoctor(doctorId);
-
-  if (!doctor || !demo || !forecast) {
+  if (!doctor || !demo || !forecastFallback) {
     return (
       <>
         <RoleHeader title="แพทย์ · Doctor" subtitle="ไม่พบข้อมูลบัญชีนี้" />
@@ -72,21 +138,19 @@ export default function DoctorPage() {
     );
   }
 
-  // Visible queue = (today + standby) − already-consulted, capped to QUEUE_SIZE.
-  // When the doctor finishes a consult, closeAppt adds the appt_id to the
-  // consumed set; the next render drops it and the next standby slides in.
-  const pool = [...demo.today_appointments, ...(demo.standby_appointments ?? [])];
-  const visibleAppointments = pool
-    .filter((a) => !consumedApptIds.has(a.appt_id))
-    .slice(0, QUEUE_SIZE);
+  // DB values win; the synchronous JSON fills any gap (and applies only to the
+  // current doctor — a stale fetch from a previous persona is ignored).
+  const fromDb = mlFromDb?.forDoctor === doctorId ? mlFromDb : null;
 
   const predictions: Record<string, NoShowPrediction> = {};
   for (const appt of visibleAppointments) {
     const ns = getNoShow(appt.prediction_id);
     if (ns) predictions[appt.prediction_id] = ns;
   }
+  Object.assign(predictions, fromDb?.predictions ?? {});
 
-  const segments = getSegments();
+  const forecast = fromDb?.forecast ?? forecastFallback;
+  const segments = fromDb?.segments ?? getSegments();
 
   return (
     <>

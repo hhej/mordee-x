@@ -7,7 +7,7 @@ import { getDoctor, getNoShow, getDemandForDoctor } from '@/lib/data';
 export const lookupSymptomKb = tool(
   async ({ query }) => {
     const embedding = await embedModel.embedQuery(query);
-    const hits = topK(embedding, 3);
+    const hits = await topK(embedding, 3);
     const result = hits.map(({ entry, score }) => ({
       id: entry.id,
       title: entry.title,

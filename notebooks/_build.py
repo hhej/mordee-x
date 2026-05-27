@@ -1567,7 +1567,7 @@ def build_nb03() -> Path:
         แนวทางการแพทย์ที่ตรวจสอบได้ ไม่ใช่ตอบลอย ๆ. โน้ตบุ๊กนี้ seed ฐานความรู้ 50 entries ครอบคลุม
         chief complaint ที่พบบ่อยในไทย แต่ละ entry มี title (TH+EN), severity (red/yellow/green),
         guidance text (TH+EN), และ specialty hint. จากนั้นเรียก Gemini `gemini-embedding-001` เพื่อสร้าง
-        embedding 768-dim ต่อ entry และส่งออกเป็น `data/symptom_kb.json`.
+        embedding 3072-dim ต่อ entry และส่งออกเป็น `data/symptom_kb.json`.
 
         **Sources** (cited per-entry in the `source` field):
         - Manchester Triage System (MTS) — 53 chief-complaint flowcharts
@@ -1590,16 +1590,16 @@ def build_nb03() -> Path:
         assert api_key, "GOOGLE_API_KEY not found in .env"
         client = genai.Client(api_key=api_key)
         EMBED_MODEL = "gemini-embedding-001"
-        EMBED_DIM = 768  # plan §6 spec
+        EMBED_DIM = 3072  # native gemini-embedding-001 dim — must match the app's runtime query embedding (lib/llm/client.ts embedModel) so pgvector/cosine retrieval works
         print(f"Gemini client ready. Model={EMBED_MODEL}  output_dim={EMBED_DIM}")
         """),
         md(r"""
         ## 3. Compute embeddings (batched)
 
-        `gemini-embedding-001` defaults to 3072-dim but the §6 schema asks for 768.
-        We pass `output_dimensionality=768` via `EmbedContentConfig`. After truncation
-        the vectors must be re-normalized (Google's recommendation) so cosine similarity
-        behaves correctly.
+        We embed at `gemini-embedding-001`'s native **3072-dim** so the stored vectors
+        match the app's runtime query embedding (`lib/llm/client.ts`), which lets RAG
+        retrieval (pgvector `<=>` in Postgres, or in-memory cosine fallback) work correctly.
+        Vectors are L2-normalized (Google's recommendation) so cosine similarity behaves well.
         """),
         code(r"""
         def l2_normalize(v):
@@ -1664,7 +1664,7 @@ def build_nb03() -> Path:
         )
         q_vecs = [l2_normalize(e.values) for e in q_resp.embeddings]
 
-        kb_mat = np.array(all_embeddings)  # (50, 768) — already L2-normalised
+        kb_mat = np.array(all_embeddings)  # (50, 3072) — already L2-normalised
         for (label, _, anchor_id), qv in zip(demo_queries, q_vecs):
             sims = kb_mat @ np.array(qv)
             top3 = np.argsort(sims)[::-1][:3]
@@ -1687,7 +1687,7 @@ def build_nb03() -> Path:
         for entry in kb:
             assert required <= entry.keys(), f"Missing keys in {entry.get('id')}: {required - entry.keys()}"
             assert entry["severity"] in {"red","yellow","green"}
-            assert len(entry["embedding"]) == 768, f"{entry['id']} embedding dim={len(entry['embedding'])}"
+            assert len(entry["embedding"]) == 3072, f"{entry['id']} embedding dim={len(entry['embedding'])}"
             assert abs(np.linalg.norm(entry["embedding"]) - 1.0) < 0.01, f"{entry['id']} not L2-normalized"
 
         from collections import Counter

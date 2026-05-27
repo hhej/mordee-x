@@ -4,7 +4,7 @@ import { SYSTEM_MATCH } from '@/lib/llm/prompts';
 import { MatchReasonSchema } from '@/lib/llm/schemas';
 import { getDoctors, type Doctor } from '@/lib/data';
 import { cosineSimilarity } from '@/lib/rag';
-import { getDoctorEmbedding } from '@/lib/llm/doctor-embeddings';
+import { getDoctorEmbedding, ensureDoctorEmbeddings } from '@/lib/llm/doctor-embeddings';
 
 export interface MatchInput {
   symptom_text: string;
@@ -53,10 +53,16 @@ async function pickTop3(input: MatchInput): Promise<ScoredDoctor[]> {
   if (input.specialty_hint === 'ER') return [];
 
   // Embed once per match request. If embedding fails (network/quota), degrade
-  // gracefully to rule-only scoring rather than failing the whole match.
+  // gracefully to rule-only scoring rather than failing the whole match. The
+  // doctor-embedding cache is warmed concurrently (DB-first, JSON fallback) so
+  // it overlaps the Gemini call and adds no latency to the hot path.
   let symptomEmbedding: number[] | null = null;
   try {
-    symptomEmbedding = await embedModel.embedQuery(input.symptom_text);
+    const [, embedding] = await Promise.all([
+      ensureDoctorEmbeddings(),
+      embedModel.embedQuery(input.symptom_text),
+    ]);
+    symptomEmbedding = embedding;
   } catch (err) {
     console.warn('[match] symptom embedding failed, falling back to rules-only', err);
   }
