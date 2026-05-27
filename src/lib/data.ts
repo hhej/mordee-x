@@ -228,6 +228,21 @@ export function getRosterSpecialties(): string[] {
   return Array.from(new Set(doctors.map((d) => d.specialty))).sort();
 }
 
+// EN→TH specialty lookup, derived from the roster so it auto-covers every
+// doctor.specialty / specialty_th pair (no separate mapping table to drift).
+// The LLM contract + matching stay English (specialty_hint, doctor.specialty);
+// this exists only to render the hint in Thai, matching doctor.specialty_th in
+// the UI. 'ER' isn't a doctor specialty, so it's special-cased; unmapped values
+// fall through to the input string so a label never renders blank.
+const SPECIALTY_TH: Record<string, string> = {
+  ...Object.fromEntries(doctors.map((d) => [d.specialty, d.specialty_th])),
+  ER: 'ฉุกเฉิน',
+};
+
+export function getSpecialtyTh(specialtyEn: string): string {
+  return SPECIALTY_TH[specialtyEn] ?? specialtyEn;
+}
+
 export function getCheckupPrograms(): CheckupProgram[] {
   return checkupPrograms;
 }

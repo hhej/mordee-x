@@ -23,7 +23,7 @@ import { StepPill } from '@/components/patient/StepPill';
 import { PatientPersonaPicker } from '@/components/patient/PatientPersonaPicker';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
-import { getDoctor } from '@/lib/data';
+import { getDoctor, getSpecialtyTh } from '@/lib/data';
 import { usePatientStore } from '@/stores/store-patient';
 import { useAppointmentStore } from '@/stores/store-appointments';
 import type { TriageResult } from '@/lib/llm/schemas';
@@ -154,7 +154,7 @@ export default function PatientPage() {
                     <StepPill
                       icon={TRIAGE_PILL[triage.triage].emoji}
                       label={TRIAGE_PILL[triage.triage].label}
-                      detail={triage.specialty_hint || undefined}
+                      detail={triage.specialty_hint ? getSpecialtyTh(triage.specialty_hint) : undefined}
                       expanded={expandedPill === 'triage'}
                       onToggle={() => toggleExpand('triage')}
                     />

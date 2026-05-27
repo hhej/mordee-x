@@ -3,6 +3,7 @@
 import { AlertTriangle, Circle, Info, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { getSpecialtyTh } from '@/lib/data';
 import type { TriageResult } from '@/lib/llm/schemas';
 
 interface TriageResultCardProps {
@@ -104,7 +105,7 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
             </Popover>
             {triage.specialty_hint ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-mint-50 px-2 py-0.5 text-[11px] text-mint-800 ring-1 ring-mint-200/60">
-                แผนกแนะนำ · {triage.specialty_hint}
+                แผนกแนะนำ · {getSpecialtyTh(triage.specialty_hint)}
               </span>
             ) : null}
           </div>
