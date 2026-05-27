@@ -1,7 +1,7 @@
 'use client';
 
-import { AlertTriangle, Apple, Ban, BedDouble, CalendarClock, Pill, Printer } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AlertTriangle, Apple, Ban, BedDouble, CalendarClock, Pill } from 'lucide-react';
+import { PrintableDoc } from '@/components/shared/PrintableDoc';
 import type { SummaryResult } from '@/lib/llm/schemas';
 
 interface SelfCarePlanProps {
@@ -28,16 +28,8 @@ export function SelfCarePlan({
   const showLetterhead = Boolean(patientName || doctorName);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-end">
-        <Button variant="outline" size="sm" onClick={() => window.print()}>
-          <Printer className="size-3.5" />
-          พิมพ์ / Print
-        </Button>
-      </div>
-
-      <div id="care-print-area" className="care-frame mx-auto w-full max-w-2xl">
-        <div className="care-print-card border border-line/80 bg-white p-6 shadow-sm md:p-8">
+    <PrintableDoc>
+      <div className="care-print-card border border-line/80 bg-white p-6 shadow-sm md:p-8">
           {showLetterhead ? (
             <div className="mb-6 border-b border-mint-300 pb-4 text-center">
               <div className="text-xs uppercase tracking-[0.2em] text-mint-700">MorDee+ Telemedicine</div>
@@ -149,8 +141,7 @@ export function SelfCarePlan({
             </div>
           ) : null}
         </div>
-      </div>
-    </div>
+    </PrintableDoc>
   );
 }
 

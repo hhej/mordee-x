@@ -129,29 +129,45 @@ body {
   }
 }
 
-/* Print-only: hide app chrome so the browser's Save-as-PDF flow gives a clean
-   single-page printout. Both the medical certificate and the self-care plan
-   use this pattern — only one is mounted at a time (different Tab content),
-   so the union selector here is safe. */
+/* Printable documents (medical certificate, self-care plan) are portaled to the
+   <body> root as `.mordee-print-doc` (see PrintableDoc.tsx). On screen they're
+   hidden; in print we `display: none` every OTHER body child so only the
+   document prints. Using display:none (not visibility:hidden) is the fix for the
+   old blank-page bug — visibility:hidden keeps each element's layout box, so the
+   tall app shell still padded the printout out to many pages. */
+.mordee-print-doc {
+  display: none;
+}
+/* Transparent to layout on screen; the whole app shell collapses in print. */
+.app-shell {
+  display: contents;
+}
+
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  #cert-print-area,
-  #cert-print-area *,
-  #care-print-area,
-  #care-print-area * {
-    visibility: visible;
-  }
-  #cert-print-area,
-  #care-print-area {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 0;
-  }
+  /* Drop the on-screen min-height:100vh / mesh background — otherwise the body
+     stays a full page tall and a short document spills a blank 2nd page. */
+  html,
   body {
-    background: white !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: #fff !important;
+  }
+  .app-shell {
+    display: none !important;
+  }
+  .mordee-print-doc {
+    display: block !important;
+  }
+  /* Keep tables, rows and the signature block from splitting across pages. */
+  .mordee-print-doc table,
+  .mordee-print-doc thead,
+  .mordee-print-doc tr {
+    break-inside: avoid;
+  }
+  .mordee-print-doc h3 {
+    break-after: avoid;
+  }
+  @page {
+    margin: 14mm;
   }
 }

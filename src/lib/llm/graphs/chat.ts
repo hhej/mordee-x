@@ -87,7 +87,15 @@ export async function* streamChat(
     prompt: buildSystemPrompt(input, doctor),
   });
 
-  const history: BaseMessage[] = input.messages.map((m) =>
+  // Cap history to a sliding window so the growing tail can't drown out the
+  // persona and flip the role on long chats. §5 expects the consult to wrap in
+  // 6-8 turns; 16 messages (~8 exchanges) is ample. Early symptom context is
+  // preserved in the system prompt's context block, so nothing critical is lost.
+  const MAX_TURNS = 16;
+  let windowed = input.messages.slice(-MAX_TURNS);
+  // Keep the window starting on a user turn — don't hand the model an orphan AI turn first.
+  if (windowed[0]?.role === 'assistant') windowed = windowed.slice(1);
+  const history: BaseMessage[] = windowed.map((m) =>
     m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
   );
 

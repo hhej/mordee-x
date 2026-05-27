@@ -18,6 +18,14 @@ interface AppointmentRowProps {
   now?: Date | null;
 }
 
+/** Minutes → Thai "ชม./น." label: 45 → "45 น.", 61 → "1 ชม. 1 น.", 120 → "2 ชม." */
+function hmLabel(totalMin: number): string {
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  if (hours === 0) return `${mins} น.`;
+  return mins ? `${hours} ชม. ${mins} น.` : `${hours} ชม.`;
+}
+
 function relativeChip(time: string, now: Date): { label: string; tone: 'soon' | 'upcoming' | 'past' } {
   // appointment.time is "HH:MM" today-local; anchor to today's wall clock.
   const [h, m] = time.split(':').map(Number);
@@ -29,13 +37,12 @@ function relativeChip(time: string, now: Date): { label: string; tone: 'soon' | 
   // 23:33 tonight), fold it back into the nearest 24h window.
   if (diffMin > 720) diffMin -= 1440;
   else if (diffMin < -720) diffMin += 1440;
-  if (diffMin < -5) return { label: `ผ่านไป ${Math.abs(diffMin)} น.`, tone: 'past' };
+  // Past/future both roll up into ชม.+น. once over an hour (e.g. "ผ่านไป 1 ชม.
+  // 1 น." instead of "ผ่านไป 61 น.").
+  if (diffMin < -5) return { label: `ผ่านไป ${hmLabel(Math.abs(diffMin))}`, tone: 'past' };
   if (diffMin <= 0) return { label: 'ถึงเวลาแล้ว', tone: 'soon' };
-  if (diffMin <= 30) return { label: `อีก ${diffMin} น.`, tone: 'soon' };
-  if (diffMin < 60) return { label: `อีก ${diffMin} น.`, tone: 'upcoming' };
-  const hours = Math.floor(diffMin / 60);
-  const mins = diffMin % 60;
-  return { label: mins ? `อีก ${hours} ชม. ${mins} น.` : `อีก ${hours} ชม.`, tone: 'upcoming' };
+  if (diffMin <= 30) return { label: `อีก ${hmLabel(diffMin)}`, tone: 'soon' };
+  return { label: `อีก ${hmLabel(diffMin)}`, tone: 'upcoming' };
 }
 
 export function AppointmentRow({ appointment, prediction, doctorId, now }: AppointmentRowProps) {

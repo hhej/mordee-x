@@ -1,7 +1,6 @@
 'use client';
 
-import { Printer } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { PrintableDoc } from '@/components/shared/PrintableDoc';
 import type { SummaryResult } from '@/lib/llm/schemas';
 
 interface MedicalCertificateProps {
@@ -39,16 +38,8 @@ export function MedicalCertificate({
   const certText = fillCertPlaceholders(summary.certificate_text_th, patientAge, today);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-end">
-        <Button variant="outline" size="sm" onClick={() => window.print()}>
-          <Printer className="size-3.5" />
-          พิมพ์ / Print
-        </Button>
-      </div>
-
-      <div id="cert-print-area" className="cert-frame mx-auto w-full max-w-2xl">
-        <div className="border border-line/80 bg-white p-8 shadow-sm">
+    <PrintableDoc>
+      <div className="border border-line/80 bg-white p-8 shadow-sm">
           <div className="border-b border-mint-300 pb-4 text-center">
             <div className="text-xs uppercase tracking-[0.2em] text-mint-700">MorDee+ Telemedicine</div>
             <h3 className="mt-1 text-2xl font-bold text-ink">ใบรับรองแพทย์</h3>
@@ -80,7 +71,6 @@ export function MedicalCertificate({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </PrintableDoc>
   );
 }
