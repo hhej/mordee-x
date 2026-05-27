@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, CalendarCheck, CalendarPlus, Minus, Plus } from 'lucide-react';
+import { ArrowLeft, CalendarCheck, CalendarPlus, Loader2, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConsultSummary } from '@/components/shared/ConsultSummary';
 import { useDoctorStore } from '@/stores/store-doctor';
@@ -78,12 +78,22 @@ export function ConsultSummaryShell({ doctorName, doctorSpecialty }: ConsultSumm
       {visible ? (
         <Button
           onClick={closeAppt}
+          disabled={isSummarizing}
           variant="default"
           size="lg"
           className="mt-4 w-full"
         >
-          <ArrowLeft className="size-4" />
-          เสร็จสิ้น · กลับไปคิวผู้ป่วย
+          {isSummarizing ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              กำลังออกใบรับรอง…
+            </>
+          ) : (
+            <>
+              <ArrowLeft className="size-4" />
+              เสร็จสิ้น · กลับไปคิวผู้ป่วย
+            </>
+          )}
         </Button>
       ) : null}
     </>

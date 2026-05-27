@@ -99,10 +99,13 @@ export function ConsultSummary({
           ) : null}
 
           {isSummarizing && !summary ? (
-            <div className="grid place-items-center py-16">
+            <div className="grid place-items-center gap-3 py-16">
+              <div className="rounded-md bg-mint-50 px-2.5 py-1.5 text-[11px] text-mint-800 ring-1 ring-mint-200/60">
+                AI กำลังออกใบรับรอง ~5 วินาที · รอสักครู่
+              </div>
               <Loader2 className="size-6 animate-spin text-mint-600" />
-              <div className="mt-2 text-sm text-muted-foreground">
-                กำลังสรุปการสนทนา · ระบบจะดึงยา การวินิจฉัย และคำแนะนำจากที่คุยกัน
+              <div className="text-sm text-muted-foreground">
+                ระบบกำลังดึงยา การวินิจฉัย และคำแนะนำจากที่คุยกัน
               </div>
             </div>
           ) : pureError ? (
