@@ -28,12 +28,12 @@ export function InstantConsultCard() {
           <Zap className="size-3.5" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-ink md:text-lg">ไม่แน่ใจอาการ?</h2>
+          <h2 className="text-base font-semibold text-foreground md:text-lg">ไม่แน่ใจอาการ?</h2>
           <div className="text-xs text-muted-foreground">พบแพทย์ตอนนี้ — ปรึกษาทันที</div>
         </div>
       </div>
 
-      <p className="mb-3 text-xs text-ink/80">
+      <p className="mb-3 text-xs text-foreground/80">
         ข้ามขั้นตอนประเมินอาการ เลือกแพทย์จาก {doctorCount} ท่าน เริ่มแชทใน 3 นาที
       </p>
 
@@ -46,17 +46,17 @@ export function InstantConsultCard() {
           return (
             <div
               key={d.id}
-              className="flex items-center gap-2.5 rounded-lg bg-white/70 px-2.5 py-1.5 ring-1 ring-line/40"
+              className="flex items-center gap-2.5 rounded-lg bg-white/70 dark:bg-slate-800/60 px-2.5 py-1.5 ring-1 ring-border/40"
             >
               <Image
                 src={d.avatar}
                 alt={d.name_en}
                 width={32}
                 height={32}
-                className="size-8 rounded-full object-cover ring-1 ring-line/40"
+                className="size-8 rounded-full object-cover ring-1 ring-border/40"
               />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-xs font-medium text-ink">{d.name}</div>
+                <div className="truncate text-xs font-medium text-foreground">{d.name}</div>
                 <div className="truncate text-[10px] text-muted-foreground">{d.specialty_th}</div>
               </div>
               <div className="flex shrink-0 items-center gap-0.5 text-[11px] text-mint-800">
@@ -64,7 +64,7 @@ export function InstantConsultCard() {
                 {d.rating.toFixed(1)}
               </div>
               {online ? (
-                <div className="ml-1 flex shrink-0 items-center gap-1 text-[10px] text-mint-700">
+                <div className="ml-1 flex shrink-0 items-center gap-1 text-[10px] text-mint-700 dark:text-mint-400">
                   <span className="size-1.5 animate-pulse rounded-full bg-mint-500" />
                   พร้อม
                 </div>

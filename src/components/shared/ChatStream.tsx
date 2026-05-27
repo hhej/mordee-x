@@ -74,7 +74,7 @@ export function ChatStream({
   const hasContent = seededGreeting || messages.length > 0;
 
   return (
-    <div className="flex h-full min-h-[420px] flex-col rounded-xl border border-line/60 bg-white/60">
+    <div className="flex h-full min-h-[420px] flex-col rounded-xl border border-border/60 bg-white/60 dark:bg-slate-800/50">
       <div
         ref={scrollRef}
         role="log"
@@ -115,8 +115,8 @@ export function ChatStream({
         </div>
       ) : null}
       {suggestedAction && !consultEnded ? (
-        <div className="flex items-center gap-2 border-t border-line/60 bg-mint-50/40 px-2.5 py-1.5">
-          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-mint-700">
+        <div className="flex items-center gap-2 border-t border-border/60 bg-mint-50/40 px-2.5 py-1.5 dark:bg-mint-500/10">
+          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-mint-700 dark:text-mint-400">
             <Sparkles className="size-3" />
             {suggestedAction.eyebrow ?? 'AI ช่วยเขียน'}
           </div>
@@ -127,7 +127,7 @@ export function ChatStream({
               else if (suggestedAction.value) setInputText(suggestedAction.value);
             }}
             disabled={isStreaming || suggestedAction.loading}
-            className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[11px] text-mint-800 ring-1 ring-mint-300/60 transition-colors hover:bg-mint-100 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-full bg-card px-2 py-1 text-[11px] text-mint-800 ring-1 ring-mint-300/60 dark:ring-mint-500/30 transition-colors hover:bg-mint-100 dark:hover:bg-mint-500/15 disabled:opacity-50"
             title={suggestedAction.value ?? suggestedAction.label}
           >
             {suggestedAction.loading ? (
@@ -141,7 +141,7 @@ export function ChatStream({
             <button
               type="button"
               onClick={() => setInputText('')}
-              className="ml-auto inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-ink"
+              className="ml-auto inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground"
             >
               <X className="size-3" />
               ล้าง
@@ -149,7 +149,7 @@ export function ChatStream({
           ) : null}
         </div>
       ) : null}
-      <div className="flex items-center gap-2 border-t border-line/60 p-2.5">
+      <div className="flex items-center gap-2 border-t border-border/60 p-2.5">
         <input
           type="text"
           value={inputText}
@@ -162,7 +162,7 @@ export function ChatStream({
           }}
           placeholder={consultEnded ? 'การปรึกษาสิ้นสุดแล้ว' : inputPlaceholder}
           disabled={isStreaming || consultEnded}
-          className="flex-1 rounded-lg border border-line/70 bg-white/80 px-3 py-1.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 disabled:opacity-60"
+          className="flex-1 rounded-lg border border-border/70 bg-white/80 dark:bg-slate-800/60 px-3 py-1.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 disabled:opacity-60"
         />
         <Button onClick={submit} disabled={!inputText.trim() || isStreaming || consultEnded} size="sm">
           <Send className="size-3.5" />
@@ -195,7 +195,7 @@ function Bubble({
           'max-w-[80%] rounded-2xl px-3 py-2 text-sm',
           isUser
             ? 'rounded-br-md bg-mint-600 text-white'
-            : 'rounded-bl-md bg-slate-100 text-ink',
+            : 'rounded-bl-md bg-slate-100 dark:bg-slate-800/60 text-foreground',
         )}
       >
         <div

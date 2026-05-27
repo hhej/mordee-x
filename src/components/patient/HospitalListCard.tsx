@@ -10,7 +10,7 @@ export function HospitalListCard() {
   const hospitals = getHospitals();
   const reset = usePatientStore((s) => s.reset);
   return (
-    <GlassCard className="border border-triage-red/40 bg-white/80">
+    <GlassCard className="border border-triage-red/40 bg-white/80 dark:bg-slate-800/60">
       <div className="mb-3 flex items-start gap-2">
         <AlertOctagon className="mt-0.5 size-5 text-triage-red" />
         <div>
@@ -43,7 +43,7 @@ export function HospitalListCard() {
           variant="ghost"
           size="sm"
           onClick={reset}
-          className="text-muted-foreground hover:text-ink"
+          className="text-muted-foreground hover:text-foreground"
         >
           <RotateCcw className="size-3.5" />
           ฉันไม่ได้เป็นแบบนั้น · กลับไปประเมินอาการใหม่
@@ -57,13 +57,13 @@ export function HospitalListCard() {
         {hospitals.map((h) => (
           <div
             key={h.name}
-            className="rounded-lg border border-line/60 bg-white/60 px-3 py-2.5"
+            className="rounded-lg border border-border/60 bg-white/60 dark:bg-slate-800/50 px-3 py-2.5"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-sm font-medium text-ink">{h.name}</div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-mint-50 px-2 py-0.5 text-[10px] font-medium text-mint-800 ring-1 ring-mint-200/60">
+                  <div className="text-sm font-medium text-foreground">{h.name}</div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-mint-50 dark:bg-mint-500/10 px-2 py-0.5 text-[10px] font-medium text-mint-800 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30">
                     <Navigation className="size-2.5" />
                     {h.distance_label}
                   </span>
@@ -83,7 +83,7 @@ export function HospitalListCard() {
               </div>
               <a
                 href={`tel:${h.phone.replace(/[^0-9]/g, '')}`}
-                className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-md bg-mint-50 px-2.5 py-1 text-xs text-mint-800 ring-1 ring-mint-200/60 transition-colors hover:bg-mint-100"
+                className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-md bg-mint-50 dark:bg-mint-500/10 px-2.5 py-1 text-xs text-mint-800 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30 transition-colors hover:bg-mint-100 dark:hover:bg-mint-500/15"
               >
                 <Phone className="size-3" />
                 {h.phone}
@@ -93,10 +93,10 @@ export function HospitalListCard() {
         ))}
       </div>
 
-      <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-800 ring-1 ring-amber-200">
+      <p className="mt-4 rounded-md bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-300 ring-1 ring-amber-200">
         ⚠ MorDee+ ให้คำแนะนำเบื้องต้นเท่านั้น ไม่ใช่การวินิจฉัยทางการแพทย์
         กรุณาปรึกษาแพทย์ที่ได้รับใบอนุญาตสำหรับการตัดสินใจสำคัญ
-        <span className="mt-1 block text-amber-700/80">
+        <span className="mt-1 block text-amber-700/80 dark:text-amber-300/80">
           MorDee+ provides initial guidance only — not a medical diagnosis. Please consult a licensed clinician for any important decision.
         </span>
       </p>

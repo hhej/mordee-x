@@ -24,7 +24,7 @@ export function RoleHeader({ title, subtitle, actions }: RoleHeaderProps) {
         <LiveClock />
         {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
         <div className="text-right">
-          <div className="text-sm font-semibold text-ink md:text-base">
+          <div className="text-sm font-semibold text-foreground md:text-base">
             {title}
           </div>
           {subtitle ? (

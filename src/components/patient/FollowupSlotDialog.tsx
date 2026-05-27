@@ -99,8 +99,8 @@ export function FollowupSlotDialog({
         </DialogHeader>
 
         {reason ? (
-          <div className="flex items-start gap-2 rounded-md bg-mint-50/70 px-3 py-2 text-xs text-mint-900 ring-1 ring-mint-200/60">
-            <CalendarPlus className="mt-0.5 size-3.5 shrink-0 text-mint-700" />
+          <div className="flex items-start gap-2 rounded-md bg-mint-50/70 dark:bg-mint-500/10 px-3 py-2 text-xs text-mint-900 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30">
+            <CalendarPlus className="mt-0.5 size-3.5 shrink-0 text-mint-700 dark:text-mint-400" />
             <span>{reason}</span>
           </div>
         ) : null}
@@ -114,13 +114,13 @@ export function FollowupSlotDialog({
             onSelect={setSelected}
           />
         ) : (
-          <div className="rounded-xl border border-dashed border-line/60 bg-white/40 px-4 py-6 text-center text-sm text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border/60 bg-white/40 dark:bg-slate-800/50 px-4 py-6 text-center text-sm text-muted-foreground">
             ไม่มีช่วงเวลาว่างในสัปดาห์นี้ — ลองติดต่อทีมงาน MorDee+
           </div>
         )}
 
         {selectedLabel ? (
-          <div className="rounded-md bg-mint-50 px-3 py-1.5 text-xs text-mint-900 ring-1 ring-mint-200/60">
+          <div className="rounded-md bg-mint-50 dark:bg-mint-500/10 px-3 py-1.5 text-xs text-mint-900 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30">
             เลือก: {selectedLabel}
           </div>
         ) : null}

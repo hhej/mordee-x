@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, Stethoscope, UserRound, CheckCircle2 } from "lucide-react";
 import { GlassCard } from "@/components/shared/GlassCard";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 py-12 md:px-12 md:py-20">
+      <ThemeToggle className="fixed right-3 top-3 z-50 glass rounded-full shadow-sm" />
       <div className="mb-10 md:mb-14">
-        <div className="mb-3 text-3xl font-bold tracking-tight text-mint-700 md:text-4xl">
+        <div className="mb-3 text-3xl font-bold tracking-tight text-mint-700 dark:text-mint-400 md:text-4xl">
           MorDee+ 🌿
         </div>
         <p className="max-w-xl text-base text-muted-foreground md:text-lg">
@@ -23,10 +25,10 @@ export default function Home() {
         >
           <GlassCard className="flex h-full min-h-[280px] flex-col justify-between p-8 group-hover:-translate-y-1 group-hover:shadow-xl md:min-h-[340px] md:p-10">
             <div>
-              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-mint-100 text-mint-700 md:h-16 md:w-16">
+              <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-mint-100 text-mint-700 dark:text-mint-400 md:h-16 md:w-16">
                 <UserRound className="h-7 w-7 md:h-8 md:w-8" />
               </div>
-              <h2 className="mb-2 text-2xl font-bold text-ink md:text-3xl">
+              <h2 className="mb-2 text-2xl font-bold text-foreground md:text-3xl">
                 ฉันเป็นผู้ป่วย
               </h2>
               <p className="text-base text-muted-foreground md:text-lg">
@@ -34,7 +36,7 @@ export default function Home() {
               </p>
             </div>
 
-            <ul className="mt-8 flex flex-col gap-3 text-sm text-ink md:text-base">
+            <ul className="mt-8 flex flex-col gap-3 text-sm text-foreground md:text-base">
               <li className="flex items-center gap-2.5">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-mint-600" />
                 <span>ประเมินอาการเบื้องต้น · AI triage</span>
@@ -49,7 +51,7 @@ export default function Home() {
               </li>
             </ul>
 
-            <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-mint-700 transition-transform group-hover:translate-x-1 md:text-base">
+            <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-mint-700 dark:text-mint-400 transition-transform group-hover:translate-x-1 md:text-base">
               เริ่มเลย · Get started
               <ArrowRight className="h-4 w-4" />
             </div>

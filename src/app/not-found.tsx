@@ -6,8 +6,8 @@ export default function NotFound() {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 py-12 md:px-12 md:py-20">
       <GlassCard className="mx-auto w-full max-w-xl text-center">
-        <div className="mb-3 text-3xl font-bold tracking-tight text-mint-700">MorDee+ 🌿</div>
-        <h1 className="mb-2 text-2xl font-bold text-ink">ไม่พบหน้าที่คุณต้องการ</h1>
+        <div className="mb-3 text-3xl font-bold tracking-tight text-mint-700 dark:text-mint-400">MorDee+ 🌿</div>
+        <h1 className="mb-2 text-2xl font-bold text-foreground">ไม่พบหน้าที่คุณต้องการ</h1>
         <p className="mb-6 text-sm text-muted-foreground">Page not found · 404</p>
         <Link
           href="/"

@@ -43,7 +43,7 @@ Architecture, tech stack, file structure, design system, and LLM prompts are pre
 - **Color:** mint green (`mint-50` → `mint-800` tokens in `globals.css`). Triage semantic: `triage-green | triage-yellow | triage-red`.
 - **Font:** Sarabun (Thai + Latin), Inter fallback. Loaded in `src/app/layout.tsx`.
 - **Layout:** `max-w-6xl mx-auto`, `px-6 py-10 md:px-12 md:py-16`, `gap-6 md:gap-8`, `rounded-2xl` for cards.
-- **No dark mode.** Explicitly out of scope.
+- **Dark mode (override, 2026-05-27).** Originally out of scope; the user reversed this. Implemented via `next-themes` (class strategy, `defaultTheme="light"`, `enableSystem={false}` — manual 2-way toggle). Mechanism: `@custom-variant dark` + a `.dark {}` token block in `globals.css` (also activates the previously-inert `dark:` classes in `components/ui/*`); `.dark .glass` + `.dark body` overrides. Brand neutrals (`text-ink`→`text-foreground`, `bg-white`→`bg-card`, `border-line`→`border-border`) were migrated to semantic tokens so they auto-flip; non-remappable literals (`bg-white/NN`, `bg-mint-50/100` insets) carry explicit `dark:` variants. `<ThemeToggle>` lives in `RoleHeader` actions + a floating button on landing. Print stays forced-light.
 - **Glass effect:** `backdrop-filter: blur(20px) saturate(180%)`. Test Safari during Phase 6 polish.
 - **Landing layout:** patient-hero asymmetric (2:1 grid, patient card wider).
 

@@ -14,7 +14,7 @@ type StepPillProps = {
 };
 
 const BASE =
-  'flex w-full items-center gap-2.5 rounded-full bg-mint-50/80 px-4 py-2.5 text-sm text-ink ring-1 ring-mint-200/60 transition-colors';
+  'flex w-full items-center gap-2.5 rounded-full bg-mint-50/80 dark:bg-mint-500/10 px-4 py-2.5 text-sm text-foreground ring-1 ring-mint-200/60 dark:ring-mint-500/30 transition-colors';
 
 export function StepPill({ icon, label, detail, expanded, onToggle, tooltip }: StepPillProps) {
   const content = (
@@ -52,7 +52,7 @@ export function StepPill({ icon, label, detail, expanded, onToggle, tooltip }: S
       type="button"
       onClick={onToggle}
       aria-expanded={expanded}
-      className={cn(BASE, 'cursor-pointer hover:bg-mint-100/80 hover:ring-mint-300/70')}
+      className={cn(BASE, 'cursor-pointer hover:bg-mint-100/80 dark:hover:bg-mint-500/15 hover:ring-mint-300/70 dark:hover:ring-mint-500/30')}
     >
       {content}
     </button>

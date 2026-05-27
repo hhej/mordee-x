@@ -85,9 +85,9 @@ export function BookingDialog() {
           </TabsList>
 
           <TabsContent value="now" className="pt-4">
-            <div className="rounded-xl border border-mint-200/60 bg-mint-50/40 px-4 py-6 text-center">
-              <Clock4 className="mx-auto mb-2 size-7 text-mint-700" />
-              <div className="text-sm font-medium text-ink">
+            <div className="rounded-xl border border-mint-200/60 bg-mint-50/40 dark:bg-mint-500/10 px-4 py-6 text-center">
+              <Clock4 className="mx-auto mb-2 size-7 text-mint-700 dark:text-mint-400" />
+              <div className="text-sm font-medium text-foreground">
                 หมอพร้อมให้บริการใน ~{INSTANT_CONSULT_WAIT_TH}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -100,7 +100,7 @@ export function BookingDialog() {
           <TabsContent value="scheduled" className="pt-4">
             <ScheduleSlotGrid doctorId={doctor.id} takenIsoSet={takenIsoSet} />
             {slotLabel ? (
-              <div className="mt-3 rounded-md bg-mint-50 px-3 py-1.5 text-xs text-mint-900 ring-1 ring-mint-200/60">
+              <div className="mt-3 rounded-md bg-mint-50 dark:bg-mint-500/10 px-3 py-1.5 text-xs text-mint-900 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30">
                 เลือก: {slotLabel}
               </div>
             ) : (

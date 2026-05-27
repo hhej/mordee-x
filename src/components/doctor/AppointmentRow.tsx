@@ -59,12 +59,12 @@ export function AppointmentRow({ appointment, prediction, doctorId, now }: Appoi
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 rounded-xl border border-line/70 bg-white/60 p-4 transition-all md:flex-row md:items-center md:gap-4',
-        isSelected && 'border-mint-400 bg-mint-50/80 shadow-sm',
+        'flex flex-col gap-3 rounded-xl border border-border/70 bg-white/60 dark:bg-slate-800/50 p-4 transition-all md:flex-row md:items-center md:gap-4',
+        isSelected && 'border-mint-400 bg-mint-50/80 dark:bg-mint-500/10 shadow-sm',
       )}
     >
       <div className="flex w-24 shrink-0 flex-col gap-0.5">
-        <div className="flex items-center gap-1.5 text-sm font-semibold text-mint-700">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-mint-700 dark:text-mint-400">
           <Clock className="size-3.5" />
           {appointment.time}
         </div>
@@ -72,9 +72,9 @@ export function AppointmentRow({ appointment, prediction, doctorId, now }: Appoi
           <div
             className={cn(
               'text-[10px] tabular-nums',
-              rel.tone === 'soon' && 'text-mint-700',
+              rel.tone === 'soon' && 'text-mint-700 dark:text-mint-400',
               rel.tone === 'upcoming' && 'text-muted-foreground',
-              rel.tone === 'past' && 'text-amber-700',
+              rel.tone === 'past' && 'text-amber-700 dark:text-amber-500',
             )}
           >
             {rel.label}
@@ -82,11 +82,11 @@ export function AppointmentRow({ appointment, prediction, doctorId, now }: Appoi
         ) : null}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-semibold text-ink">{appointment.patient}</div>
+        <div className="truncate text-sm font-semibold text-foreground">{appointment.patient}</div>
         <div className="line-clamp-1 text-xs text-muted-foreground">{appointment.symptom}</div>
         {segment ? (
           <span
-            className="mt-1 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 ring-1 ring-slate-200/70"
+            className="mt-1 inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground ring-1 ring-slate-200/70 dark:ring-slate-700"
             title={`กลุ่มผู้ป่วย · ${segment.label_en}`}
           >
             <span className="size-1.5 rounded-full" style={{ backgroundColor: segment.color }} />

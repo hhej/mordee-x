@@ -75,17 +75,17 @@ export function ConsultSummary({
         <GlassCard>
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FileCheck2 className="size-4 text-mint-700" />
-              <h2 className="text-base font-semibold text-ink md:text-lg">สรุปการปรึกษา</h2>
+              <FileCheck2 className="size-4 text-mint-700 dark:text-mint-400" />
+              <h2 className="text-base font-semibold text-foreground md:text-lg">สรุปการปรึกษา</h2>
               <span className="text-xs text-muted-foreground">Consult summary</span>
             </div>
             {isSummarizing ? (
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-mint-50 px-2.5 py-1 text-[11px] text-mint-800">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-mint-50 dark:bg-mint-500/10 px-2.5 py-1 text-[11px] text-mint-800 dark:text-mint-200">
                 <Loader2 className="size-3 animate-spin" />
                 AI กำลังสรุปจากบทสนทนา…
               </div>
             ) : summary && !summaryError ? (
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-mint-100 px-2.5 py-1 text-[11px] text-mint-800">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-mint-100 dark:bg-mint-500/15 px-2.5 py-1 text-[11px] text-mint-800 dark:text-mint-200">
                 <Sparkles className="size-3" />
                 สรุปจากบทสนทนาจริง
               </div>
@@ -93,14 +93,14 @@ export function ConsultSummary({
           </div>
 
           {summary && summaryError ? (
-            <div className="mb-3 rounded-md bg-amber-50 px-3 py-1.5 text-[11px] text-amber-800 ring-1 ring-amber-200">
+            <div className="mb-3 rounded-md bg-amber-50 dark:bg-amber-500/10 px-3 py-1.5 text-[11px] text-amber-800 dark:text-amber-300 ring-1 ring-amber-200">
               ⚠ {summaryError}
             </div>
           ) : null}
 
           {isSummarizing && !summary ? (
             <div className="grid place-items-center gap-3 py-16">
-              <div className="rounded-md bg-mint-50 px-2.5 py-1.5 text-[11px] text-mint-800 ring-1 ring-mint-200/60">
+              <div className="rounded-md bg-mint-50 dark:bg-mint-500/10 px-2.5 py-1.5 text-[11px] text-mint-800 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30">
                 AI กำลังออกใบรับรอง ~5 วินาที · รอสักครู่
               </div>
               <Loader2 className="size-6 animate-spin text-mint-600" />
@@ -110,10 +110,10 @@ export function ConsultSummary({
             </div>
           ) : pureError ? (
             <div className="grid place-items-center gap-3 py-12">
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-800">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300">
                 <AlertTriangle className="size-6" />
               </div>
-              <div className="max-w-md text-center text-sm text-ink">
+              <div className="max-w-md text-center text-sm text-foreground">
                 <div className="font-medium">สรุปการสนทนาล้มเหลว</div>
                 <div className="mt-1 text-xs text-muted-foreground">{summaryError}</div>
               </div>
@@ -161,13 +161,13 @@ export function ConsultSummary({
                     })}
                   </div>
                 ) : (
-                  <div className="mt-5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-muted-foreground">
+                  <div className="mt-5 rounded-lg bg-slate-50 dark:bg-slate-800/60 px-3 py-2 text-xs text-muted-foreground">
                     แนะนำให้นัดติดตามใน {summary.followup_in_days ?? 7} วัน
                     <span className="ml-1 opacity-70">· Follow-up in {summary.followup_in_days ?? 7} days</span>
                   </div>
                 )
               ) : (
-                <div className="mt-5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-muted-foreground">
+                <div className="mt-5 rounded-lg bg-slate-50 dark:bg-slate-800/60 px-3 py-2 text-xs text-muted-foreground">
                   ไม่จำเป็นต้องนัดติดตาม
                   <span className="ml-1 opacity-70">· No follow-up needed</span>
                 </div>

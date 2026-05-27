@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RoleHeader } from '@/components/shared/RoleHeader';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { ConsultSummary } from '@/components/shared/ConsultSummary';
 import { PatientPersonaPopover } from '@/components/patient/PatientPersonaPopover';
 import { ResetButton } from '@/components/patient/ResetButton';
@@ -102,7 +103,11 @@ export default function PatientPage() {
   if (!personaPicked) {
     return (
       <>
-        <RoleHeader title="ผู้ป่วย · Patient" subtitle="กรุณาเลือกบทบาทก่อนเริ่ม" />
+        <RoleHeader
+          title="ผู้ป่วย · Patient"
+          subtitle="กรุณาเลือกบทบาทก่อนเริ่ม"
+          actions={<ThemeToggle />}
+        />
         <main className="mx-auto w-full max-w-6xl flex-1">
           <PatientPersonaPicker />
         </main>
@@ -126,6 +131,7 @@ export default function PatientPage() {
         subtitle={persona.name}
         actions={
           <>
+            <ThemeToggle />
             <MyAppointmentsButton />
             <PatientPersonaPopover />
             <Button size="sm" variant="ghost" onClick={clearPersona} title="เปลี่ยนบทบาท">

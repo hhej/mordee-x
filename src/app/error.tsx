@@ -14,8 +14,8 @@ export default function Error({
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 py-12 md:px-12 md:py-20">
       <GlassCard className="mx-auto w-full max-w-xl text-center">
-        <div className="mb-3 text-3xl font-bold tracking-tight text-mint-700">MorDee+ 🌿</div>
-        <h1 className="mb-2 text-2xl font-bold text-ink">เกิดข้อผิดพลาดบางอย่าง</h1>
+        <div className="mb-3 text-3xl font-bold tracking-tight text-mint-700 dark:text-mint-400">MorDee+ 🌿</div>
+        <h1 className="mb-2 text-2xl font-bold text-foreground">เกิดข้อผิดพลาดบางอย่าง</h1>
         <p className="mb-6 text-sm text-muted-foreground">
           Something went wrong. Try again, or go back to the home page.
         </p>
@@ -33,7 +33,7 @@ export default function Error({
           </button>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-mint-700 ring-1 ring-mint-300 transition-colors hover:bg-mint-50"
+            className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-mint-700 ring-1 ring-mint-300 transition-colors hover:bg-mint-50 dark:bg-slate-800 dark:text-mint-300 dark:ring-mint-500/30 dark:hover:bg-mint-500/10"
           >
             <Home className="h-4 w-4" />
             กลับหน้าหลัก · Home

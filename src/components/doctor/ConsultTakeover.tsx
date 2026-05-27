@@ -27,7 +27,7 @@ export function ConsultTakeover({
 
   return (
     <div className="flex flex-col">
-      <div className="sticky top-0 z-20 -mx-6 mb-4 border-b border-line/60 bg-white/80 px-6 py-3 backdrop-blur-md md:-mx-12 md:px-12">
+      <div className="sticky top-0 z-20 -mx-6 mb-4 border-b border-border/60 bg-white/80 dark:bg-slate-800/60 px-6 py-3 backdrop-blur-md md:-mx-12 md:px-12">
         <div className="flex flex-wrap items-center gap-3">
           <Button variant="ghost" size="sm" onClick={closeAppt}>
             <ChevronLeft className="size-4" />
@@ -40,7 +40,7 @@ export function ConsultTakeover({
             </span>
           ) : null}
           {queueRemaining > 0 ? (
-            <span className="ml-auto inline-flex items-center rounded-full bg-mint-50 px-3 py-1 text-xs text-mint-800 ring-1 ring-mint-200">
+            <span className="ml-auto inline-flex items-center rounded-full bg-mint-50 dark:bg-mint-500/10 px-3 py-1 text-xs text-mint-800 dark:text-mint-200 ring-1 ring-mint-200 dark:ring-mint-500/30">
               คิวรอ · {queueRemaining} ผู้ป่วย
             </span>
           ) : null}

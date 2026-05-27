@@ -93,14 +93,14 @@ export function FollowupCallout({ daysFromNow, reason }: FollowupCalloutProps) {
 
   if (mode === 'booked' && bookedSlot) {
     return (
-      <div className="flex items-center justify-between rounded-lg border border-mint-400/60 bg-mint-100/70 px-3 py-2">
+      <div className="flex items-center justify-between rounded-lg border border-mint-400/60 bg-mint-100/70 dark:bg-mint-500/15 px-3 py-2">
         <div className="flex items-start gap-2">
-          <CalendarCheck className="mt-0.5 size-4 text-mint-800" />
+          <CalendarCheck className="mt-0.5 size-4 text-mint-800 dark:text-mint-200" />
           <div>
-            <div className="text-sm font-medium text-mint-900">
+            <div className="text-sm font-medium text-mint-900 dark:text-mint-200">
               ✓ นัดติดตาม {formatThaiSlot(bookedSlot)} เรียบร้อย
             </div>
-            <div className="flex items-center gap-1 text-xs text-mint-800/80">
+            <div className="flex items-center gap-1 text-xs text-mint-800/80 dark:text-mint-200/80">
               <BellRing className="size-3" />
               ระบบจะส่งการแจ้งเตือนก่อนนัดล่วงหน้า · ยังไม่ต้องชำระเงินตอนนี้
             </div>
@@ -115,7 +115,7 @@ export function FollowupCallout({ daysFromNow, reason }: FollowupCalloutProps) {
 
   if (mode === 'declined') {
     return (
-      <div className="flex items-center justify-between rounded-lg border border-line/60 bg-slate-50/80 px-3 py-2">
+      <div className="flex items-center justify-between rounded-lg border border-border/60 bg-slate-50/80 dark:bg-slate-800/60 px-3 py-2">
         <div className="text-xs text-muted-foreground">
           คุณเลือกไม่นัดติดตามในตอนนี้ · No follow-up booked
         </div>
@@ -129,14 +129,14 @@ export function FollowupCallout({ daysFromNow, reason }: FollowupCalloutProps) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-mint-300/60 bg-mint-50/60 px-3 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-mint-300/60 bg-mint-50/60 dark:bg-mint-500/10 px-3 py-2">
         <div className="flex items-start gap-2">
-          <CalendarPlus className="mt-0.5 size-4 text-mint-700" />
+          <CalendarPlus className="mt-0.5 size-4 text-mint-700 dark:text-mint-400" />
           <div>
-            <div className="text-sm font-medium text-mint-900">
+            <div className="text-sm font-medium text-mint-900 dark:text-mint-200">
               แนะนำให้ติดตามอาการในอีก {daysFromNow} วัน · ตั้งแต่ {dateLabel}
             </div>
-            {reason ? <div className="text-xs text-mint-800/80">{reason}</div> : null}
+            {reason ? <div className="text-xs text-mint-800/80 dark:text-mint-200/80">{reason}</div> : null}
           </div>
         </div>
         <div className="flex items-center gap-2">

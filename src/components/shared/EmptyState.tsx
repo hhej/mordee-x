@@ -9,7 +9,7 @@ type EmptyStateProps = {
 export function EmptyState({ title, titleEn, phase }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-start gap-2">
-      <div className="flex items-center gap-2 text-mint-700">
+      <div className="flex items-center gap-2 text-mint-700 dark:text-mint-400">
         <Construction className="h-5 w-5" />
         <h3 className="text-lg font-semibold">{title}</h3>
         {titleEn ? (

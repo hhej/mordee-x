@@ -46,8 +46,8 @@ export function SymptomChat() {
   return (
     <GlassCard>
       <div className="mb-3 flex items-center gap-2">
-        <Stethoscope className="size-4 text-mint-700" />
-        <h2 className="text-base font-semibold text-ink md:text-lg">อาการของคุณเป็นอย่างไร</h2>
+        <Stethoscope className="size-4 text-mint-700 dark:text-mint-400" />
+        <h2 className="text-base font-semibold text-foreground md:text-lg">อาการของคุณเป็นอย่างไร</h2>
         <span className="text-xs text-muted-foreground">· How are you feeling?</span>
       </div>
 
@@ -67,7 +67,7 @@ export function SymptomChat() {
             type="button"
             onClick={() => onSelectChip(c.id)}
             disabled={disabled}
-            className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm text-ink ring-1 ring-line/70 transition-all hover:bg-mint-50 hover:ring-mint-300 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 text-sm text-foreground ring-1 ring-border/70 transition-all hover:bg-mint-50 dark:hover:bg-mint-500/10 hover:ring-mint-300 dark:hover:ring-mint-500/30 disabled:opacity-50"
           >
             <span>{c.emoji}</span>
             <span>{c.label}</span>
@@ -75,11 +75,11 @@ export function SymptomChat() {
         ))}
       </div>
 
-      <div className="mb-3 flex gap-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900 ring-1 ring-amber-200">
-        <Info className="mt-0.5 size-3.5 shrink-0 text-amber-600" aria-hidden />
+      <div className="mb-3 flex gap-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-900 dark:text-amber-200 ring-1 ring-amber-200 dark:ring-amber-500/30">
+        <Info className="mt-0.5 size-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
         <p>
           AI จะประเมินจากข้อความนี้เพียงครั้งเดียว ไม่มีถาม-ตอบเพิ่ม — โปรดเล่าอาการให้ครบในครั้งเดียว
-          <span className="mt-0.5 block text-amber-700/80">
+          <span className="mt-0.5 block text-amber-700/80 dark:text-amber-300/80">
             The AI assesses this single message — there&apos;s no follow-up chat, so include
             everything.
           </span>
@@ -105,7 +105,7 @@ export function SymptomChat() {
           rows={3}
           disabled={disabled}
           placeholder="พิมพ์อาการทั้งหมดให้ละเอียด... เช่น ปวดหัวตุบ ๆ มา 2 วัน คลื่นไส้ มีไข้ต่ำ ๆ กินยาพาราแล้วไม่ดีขึ้น มีโรคประจำตัวความดัน"
-          className="w-full resize-none rounded-xl border border-line/70 bg-white/80 px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 disabled:opacity-60"
+          className="w-full resize-none rounded-xl border border-border/70 bg-white/80 dark:bg-slate-800/60 px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 disabled:opacity-60"
         />
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { RoleHeader } from '@/components/shared/RoleHeader';
+import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { DoctorPageBody } from '@/components/doctor/DoctorPageBody';
 import { DoctorPersonaPicker } from '@/components/doctor/DoctorPersonaPicker';
 import { Button } from '@/components/ui/button';
@@ -113,7 +114,11 @@ export default function DoctorPage() {
   if (!doctorId) {
     return (
       <>
-        <RoleHeader title="แพทย์ · Doctor" subtitle="กรุณาเลือกบัญชีก่อนเริ่มใช้งาน" />
+        <RoleHeader
+          title="แพทย์ · Doctor"
+          subtitle="กรุณาเลือกบัญชีก่อนเริ่มใช้งาน"
+          actions={<ThemeToggle />}
+        />
         <main className="mx-auto w-full max-w-6xl flex-1">
           <DoctorPersonaPicker />
         </main>
@@ -124,9 +129,13 @@ export default function DoctorPage() {
   if (!doctor || !demo || !forecastFallback) {
     return (
       <>
-        <RoleHeader title="แพทย์ · Doctor" subtitle="ไม่พบข้อมูลบัญชีนี้" />
+        <RoleHeader
+          title="แพทย์ · Doctor"
+          subtitle="ไม่พบข้อมูลบัญชีนี้"
+          actions={<ThemeToggle />}
+        />
         <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10 md:px-12">
-          <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
+          <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30">
             ข้อมูลของบัญชี {doctorId} ยังไม่พร้อมใช้งาน — กรุณาเลือกบัญชีใหม่
           </div>
           <Button size="sm" variant="ghost" onClick={clear} className="mt-3">
@@ -158,10 +167,13 @@ export default function DoctorPage() {
         title="แพทย์ · Doctor"
         subtitle={`${doctor.name} · ${doctor.specialty_th}`}
         actions={
-          <Button size="sm" variant="ghost" onClick={clear}>
-            <RotateCcw className="size-3.5" />
-            เปลี่ยนบัญชี
-          </Button>
+          <>
+            <ThemeToggle />
+            <Button size="sm" variant="ghost" onClick={clear}>
+              <RotateCcw className="size-3.5" />
+              เปลี่ยนบัญชี
+            </Button>
+          </>
         }
       />
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-6 md:px-12 md:py-8">

@@ -13,9 +13,9 @@ export default function GlobalError({
 }) {
   return (
     <html lang="th">
-      <body className="min-h-screen bg-white flex items-center justify-center font-sans text-ink">
+      <body className="min-h-screen bg-white flex items-center justify-center font-sans text-foreground">
         <div className="w-full max-w-xl rounded-2xl bg-white p-8 text-center shadow-xl ring-1 ring-mint-200/60">
-          <div className="mb-3 text-3xl font-bold tracking-tight text-mint-700">MorDee+ 🌿</div>
+          <div className="mb-3 text-3xl font-bold tracking-tight text-mint-700 dark:text-mint-400">MorDee+ 🌿</div>
           <h1 className="mb-2 text-2xl font-bold">เกิดข้อผิดพลาดร้ายแรง</h1>
           <p className="mb-6 text-sm text-mint-900/60">
             A critical error occurred. Please reload the page.

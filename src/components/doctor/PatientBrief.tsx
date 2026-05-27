@@ -6,9 +6,9 @@ import type { BriefResult } from '@/lib/llm/schemas';
 import { useDoctorStore } from '@/stores/store-doctor';
 
 const LIKELIHOOD_STYLE: Record<BriefResult['ddx'][number]['likelihood'], string> = {
-  high: 'bg-mint-100 text-mint-800 ring-mint-300/60',
-  medium: 'bg-amber-100/70 text-amber-700 ring-amber-300/60',
-  low: 'bg-slate-100 text-slate-600 ring-slate-300/60',
+  high: 'bg-mint-100 dark:bg-mint-500/15 text-mint-800 dark:text-mint-200 ring-mint-300/60 dark:ring-mint-500/30',
+  medium: 'bg-amber-100/70 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-amber-300/60',
+  low: 'bg-slate-100 dark:bg-slate-800/60 text-muted-foreground ring-slate-300/60 dark:ring-slate-700',
 };
 
 const LIKELIHOOD_TH: Record<BriefResult['ddx'][number]['likelihood'], string> = {
@@ -27,12 +27,12 @@ export function PatientBrief({ brief, patientName }: PatientBriefProps) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-mint-700">
+        <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-mint-700 dark:text-mint-400">
           <FileText className="size-3.5" />
           Pre-consult brief · สรุปก่อนปรึกษา
         </div>
         <div className="mt-0.5 text-xs text-muted-foreground">{patientName}</div>
-        <p className="mt-2 text-sm font-medium text-ink">{brief.one_liner}</p>
+        <p className="mt-2 text-sm font-medium text-foreground">{brief.one_liner}</p>
       </div>
 
       <Section icon={<ListChecks className="size-3.5" />} title="อาการสำคัญ" titleEn="Key symptoms">
@@ -40,7 +40,7 @@ export function PatientBrief({ brief, patientName }: PatientBriefProps) {
           {brief.key_symptoms.map((s, i) => (
             <li
               key={i}
-              className="rounded-full bg-mint-50 px-2 py-0.5 text-xs text-mint-800 ring-1 ring-mint-200/60"
+              className="rounded-full bg-mint-50 dark:bg-mint-500/10 px-2 py-0.5 text-xs text-mint-800 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30"
             >
               {s}
             </li>
@@ -54,7 +54,7 @@ export function PatientBrief({ brief, patientName }: PatientBriefProps) {
             {brief.history_flags.map((h, i) => (
               <li
                 key={i}
-                className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+                className="rounded-md bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 text-xs text-foreground"
               >
                 {h}
               </li>
@@ -68,7 +68,7 @@ export function PatientBrief({ brief, patientName }: PatientBriefProps) {
           {brief.ddx.map((d, i) => (
             <div
               key={i}
-              className="flex items-start gap-2 rounded-md border border-line/60 bg-white/70 px-2.5 py-1.5 text-xs"
+              className="flex items-start gap-2 rounded-md border border-border/60 bg-white/70 dark:bg-slate-800/60 px-2.5 py-1.5 text-xs"
             >
               <span
                 className={cn(
@@ -79,7 +79,7 @@ export function PatientBrief({ brief, patientName }: PatientBriefProps) {
                 {LIKELIHOOD_TH[d.likelihood]}
               </span>
               <div className="min-w-0">
-                <div className="font-medium text-ink">{d.diagnosis}</div>
+                <div className="font-medium text-foreground">{d.diagnosis}</div>
                 <div className="text-[11px] text-muted-foreground">{d.rationale}</div>
               </div>
             </div>
@@ -94,7 +94,7 @@ export function PatientBrief({ brief, patientName }: PatientBriefProps) {
               <button
                 type="button"
                 onClick={() => setInputText(q)}
-                className="text-left text-ink underline-offset-2 transition-colors hover:text-mint-700 hover:underline"
+                className="text-left text-foreground underline-offset-2 transition-colors hover:text-mint-700 hover:underline"
                 title="คลิกเพื่อใส่คำถามนี้ลงในช่องแชท"
               >
                 {q}

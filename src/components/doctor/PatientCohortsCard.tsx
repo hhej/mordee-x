@@ -44,8 +44,8 @@ export function PatientCohortsCard({ data }: PatientCohortsCardProps) {
       <div className="mb-4 flex items-start justify-between gap-3 pr-8">
         <div>
           <div className="flex items-center gap-2">
-            <Layers className="size-4 text-mint-700" />
-            <h2 className="text-base font-semibold text-ink md:text-lg">กลุ่มผู้ป่วย</h2>
+            <Layers className="size-4 text-mint-700 dark:text-mint-400" />
+            <h2 className="text-base font-semibold text-foreground md:text-lg">กลุ่มผู้ป่วย</h2>
             <span className="text-xs text-muted-foreground">Patient cohorts</span>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -57,7 +57,7 @@ export function PatientCohortsCard({ data }: PatientCohortsCardProps) {
         <div className="group relative shrink-0">
           <span
             tabIndex={0}
-            className="inline-flex cursor-help items-center gap-1 rounded-full bg-mint-100 px-2 py-0.5 text-[10px] font-medium text-mint-800 outline-none"
+            className="inline-flex cursor-help items-center gap-1 rounded-full bg-mint-100 px-2 py-0.5 text-[10px] font-medium text-mint-800 outline-none dark:bg-mint-500/15 dark:text-mint-200"
           >
             {ALGO_TH[winner.algorithm] ?? winner.algorithm} · silhouette {winner.silhouette.toFixed(2)}
             <Info className="size-3 text-mint-600" />
@@ -74,7 +74,7 @@ export function PatientCohortsCard({ data }: PatientCohortsCardProps) {
 
       {/* Donut (composition) + PCA scatter (separation) */}
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-line/60 bg-white/60 p-3">
+        <div className="rounded-xl border border-border/60 bg-white/60 p-3 dark:bg-slate-800/50">
           <div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
             สัดส่วนแต่ละกลุ่ม · Composition
           </div>
@@ -98,7 +98,7 @@ export function PatientCohortsCard({ data }: PatientCohortsCardProps) {
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-xl border border-line/60 bg-white/60 p-3">
+        <div className="rounded-xl border border-border/60 bg-white/60 p-3 dark:bg-slate-800/50">
           <div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
             การแยกกลุ่ม (PCA) · Separation
           </div>
@@ -135,14 +135,14 @@ export function PatientCohortsCard({ data }: PatientCohortsCardProps) {
 
       {/* Model-comparison table — the ML-rigor centrepiece */}
       <div className="mt-5">
-        <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-mint-800">
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-mint-800 dark:text-mint-300">
           <Sparkles className="size-3.5" />
           เปรียบเทียบ 3 อัลกอริทึม · Model selection
         </div>
-        <div className="overflow-hidden rounded-xl border border-line/60">
+        <div className="overflow-hidden rounded-xl border border-border/60">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-mint-50/70 text-left text-[10px] uppercase tracking-wide text-muted-foreground">
+              <tr className="bg-mint-50/70 text-left text-[10px] uppercase tracking-wide text-muted-foreground dark:bg-mint-500/10">
                 <th className="px-3 py-1.5 font-medium">Algorithm</th>
                 <th className="px-3 py-1.5 text-right font-medium">Silhouette ↑</th>
                 <th className="px-3 py-1.5 text-right font-medium">Davies-Bouldin ↓</th>
@@ -154,13 +154,13 @@ export function PatientCohortsCard({ data }: PatientCohortsCardProps) {
                 <tr
                   key={m.algorithm}
                   className={cn(
-                    'border-t border-line/50',
-                    m.winner ? 'bg-mint-100/60 font-semibold text-mint-900' : 'text-ink',
+                    'border-t border-border/50',
+                    m.winner ? 'bg-mint-100/60 font-semibold text-mint-900 dark:bg-mint-500/15 dark:text-mint-200' : 'text-foreground',
                   )}
                 >
                   <td className="px-3 py-1.5">
                     {ALGO_TH[m.algorithm] ?? m.algorithm}
-                    {m.winner ? <span className="ml-1.5 text-[10px] text-mint-700">✓ เลือกใช้</span> : null}
+                    {m.winner ? <span className="ml-1.5 text-[10px] text-mint-700 dark:text-mint-400">✓ เลือกใช้</span> : null}
                   </td>
                   <td className="px-3 py-1.5 text-right tabular-nums">{m.silhouette.toFixed(3)}</td>
                   <td className="px-3 py-1.5 text-right tabular-nums">{m.davies_bouldin.toFixed(2)}</td>
@@ -177,11 +177,11 @@ export function PatientCohortsCard({ data }: PatientCohortsCardProps) {
 
 function CohortCard({ segment }: { segment: PatientSegment }) {
   return (
-    <div className="rounded-xl border border-line/60 bg-white/60 p-3">
+    <div className="rounded-xl border border-border/60 bg-white/60 p-3 dark:bg-slate-800/50">
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: segment.color }} />
-          <span className="truncate text-sm font-semibold text-ink">{segment.label_th}</span>
+          <span className="truncate text-sm font-semibold text-foreground">{segment.label_th}</span>
         </div>
         <span className="shrink-0 text-xs text-muted-foreground">{segment.pct}%</span>
       </div>
@@ -193,12 +193,12 @@ function CohortCard({ segment }: { segment: PatientSegment }) {
           segment.profile[key] !== undefined ? (
             <div key={key} className="text-[11px]">
               <span className="text-muted-foreground">{label} </span>
-              <span className="font-medium text-ink">{fmt(segment.profile[key])}</span>
+              <span className="font-medium text-foreground">{fmt(segment.profile[key])}</span>
             </div>
           ) : null,
         )}
       </div>
-      <div className="mt-2 rounded-md bg-mint-50 px-2 py-1 text-[11px] leading-snug text-mint-800">
+      <div className="mt-2 rounded-md bg-mint-50 px-2 py-1 text-[11px] leading-snug text-mint-800 dark:bg-mint-500/10 dark:text-mint-200">
         <span className="font-medium">แนะนำ: </span>
         {segment.recommended_action_th}
       </div>

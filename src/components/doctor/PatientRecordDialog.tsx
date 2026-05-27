@@ -41,12 +41,12 @@ export function PatientRecordDialog({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <IdCard className="size-4 text-mint-700" />
+            <IdCard className="size-4 text-mint-700 dark:text-mint-400" />
             ประวัติผู้ป่วย
             <span className="text-xs font-normal text-muted-foreground">· Patient record</span>
           </DialogTitle>
           <DialogDescription className="flex items-center gap-2">
-            <span className="font-medium text-ink">{patientName}</span>
+            <span className="font-medium text-foreground">{patientName}</span>
             {profile ? (
               <span className="text-muted-foreground">
                 · อายุ {profile.age} ปี · {profile.gender === 'female' ? 'หญิง' : 'ชาย'}
@@ -68,12 +68,12 @@ export function PatientRecordDialog({
           ) : null}
 
           {reason_th ? (
-            <section className="rounded-xl border border-mint-200/70 bg-mint-50/40 p-3">
+            <section className="rounded-xl border border-mint-200/70 bg-mint-50/40 dark:bg-mint-500/10 p-3">
               <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 <CalendarPlus className="size-3" />
                 เหตุผลนัด · Reason for visit
               </div>
-              <p className="mt-1 text-sm text-ink">{reason_th}</p>
+              <p className="mt-1 text-sm text-foreground">{reason_th}</p>
             </section>
           ) : null}
 
@@ -82,7 +82,7 @@ export function PatientRecordDialog({
               <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 ประวัติการรักษา · History
               </div>
-              <p className="mt-1 text-sm text-ink">{profile.history}</p>
+              <p className="mt-1 text-sm text-foreground">{profile.history}</p>
             </section>
           ) : null}
 

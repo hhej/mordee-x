@@ -39,7 +39,7 @@ const TIER_STYLES: Record<TriageResult['triage'], {
   yellow: {
     bar: 'bg-triage-yellow',
     iconText: 'text-amber-950',
-    badge: 'bg-triage-yellow/20 text-amber-700 ring-triage-yellow/50',
+    badge: 'bg-triage-yellow/20 text-amber-700 dark:text-amber-300 ring-triage-yellow/50',
     icon: <Circle className="size-5" />,
     label: 'ควรปรึกษาแพทย์',
     labelEn: 'See a doctor',
@@ -64,7 +64,7 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
     return (
       <div
         role="status"
-        className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800 ring-1 ring-red-200"
+        className="flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm font-medium text-red-800 dark:text-red-300 ring-1 ring-red-200"
       >
         <span aria-hidden>🔴</span>
         <span>ระบบแนะนำให้ไปโรงพยาบาลทันที — รายละเอียดด้านล่าง</span>
@@ -80,7 +80,7 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-ink md:text-lg">
+            <h2 className="text-base font-semibold text-foreground md:text-lg">
               {t.emoji} {t.label}
             </h2>
             <span className="text-xs text-muted-foreground">· {t.labelEn}</span>
@@ -95,7 +95,7 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
                 <Info className="size-3" aria-hidden />
               </PopoverTrigger>
               <PopoverContent className="w-64" align="start">
-                <p className="text-xs leading-relaxed text-ink">
+                <p className="text-xs leading-relaxed text-foreground">
                   ระดับความเชื่อมั่นของ AI ต่อการประเมินนี้ ไม่ใช่ระดับความรุนแรงของอาการ
                   <span className="mt-1 block text-muted-foreground">
                     How sure the AI is about this assessment — not how severe your symptoms are.
@@ -104,7 +104,7 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
               </PopoverContent>
             </Popover>
             {triage.specialty_hint ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-mint-50 px-2 py-0.5 text-[11px] text-mint-800 ring-1 ring-mint-200/60">
+              <span className="inline-flex items-center gap-1 rounded-full bg-mint-50 dark:bg-mint-500/10 px-2 py-0.5 text-[11px] text-mint-800 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30">
                 แผนกแนะนำ · {getSpecialtyTh(triage.specialty_hint)}
               </span>
             ) : null}
@@ -112,15 +112,15 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
         </div>
       </div>
 
-      <p className="mt-4 text-sm leading-relaxed text-ink">{triage.reasoning_th}</p>
+      <p className="mt-4 text-sm leading-relaxed text-foreground">{triage.reasoning_th}</p>
 
       {triage.triage === 'green' ? (
-        <div className="mt-4 flex gap-2 rounded-lg bg-mint-50 px-3 py-2.5 text-sm leading-relaxed text-mint-800 ring-1 ring-mint-200/60">
+        <div className="mt-4 flex gap-2 rounded-lg bg-mint-50 dark:bg-mint-500/10 px-3 py-2.5 text-sm leading-relaxed text-mint-800 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30">
           <span aria-hidden>💚</span>
           <p>
             อาการของคุณดูแลเองที่บ้านได้ ยังไม่จำเป็นต้องพบแพทย์
             แต่ถ้ายังกังวลหรืออาการไม่ดีขึ้น สามารถปรึกษาแพทย์ด้านล่างได้เสมอ
-            <span className="mt-1 block text-[11px] text-mint-700/80">
+            <span className="mt-1 block text-[11px] text-mint-700/80 dark:text-mint-400">
               You can likely care for this at home — a doctor isn&apos;t required, but you&apos;re
               always welcome to consult one below if you&apos;re worried.
             </span>
@@ -138,7 +138,7 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
             {triage.warning_signs_th.map((w, i) => (
               <li
                 key={i}
-                className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] text-amber-800 ring-1 ring-amber-200"
+                className="rounded-md bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-800 dark:text-amber-300 ring-1 ring-amber-200"
               >
                 {w}
               </li>
@@ -164,7 +164,7 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
         </div>
       ) : null}
 
-      <p className="mt-4 rounded-md bg-slate-50 px-3 py-2 text-[11px] text-muted-foreground">
+      <p className="mt-4 rounded-md bg-slate-50 dark:bg-slate-800/60 px-3 py-2 text-[11px] text-muted-foreground">
         ⚠ MorDee+ ให้คำแนะนำเบื้องต้นเท่านั้น ไม่ใช่การวินิจฉัยทางการแพทย์
         <span className="mt-0.5 block opacity-70">
           MorDee+ provides preliminary guidance only — not a medical diagnosis.

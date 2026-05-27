@@ -60,14 +60,14 @@ export function MockPaymentDialog() {
 
         <div className="relative">
           <div className="space-y-3">
-            <div className="flex items-center gap-3 rounded-xl border border-line/60 bg-white/70 p-3">
+            <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-white/70 dark:bg-slate-800/60 p-3">
               <DoctorAvatar doctor={doctor} size={48} />
               <div className="flex-1">
-                <div className="text-sm font-medium text-ink">{doctor.name}</div>
+                <div className="text-sm font-medium text-foreground">{doctor.name}</div>
                 <div className="text-[11px] text-muted-foreground">{doctor.specialty_th}</div>
               </div>
               <div className="text-right">
-                <div className="text-base font-semibold text-ink">
+                <div className="text-base font-semibold text-foreground">
                   {doctor.price.toLocaleString('th-TH')} ฿
                 </div>
                 <div className="text-[10px] text-muted-foreground">ค่าปรึกษา</div>
@@ -75,13 +75,13 @@ export function MockPaymentDialog() {
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[12px]">
-              <div className="rounded-md bg-slate-50 px-3 py-1.5">
+              <div className="rounded-md bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5">
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground">เวลา · Time</div>
-                <div className="text-ink">{slotLabel}</div>
+                <div className="text-foreground">{slotLabel}</div>
               </div>
-              <div className="rounded-md bg-slate-50 px-3 py-1.5">
+              <div className="rounded-md bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5">
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground">ช่องทาง · Channel</div>
-                <div className="text-ink">แชทกับคุณหมอ · MorDee+</div>
+                <div className="text-foreground">แชทกับคุณหมอ · MorDee+</div>
               </div>
             </div>
           </div>
@@ -96,7 +96,7 @@ export function MockPaymentDialog() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
-                className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl bg-white/95 backdrop-blur-sm"
+                className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl bg-white/95 dark:bg-slate-800/60 backdrop-blur-sm"
               >
                 <motion.div
                   initial={{ scale: 0.5, rotate: -30 }}
@@ -107,7 +107,7 @@ export function MockPaymentDialog() {
                   <Check className="size-8" strokeWidth={3} />
                 </motion.div>
                 <div className="text-center">
-                  <div className="text-sm font-semibold text-ink">ชำระเงินสำเร็จ</div>
+                  <div className="text-sm font-semibold text-foreground">ชำระเงินสำเร็จ</div>
                   <div className="text-[11px] text-muted-foreground">
                     Payment confirmed ·{' '}
                     {mode === 'scheduled' ? 'กำลังยืนยันการนัด…' : 'กำลังเริ่มห้องปรึกษา…'}

@@ -120,14 +120,14 @@ function DoctorFollowupRow({
 
   if (bookedSlot) {
     return (
-      <div className="flex items-center justify-between rounded-lg border border-mint-400/60 bg-mint-100/70 px-3 py-2">
+      <div className="flex items-center justify-between rounded-lg border border-mint-400/60 bg-mint-100/70 dark:bg-mint-500/15 px-3 py-2">
         <div className="flex items-start gap-2">
-          <CalendarCheck className="mt-0.5 size-4 text-mint-800" />
+          <CalendarCheck className="mt-0.5 size-4 text-mint-800 dark:text-mint-200" />
           <div>
-            <div className="text-sm font-medium text-mint-900">
+            <div className="text-sm font-medium text-mint-900 dark:text-mint-200">
               นัดติดตาม {formatThaiSlot(bookedSlot)} เรียบร้อย
             </div>
-            <div className="text-xs text-mint-800/80">
+            <div className="text-xs text-mint-800/80 dark:text-mint-200/80">
               ระบบจะส่งการแจ้งเตือนถึงคนไข้ก่อนถึงนัด · เพิ่มเข้าตารางอัตโนมัติ
             </div>
           </div>
@@ -169,14 +169,14 @@ function DoctorFollowupRow({
   };
 
   return (
-    <div className="rounded-lg border border-mint-300/60 bg-mint-50/60 px-3 py-2.5">
+    <div className="rounded-lg border border-mint-300/60 bg-mint-50/60 dark:bg-mint-500/10 px-3 py-2.5">
       <div className="flex items-start gap-2">
-        <CalendarPlus className="mt-0.5 size-4 text-mint-700" />
+        <CalendarPlus className="mt-0.5 size-4 text-mint-700 dark:text-mint-400" />
         <div className="flex-1">
-          <div className="text-sm font-medium text-mint-900">
+          <div className="text-sm font-medium text-mint-900 dark:text-mint-200">
             นัดติดตามอาการ · ตั้งวันนัดครั้งถัดไป
           </div>
-          {reason ? <div className="text-xs text-mint-800/80">{reason}</div> : null}
+          {reason ? <div className="text-xs text-mint-800/80 dark:text-mint-200/80">{reason}</div> : null}
         </div>
       </div>
 
@@ -194,7 +194,7 @@ function DoctorFollowupRow({
               className={`rounded-md px-2.5 py-1 text-xs ring-1 transition-colors ${
                 active
                   ? 'bg-mint-600 text-white ring-mint-700'
-                  : 'bg-white text-ink ring-line/60 hover:ring-mint-300'
+                  : 'bg-card text-foreground ring-border/60 hover:ring-mint-300'
               }`}
             >
               {p.label}
@@ -207,30 +207,30 @@ function DoctorFollowupRow({
           className={`rounded-md px-2.5 py-1 text-xs ring-1 transition-colors ${
             isCustom
               ? 'bg-mint-600 text-white ring-mint-700'
-              : 'bg-white text-ink ring-line/60 hover:ring-mint-300'
+              : 'bg-card text-foreground ring-border/60 hover:ring-mint-300'
           }`}
         >
           กำหนดเอง
         </button>
 
         {isCustom ? (
-          <div className="inline-flex items-center gap-1 rounded-md bg-white px-1 py-0.5 ring-1 ring-line/60">
+          <div className="inline-flex items-center gap-1 rounded-md bg-card px-1 py-0.5 ring-1 ring-border/60">
             <button
               type="button"
               aria-label="ลดจำนวนวัน"
               onClick={() => setDays((d) => Math.max(1, d - 1))}
-              className="grid size-6 place-items-center rounded text-mint-700 hover:bg-mint-50"
+              className="grid size-6 place-items-center rounded text-mint-700 dark:text-mint-400 hover:bg-mint-50 dark:hover:bg-mint-500/10"
             >
               <Minus className="size-3.5" />
             </button>
-            <span className="min-w-[3.5rem] text-center text-xs tabular-nums text-ink">
+            <span className="min-w-[3.5rem] text-center text-xs tabular-nums text-foreground">
               {days} วัน
             </span>
             <button
               type="button"
               aria-label="เพิ่มจำนวนวัน"
               onClick={() => setDays((d) => Math.min(180, d + 1))}
-              className="grid size-6 place-items-center rounded text-mint-700 hover:bg-mint-50"
+              className="grid size-6 place-items-center rounded text-mint-700 dark:text-mint-400 hover:bg-mint-50 dark:hover:bg-mint-500/10"
             >
               <Plus className="size-3.5" />
             </button>

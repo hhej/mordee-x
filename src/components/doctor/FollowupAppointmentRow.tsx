@@ -42,9 +42,9 @@ export function FollowupAppointmentRow({ appointment, now }: FollowupAppointment
   const pastCount = record?.past_consults?.length ?? 0;
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-mint-200/70 bg-mint-50/40 p-3.5 md:flex-row md:items-center md:gap-4">
+    <div className="flex flex-col gap-2 rounded-xl border border-mint-200/70 bg-mint-50/40 dark:bg-mint-500/10 p-3.5 md:flex-row md:items-center md:gap-4">
       <div className="flex w-28 shrink-0 flex-col gap-0.5">
-        <div className="flex items-center gap-1.5 text-sm font-semibold text-mint-700">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-mint-700 dark:text-mint-400">
           <Clock className="size-3.5" />
           {dateLabel} · {timeLabel}
         </div>
@@ -55,13 +55,13 @@ export function FollowupAppointmentRow({ appointment, now }: FollowupAppointment
         ) : null}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-semibold text-ink">{appointment.patientName}</div>
+        <div className="truncate text-sm font-semibold text-foreground">{appointment.patientName}</div>
         {appointment.reason_th ? (
           <div className="line-clamp-1 text-xs text-muted-foreground">{appointment.reason_th}</div>
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <span className="inline-flex items-center gap-1 rounded-full bg-mint-100 px-2.5 py-1 text-[11px] font-medium text-mint-800">
+        <span className="inline-flex items-center gap-1 rounded-full bg-mint-100 dark:bg-mint-500/15 px-2.5 py-1 text-[11px] font-medium text-mint-800 dark:text-mint-200">
           <CalendarPlus className="size-3" />
           {isFollowup ? 'นัดติดตาม · Follow-up' : 'นัดใหม่ · New'}
         </span>

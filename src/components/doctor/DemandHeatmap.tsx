@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import { LEVEL_EN, LEVEL_TH, type DemandCell, type DemandWeek } from '@/lib/demand-forecast';
 
@@ -12,16 +13,20 @@ interface DemandHeatmapProps {
 }
 
 /** Cell fill: green ramp scaled to the specialty peak, so the darkest cells are
- *  this clinic's busiest hours regardless of absolute volume. */
-function cellColor(cell: DemandCell, max: number): string {
-  if (cell.expected <= 0) return 'rgba(0,0,0,0.035)';
+ *  this clinic's busiest hours regardless of absolute volume. On dark the empty
+ *  cell flips to a faint white wash and the alpha floor lifts so low-volume
+ *  cells stay visible against the dark panel. */
+function cellColor(cell: DemandCell, max: number, isDark: boolean): string {
+  if (cell.expected <= 0) return isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.035)';
   const intensity = max > 0 ? cell.expected / max : 0;
-  const alpha = 0.1 + intensity * 0.8;
+  const alpha = isDark ? 0.22 + intensity * 0.78 : 0.1 + intensity * 0.8;
   return `rgba(22, 163, 74, ${alpha})`;
 }
 
 export function DemandHeatmap({ week }: DemandHeatmapProps) {
   const [hover, setHover] = useState<DemandCell | null>(null);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
   const { rows, max } = week;
 
   return (
@@ -47,7 +52,7 @@ export function DemandHeatmap({ week }: DemandHeatmapProps) {
                 <span
                   className={cn(
                     'text-[10px] font-medium',
-                    row.isToday ? 'text-mint-700' : 'text-ink',
+                    row.isToday ? 'text-mint-700 dark:text-mint-400' : 'text-foreground',
                   )}
                 >
                   {row.isToday ? 'วันนี้' : DOW_TH[row.dow]}
@@ -61,11 +66,11 @@ export function DemandHeatmap({ week }: DemandHeatmapProps) {
                   key={cell.hour}
                   className={cn(
                     'relative flex-1 m-px rounded-[3px] transition-transform hover:scale-110',
-                    cell.recommended && 'ring-2 ring-mint-600 ring-offset-1 ring-offset-white/40',
+                    cell.recommended && 'ring-2 ring-mint-600 ring-offset-1 ring-offset-white/40 dark:ring-offset-slate-900/40',
                     cell.isPast && 'opacity-40',
                   )}
                   style={{
-                    backgroundColor: cellColor(cell, max),
+                    backgroundColor: cellColor(cell, max, isDark),
                     height: 22,
                     minWidth: 18,
                   }}
@@ -73,7 +78,7 @@ export function DemandHeatmap({ week }: DemandHeatmapProps) {
                   onMouseLeave={() => setHover(null)}
                 >
                   {cell.isNow ? (
-                    <span className="absolute inset-0 rounded-[3px] ring-2 ring-ink/70 ring-offset-1 ring-offset-white/40" />
+                    <span className="absolute inset-0 rounded-[3px] ring-2 ring-ink/70 dark:ring-slate-300/70 ring-offset-1 ring-offset-white/40 dark:ring-offset-slate-900/40" />
                   ) : null}
                 </div>
               ))}
@@ -94,11 +99,11 @@ export function DemandHeatmap({ week }: DemandHeatmapProps) {
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <div className="size-3 rounded-[3px] ring-2 ring-ink/70 ring-offset-1 ring-offset-white/40" />
+            <div className="size-3 rounded-[3px] ring-2 ring-ink/70 dark:ring-slate-300/70 ring-offset-1 ring-offset-white/40 dark:ring-offset-slate-900/40" />
             <span>ตอนนี้</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="size-3 rounded-[3px] ring-2 ring-mint-600 ring-offset-1 ring-offset-white/40" />
+            <div className="size-3 rounded-[3px] ring-2 ring-mint-600 ring-offset-1 ring-offset-white/40 dark:ring-offset-slate-900/40" />
             <span>ช่วงแนะนำให้เปิด</span>
           </div>
         </div>

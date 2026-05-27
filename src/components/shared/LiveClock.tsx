@@ -13,7 +13,7 @@ export function LiveClock() {
   const now = useNow();
   return (
     <div className="hidden text-right text-[11px] tabular-nums leading-tight text-muted-foreground md:block">
-      <div className="text-mint-700">{now ? formatNow(now) : ' '}</div>
+      <div className="text-mint-700 dark:text-mint-400">{now ? formatNow(now) : ' '}</div>
     </div>
   );
 }

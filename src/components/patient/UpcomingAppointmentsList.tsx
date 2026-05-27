@@ -64,7 +64,7 @@ export function UpcomingAppointmentsList({ appointments, now }: UpcomingAppointm
   return (
     <div className="flex flex-col gap-2.5">
       {recentlyCancelled ? (
-        <div className="flex items-center justify-between gap-2 rounded-lg border border-line/60 bg-slate-50/80 px-3 py-2">
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-slate-50/80 dark:bg-slate-800/60 px-3 py-2">
           <div className="min-w-0 text-xs text-muted-foreground">
             ยกเลิกนัดแล้ว · <span className="truncate">{recentlyCancelled.label}</span>
           </div>
@@ -76,7 +76,7 @@ export function UpcomingAppointmentsList({ appointments, now }: UpcomingAppointm
       ) : null}
 
       {appointments.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line/60 bg-white/40 px-4 py-6 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border/60 bg-white/40 dark:bg-slate-800/50 px-4 py-6 text-center text-sm text-muted-foreground">
           ยังไม่มีนัดหมาย · No upcoming appointments
         </div>
       ) : (
@@ -85,15 +85,15 @@ export function UpcomingAppointmentsList({ appointments, now }: UpcomingAppointm
           return (
             <div
               key={appt.id}
-              className="flex items-center gap-3 rounded-xl border border-line/60 bg-white/70 p-3"
+              className="flex items-center gap-3 rounded-xl border border-border/60 bg-white/70 dark:bg-slate-800/60 p-3"
             >
               {doctor ? <DoctorAvatar doctor={doctor} size={40} /> : null}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="truncate text-sm font-medium text-ink">
+                  <span className="truncate text-sm font-medium text-foreground">
                     {doctor?.name ?? 'แพทย์'}
                   </span>
-                  <span className="shrink-0 rounded-full bg-mint-100 px-1.5 py-0.5 text-[10px] font-medium text-mint-800">
+                  <span className="shrink-0 rounded-full bg-mint-100 dark:bg-mint-500/15 px-1.5 py-0.5 text-[10px] font-medium text-mint-800 dark:text-mint-200">
                     {appt.kind === 'followup' ? 'นัดติดตาม' : 'นัดใหม่'}
                   </span>
                 </div>
@@ -101,7 +101,7 @@ export function UpcomingAppointmentsList({ appointments, now }: UpcomingAppointm
                 {appt.reason_th ? (
                   <div className="truncate text-[11px] text-muted-foreground">{appt.reason_th}</div>
                 ) : null}
-                <div className="mt-0.5 inline-flex items-center gap-1 text-[11px] tabular-nums text-mint-700">
+                <div className="mt-0.5 inline-flex items-center gap-1 text-[11px] tabular-nums text-mint-700 dark:text-mint-400">
                   <Clock4 className="size-3" />
                   {formatCountdown(new Date(appt.slotIso), now)}
                 </div>

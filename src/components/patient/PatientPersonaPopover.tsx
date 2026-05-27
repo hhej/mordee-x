@@ -86,10 +86,10 @@ export function PatientPersonaPopover() {
           <button
             {...props}
             type="button"
-            className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs text-ink ring-1 ring-line/70 transition-colors hover:bg-mint-50 hover:ring-mint-300"
+            className="inline-flex items-center gap-1.5 rounded-full bg-card px-2.5 py-1 text-xs text-foreground ring-1 ring-border/70 transition-colors hover:bg-mint-50 dark:hover:bg-mint-500/10 hover:ring-mint-300 dark:hover:ring-mint-500/30"
             title="แก้ไขข้อมูลผู้ป่วย"
           >
-            <UserRound className="size-3.5 text-mint-700" />
+            <UserRound className="size-3.5 text-mint-700 dark:text-mint-400" />
             {persona.name}
             <span className="text-muted-foreground">
               · {persona.age} · {persona.gender === 'F' ? 'ญ' : 'ช'}
@@ -102,8 +102,8 @@ export function PatientPersonaPopover() {
         sideOffset={8}
         className="flex max-h-[min(80vh,38rem)] w-[22rem] flex-col p-0"
       >
-        <div className="border-b border-line/60 px-4 pt-4 pb-3">
-          <div className="text-sm font-semibold text-ink">ข้อมูลผู้ป่วย</div>
+        <div className="border-b border-border/60 px-4 pt-4 pb-3">
+          <div className="text-sm font-semibold text-foreground">ข้อมูลผู้ป่วย</div>
           <div className="text-[11px] text-muted-foreground">
             ใช้เป็นข้อมูลในการประเมินอาการ · เก็บไว้ในเครื่องคุณเท่านั้น
           </div>
@@ -119,7 +119,7 @@ export function PatientPersonaPopover() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 aria-invalid={!nameValid}
-                className="w-full rounded-md border border-line/70 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 aria-invalid:border-triage-red/60 aria-invalid:focus:ring-triage-red/20"
+                className="w-full rounded-md border border-border/70 bg-card px-2.5 py-1.5 text-sm outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 aria-invalid:border-triage-red/60 aria-invalid:focus:ring-triage-red/20"
               />
             </Field>
             <div className="grid grid-cols-2 gap-2">
@@ -134,7 +134,7 @@ export function PatientPersonaPopover() {
                     setAge(raw === '' ? NaN : Number(raw));
                   }}
                   aria-invalid={!ageValid}
-                  className="w-full rounded-md border border-line/70 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 aria-invalid:border-triage-red/60 aria-invalid:focus:ring-triage-red/20"
+                  className="w-full rounded-md border border-border/70 bg-card px-2.5 py-1.5 text-sm outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 aria-invalid:border-triage-red/60 aria-invalid:focus:ring-triage-red/20"
                 />
               </Field>
               <Field label="เพศ" labelEn="Gender">
@@ -147,7 +147,7 @@ export function PatientPersonaPopover() {
           </div>
 
           {/* Section: Health profile */}
-          <div className="space-y-3 border-t border-line/60 pt-3">
+          <div className="space-y-3 border-t border-border/60 pt-3">
             <SectionLabel>ข้อมูลสุขภาพ · Health profile</SectionLabel>
 
             <Field label="โรคประจำตัว" labelEn="Underlying diseases">
@@ -174,7 +174,7 @@ export function PatientPersonaPopover() {
                 onChange={(e) => setMedications(e.target.value)}
                 rows={2}
                 placeholder="เช่น metformin 500mg เช้า-เย็น"
-                className="w-full resize-none rounded-md border border-line/70 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50"
+                className="w-full resize-none rounded-md border border-border/70 bg-card px-2.5 py-1.5 text-xs outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50"
               />
             </Field>
 
@@ -218,7 +218,7 @@ export function PatientPersonaPopover() {
           </div>
         </div>
 
-        <div className="border-t border-line/60 px-4 pt-3 pb-4">
+        <div className="border-t border-border/60 px-4 pt-3 pb-4">
           {!canSave ? (
             <div className="mb-2 text-[11px] text-triage-red">
               {!nameValid
@@ -284,8 +284,8 @@ function Chip({
       onClick={onClick}
       className={`rounded-md border px-2 py-1.5 text-xs transition-colors ${
         active
-          ? 'border-mint-400 bg-mint-50 text-mint-900'
-          : 'border-line/70 bg-white text-muted-foreground hover:border-mint-200'
+          ? 'border-mint-400 bg-mint-50 dark:bg-mint-500/10 text-mint-900 dark:text-mint-200'
+          : 'border-border/70 bg-card text-muted-foreground hover:border-mint-200'
       } ${className ?? ''}`}
     >
       {children}
@@ -336,8 +336,8 @@ function ChipMultiSelect({
             onClick={() => toggle(p.value)}
             className={`rounded-md border px-2 py-1 text-xs transition-colors ${
               value.includes(p.value)
-                ? 'border-mint-400 bg-mint-50 text-mint-900'
-                : 'border-line/70 bg-white text-muted-foreground hover:border-mint-200'
+                ? 'border-mint-400 bg-mint-50 dark:bg-mint-500/10 text-mint-900 dark:text-mint-200'
+                : 'border-border/70 bg-card text-muted-foreground hover:border-mint-200'
             }`}
             title={p.sub}
           >
@@ -347,13 +347,13 @@ function ChipMultiSelect({
         {customSelected.map((v) => (
           <span
             key={v}
-            className="inline-flex items-center gap-1 rounded-md border border-mint-400 bg-mint-50 px-2 py-1 text-xs text-mint-900"
+            className="inline-flex items-center gap-1 rounded-md border border-mint-400 bg-mint-50 dark:bg-mint-500/10 px-2 py-1 text-xs text-mint-900 dark:text-mint-200"
           >
             {v}
             <button
               type="button"
               onClick={() => onChange(value.filter((x) => x !== v))}
-              className="text-mint-700 hover:text-mint-900"
+              className="text-mint-700 dark:text-mint-400 hover:text-mint-900"
               aria-label={`Remove ${v}`}
             >
               <X className="size-3" />
@@ -379,14 +379,14 @@ function ChipMultiSelect({
             }}
             onBlur={addCustom}
             placeholder={customPlaceholder}
-            className="flex-1 rounded-md border border-line/70 bg-white px-2 py-1 text-xs outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50"
+            className="flex-1 rounded-md border border-border/70 bg-card px-2 py-1 text-xs outline-none focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50"
           />
         </div>
       ) : (
         <button
           type="button"
           onClick={() => setCustomMode(true)}
-          className="text-[11px] text-mint-700 hover:text-mint-900"
+          className="text-[11px] text-mint-700 dark:text-mint-400 hover:text-mint-900"
         >
           + อื่นๆ
         </button>
@@ -409,7 +409,7 @@ function SuffixInput({
   suffix: string;
 }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-line/70 bg-white pr-2 focus-within:border-mint-400 focus-within:ring-2 focus-within:ring-mint-200/50">
+    <div className="flex items-center gap-1.5 rounded-md border border-border/70 bg-card pr-2 focus-within:border-mint-400 focus-within:ring-2 focus-within:ring-mint-200/50">
       <input
         type="number"
         min={min}

@@ -29,7 +29,7 @@ export function PastConsultsDialog({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileClock className="size-4 text-mint-700" />
+            <FileClock className="size-4 text-mint-700 dark:text-mint-400" />
             ประวัติการปรึกษา
             <span className="text-xs font-normal text-muted-foreground">· Past consultations</span>
           </DialogTitle>
@@ -56,9 +56,9 @@ export function PastConsultsDialog({
 
 export function ConsultCard({ consult }: { consult: PastConsult }) {
   return (
-    <div className="rounded-xl border border-line/60 bg-white/60 p-3.5">
+    <div className="rounded-xl border border-border/60 bg-white/60 dark:bg-slate-800/50 p-3.5">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <div className="flex items-center gap-1.5 text-sm font-semibold text-mint-700">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-mint-700 dark:text-mint-400">
           <CalendarClock className="size-3.5" />
           {consult.date_label}
         </div>
@@ -69,18 +69,18 @@ export function ConsultCard({ consult }: { consult: PastConsult }) {
         ) : null}
       </div>
 
-      <p className="mt-1.5 text-sm font-medium text-ink">{consult.reason_th}</p>
+      <p className="mt-1.5 text-sm font-medium text-foreground">{consult.reason_th}</p>
 
       {consult.dx_th || consult.rx_th ? (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {consult.dx_th ? (
-            <span className="inline-flex items-center gap-1 rounded-md bg-mint-50 px-2 py-0.5 text-[11px] text-mint-800 ring-1 ring-mint-200/60">
+            <span className="inline-flex items-center gap-1 rounded-md bg-mint-50 dark:bg-mint-500/10 px-2 py-0.5 text-[11px] text-mint-800 dark:text-mint-200 ring-1 ring-mint-200/60 dark:ring-mint-500/30">
               <Stethoscope className="size-3" />
               {consult.dx_th}
             </span>
           ) : null}
           {consult.rx_th ? (
-            <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] text-slate-700">
+            <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 text-[11px] text-foreground">
               <Pill className="size-3" />
               {consult.rx_th}
             </span>
@@ -89,7 +89,7 @@ export function ConsultCard({ consult }: { consult: PastConsult }) {
       ) : null}
 
       {consult.transcript.length > 0 ? (
-        <div className="mt-3 space-y-2 border-t border-line/50 pt-3">
+        <div className="mt-3 space-y-2 border-t border-border/50 pt-3">
           {consult.transcript.map((m, i) => (
             <TranscriptBubble key={i} msg={m} />
           ))}
@@ -108,7 +108,7 @@ function TranscriptBubble({ msg }: { msg: PastConsultMessage }) {
       <div
         className={cn(
           'max-w-[80%] rounded-2xl px-3 py-1.5 text-sm',
-          isDoctor ? 'rounded-br-md bg-mint-600 text-white' : 'rounded-bl-md bg-slate-100 text-ink',
+          isDoctor ? 'rounded-br-md bg-mint-600 text-white' : 'rounded-bl-md bg-slate-100 dark:bg-slate-800/60 text-foreground',
         )}
       >
         <div

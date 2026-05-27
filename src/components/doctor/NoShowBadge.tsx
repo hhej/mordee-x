@@ -16,22 +16,22 @@ const TIER_STYLES: Record<
   { bg: string; text: string; ring: string; label: string; Icon: typeof CalendarCheck2 }
 > = {
   LOW: {
-    bg: 'bg-slate-100',
-    text: 'text-slate-700',
-    ring: 'ring-slate-300/60',
+    bg: 'bg-slate-100 dark:bg-slate-800/60',
+    text: 'text-foreground',
+    ring: 'ring-slate-300/60 dark:ring-slate-700',
     label: 'มาตามนัด',
     Icon: CalendarCheck2,
   },
   MED: {
-    bg: 'bg-amber-100',
-    text: 'text-amber-800',
+    bg: 'bg-amber-100 dark:bg-amber-500/10',
+    text: 'text-amber-800 dark:text-amber-300',
     ring: 'ring-amber-300/60',
     label: 'อาจไม่มา',
     Icon: CalendarClock,
   },
   HIGH: {
-    bg: 'bg-orange-100',
-    text: 'text-orange-800',
+    bg: 'bg-orange-100 dark:bg-orange-500/10',
+    text: 'text-orange-800 dark:text-orange-300',
     ring: 'ring-orange-300/70',
     label: 'เสี่ยงไม่มา',
     Icon: CalendarX2,
@@ -90,13 +90,13 @@ export function NoShowBadge({ prediction }: NoShowBadgeProps) {
                   ) : (
                     <ArrowDown className="size-3.5 text-triage-green" />
                   )}
-                  <span className="text-ink">{f.th}</span>
+                  <span className="text-foreground">{f.th}</span>
                 </div>
                 <span className="text-xs text-muted-foreground">{f.value_th}</span>
               </li>
             ))}
           </ul>
-          <div className="rounded-md bg-mint-50 px-2.5 py-1.5 text-xs text-mint-800">
+          <div className="rounded-md bg-mint-50 dark:bg-mint-500/10 px-2.5 py-1.5 text-xs text-mint-800 dark:text-mint-200">
             <span className="font-medium">แนะนำ: </span>
             {ACTION_TH[prediction.recommended_action]}
           </div>

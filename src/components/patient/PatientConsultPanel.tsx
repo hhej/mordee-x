@@ -61,16 +61,16 @@ export function PatientConsultPanel() {
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
       >
-        <GlassCard className="border border-mint-200/60 bg-white/70">
+        <GlassCard className="border border-mint-200/60 bg-white/70 dark:bg-slate-800/60">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <MessageCircle className="size-4 text-mint-700" />
-              <h2 className="text-base font-semibold text-ink md:text-lg">ห้องปรึกษา</h2>
+              <MessageCircle className="size-4 text-mint-700 dark:text-mint-400" />
+              <h2 className="text-base font-semibold text-foreground md:text-lg">ห้องปรึกษา</h2>
             </div>
             <div className="flex items-center gap-2">
               <DoctorAvatar doctor={doctor} size={28} className="rounded-full" />
               <div className="text-right">
-                <div className="text-xs font-medium text-ink">{doctor.name}</div>
+                <div className="text-xs font-medium text-foreground">{doctor.name}</div>
                 <div className="text-[10px] text-muted-foreground">{doctor.specialty_th}</div>
               </div>
             </div>
@@ -98,7 +98,7 @@ export function PatientConsultPanel() {
                 : `${consultMessages.filter((m) => m.role === 'user').length} ข้อความจากคุณ`}
             </div>
             {consultEnded ? (
-              <div className="inline-flex items-center gap-1.5 rounded-md bg-mint-50 px-3 py-1.5 text-xs text-mint-800">
+              <div className="inline-flex items-center gap-1.5 rounded-md bg-mint-50 dark:bg-mint-500/10 px-3 py-1.5 text-xs text-mint-800 dark:text-mint-200">
                 <CheckCircle2 className="size-3.5" />
                 ปรึกษาเสร็จสิ้น — ดูสรุปด้านล่าง
               </div>

@@ -41,8 +41,8 @@ export function DoctorMatchList({
     return (
       <GlassCard>
         <div className="mb-3 flex items-center gap-2">
-          <Users className="size-4 text-mint-700" />
-          <h2 className="text-base font-semibold text-ink md:text-lg">หมอที่คุณเลือก</h2>
+          <Users className="size-4 text-mint-700 dark:text-mint-400" />
+          <h2 className="text-base font-semibold text-foreground md:text-lg">หมอที่คุณเลือก</h2>
           <span className="text-xs text-muted-foreground">· Your doctor</span>
         </div>
         <div className="grid gap-3 md:grid-cols-1">
@@ -66,8 +66,8 @@ export function DoctorMatchList({
   return (
     <GlassCard>
       <div className="mb-3 flex items-center gap-2">
-        <Users className="size-4 text-mint-700" />
-        <h2 className="text-base font-semibold text-ink md:text-lg">
+        <Users className="size-4 text-mint-700 dark:text-mint-400" />
+        <h2 className="text-base font-semibold text-foreground md:text-lg">
           {bypass ? 'เลือกแพทย์ที่คุณอยากปรึกษา' : 'เลือกแพทย์ที่เหมาะกับคุณ'}
         </h2>
         <span className="text-xs text-muted-foreground">
@@ -82,7 +82,7 @@ export function DoctorMatchList({
       </div>
 
       {matchError ? (
-        <div className="mb-3 rounded-md bg-amber-50 px-3 py-1.5 text-[11px] text-amber-800 ring-1 ring-amber-200">
+        <div className="mb-3 rounded-md bg-amber-50 dark:bg-amber-500/10 px-3 py-1.5 text-[11px] text-amber-800 dark:text-amber-300 ring-1 ring-amber-200">
           ⚠ จัดอันดับล้มเหลว: {matchError}
         </div>
       ) : null}
@@ -98,7 +98,7 @@ export function DoctorMatchList({
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-44 animate-pulse rounded-2xl border border-line/40 bg-white/40"
+              className="h-44 animate-pulse rounded-2xl border border-border/40 bg-white/40 dark:bg-slate-800/50"
             />
           ))}
         </div>
@@ -112,7 +112,7 @@ export function DoctorMatchList({
         <button
           type="button"
           onClick={() => setShowRest((v) => !v)}
-          className="mt-4 inline-flex items-center gap-1.5 text-xs text-mint-700 hover:text-mint-800"
+          className="mt-4 inline-flex items-center gap-1.5 text-xs text-mint-700 dark:text-mint-400 hover:text-mint-800"
         >
           {showRest ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
           {showRest ? 'ซ่อนรายชื่อทั้งหมด' : `ดูแพทย์ทั้งหมด (${rest.length})`}

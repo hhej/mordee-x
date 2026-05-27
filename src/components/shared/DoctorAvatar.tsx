@@ -57,7 +57,7 @@ export function DoctorAvatar({ doctor, size = 48, className }: DoctorAvatarProps
         alt={doctor.name_en}
         width={size}
         height={size}
-        className={cn('rounded-xl object-cover ring-1 ring-line/40', className)}
+        className={cn('rounded-xl object-cover ring-1 ring-border/40', className)}
         style={{ width: size, height: size }}
       />
     );
@@ -74,7 +74,7 @@ export function DoctorAvatar({ doctor, size = 48, className }: DoctorAvatarProps
       width={size}
       height={size}
       viewBox="0 0 100 100"
-      className={cn('rounded-xl ring-1 ring-mint-200/60', className)}
+      className={cn('rounded-xl ring-1 ring-mint-200/60 dark:ring-mint-500/30', className)}
       style={{ width: size, height: size }}
     >
       <defs>

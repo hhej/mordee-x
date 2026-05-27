@@ -44,17 +44,17 @@ export function AppointmentsCard({ appointments, predictions, doctorId }: Appoin
     <GlassCard>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <CalendarDays className="size-4 text-mint-700" />
-          <h2 className="text-base font-semibold text-ink md:text-lg">นัดหมายวันนี้</h2>
+          <CalendarDays className="size-4 text-mint-700 dark:text-mint-400" />
+          <h2 className="text-base font-semibold text-foreground md:text-lg">นัดหมายวันนี้</h2>
           <span className="text-xs text-muted-foreground">Today’s appointments</span>
           {todayLabel ? (
-            <span className="ml-1 hidden text-[11px] text-mint-700 md:inline">· {todayLabel}</span>
+            <span className="ml-1 hidden text-[11px] text-mint-700 dark:text-mint-400 md:inline">· {todayLabel}</span>
           ) : null}
         </div>
         <div className="text-xs text-muted-foreground">{appointments.length} ราย</div>
       </div>
       {appointments.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line/60 bg-white/40 px-4 py-6 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border/60 bg-white/40 dark:bg-slate-800/50 px-4 py-6 text-center text-sm text-muted-foreground">
           คิวว่าง — รอผู้ป่วยรายใหม่
           <span className="ml-1 text-[11px] text-muted-foreground/70">· Queue empty</span>
         </div>
@@ -88,9 +88,9 @@ export function AppointmentsCard({ appointments, predictions, doctorId }: Appoin
 
       {upcoming.length > 0 ? (
         <div className="mt-5">
-          <div className="mb-2.5 flex items-center gap-2 border-t border-line/50 pt-4">
-            <CalendarPlus className="size-4 text-mint-700" />
-            <h3 className="text-sm font-semibold text-ink">นัดหมายที่จะถึง</h3>
+          <div className="mb-2.5 flex items-center gap-2 border-t border-border/50 pt-4">
+            <CalendarPlus className="size-4 text-mint-700 dark:text-mint-400" />
+            <h3 className="text-sm font-semibold text-foreground">นัดหมายที่จะถึง</h3>
             <span className="text-xs text-muted-foreground">Upcoming appointments</span>
             <span className="ml-auto text-xs text-muted-foreground">{upcoming.length} ราย</span>
           </div>

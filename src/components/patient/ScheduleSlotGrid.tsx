@@ -40,23 +40,23 @@ interface ScheduleSlotGridProps {
 
 const LOAD_STYLES: Record<SlotLoad, { dot: string; chip: string; label: string }> = {
   unavailable: {
-    dot: 'bg-slate-200',
-    chip: 'cursor-not-allowed bg-slate-50 text-slate-400 ring-line/40',
+    dot: 'bg-slate-200 dark:bg-slate-700',
+    chip: 'cursor-not-allowed bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 ring-border/40',
     label: 'เต็ม',
   },
   high: {
     dot: 'bg-amber-400',
-    chip: 'bg-white text-ink ring-line/60 hover:ring-mint-300',
+    chip: 'bg-card text-foreground ring-border/60 hover:ring-mint-300 dark:hover:ring-mint-500/30',
     label: 'หนาแน่น',
   },
   med: {
     dot: 'bg-mint-400',
-    chip: 'bg-white text-ink ring-line/60 hover:ring-mint-300',
+    chip: 'bg-card text-foreground ring-border/60 hover:ring-mint-300 dark:hover:ring-mint-500/30',
     label: 'ปานกลาง',
   },
   low: {
     dot: 'bg-mint-600',
-    chip: 'bg-white text-ink ring-line/60 hover:ring-mint-300',
+    chip: 'bg-card text-foreground ring-border/60 hover:ring-mint-300 dark:hover:ring-mint-500/30',
     label: 'ว่าง',
   },
 };
@@ -123,7 +123,7 @@ export function ScheduleSlotGrid({
         <LegendDot tier="high" />
         <LegendDot tier="unavailable" />
         {forecast ? (
-          <span className="ml-auto inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-mint-700">
+          <span className="ml-auto inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-mint-700 dark:text-mint-400">
             ✨ จากโมเดล {MODEL_LABEL[forecast.winning_model] ?? forecast.winning_model} จริง
           </span>
         ) : null}

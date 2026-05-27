@@ -39,23 +39,23 @@ export function MedicalCertificate({
 
   return (
     <PrintableDoc>
-      <div className="border border-line/80 bg-white p-8 shadow-sm">
+      <div className="border border-border/80 bg-card p-8 shadow-sm">
           <div className="border-b border-mint-300 pb-4 text-center">
-            <div className="text-xs uppercase tracking-[0.2em] text-mint-700">MorDee+ Telemedicine</div>
-            <h3 className="mt-1 text-2xl font-bold text-ink">ใบรับรองแพทย์</h3>
+            <div className="text-xs uppercase tracking-[0.2em] text-mint-700 dark:text-mint-400">MorDee+ Telemedicine</div>
+            <h3 className="mt-1 text-2xl font-bold text-foreground">ใบรับรองแพทย์</h3>
             <div className="text-xs text-muted-foreground">Medical Certificate</div>
           </div>
 
-          <div className="mt-6 space-y-3 text-sm leading-relaxed text-ink">
+          <div className="mt-6 space-y-3 text-sm leading-relaxed text-foreground">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>
-                คนไข้: <span className="font-medium text-ink">{patientName}</span>
+                คนไข้: <span className="font-medium text-foreground">{patientName}</span>
                 {patientAge ? <span className="text-muted-foreground"> · อายุ {patientAge} ปี</span> : null}
               </span>
               <span>วันที่: {today}</span>
             </div>
-            <div className="rounded-md bg-mint-50/60 px-3 py-2 text-xs">
-              <span className="font-medium text-mint-800">การวินิจฉัย · Diagnosis:</span>{' '}
+            <div className="rounded-md bg-mint-50/60 dark:bg-mint-500/10 px-3 py-2 text-xs">
+              <span className="font-medium text-mint-800 dark:text-mint-200">การวินิจฉัย · Diagnosis:</span>{' '}
               {summary.diagnosis_th} ({summary.diagnosis}) ·{' '}
               <span className="font-mono text-[11px] text-muted-foreground">ICD-10: {summary.icd10}</span>
             </div>
@@ -65,7 +65,7 @@ export function MedicalCertificate({
           <div className="mt-10 flex items-end justify-end">
             <div className="text-right text-sm">
               <div className="mb-1 inline-block w-56 border-b border-ink/50"></div>
-              <div className="font-semibold text-ink">{doctorName}</div>
+              <div className="font-semibold text-foreground">{doctorName}</div>
               <div className="text-xs text-muted-foreground">{doctorSpecialty}</div>
               <div className="mt-1 text-[10px] text-muted-foreground">MorDee+ · {today}</div>
             </div>

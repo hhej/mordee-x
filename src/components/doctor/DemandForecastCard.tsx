@@ -67,14 +67,14 @@ export function DemandForecastCard({ forecast }: DemandForecastCardProps) {
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <TrendingUp className="size-4 text-mint-700" />
-            <h2 className="text-base font-semibold text-ink md:text-lg">พยากรณ์ความต้องการ 7 วัน</h2>
+            <TrendingUp className="size-4 text-mint-700 dark:text-mint-400" />
+            <h2 className="text-base font-semibold text-foreground md:text-lg">พยากรณ์ความต้องการ 7 วัน</h2>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Demand forecast · ตัดสินใจเปิดออนไลน์เวลาไหนให้คนไข้ได้คิวเร็วที่สุด
           </p>
           {forecast.doctor_count && forecast.doctor_count > 1 ? (
-            <p className="mt-1 inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 ring-1 ring-amber-200">
+            <p className="mt-1 inline-flex rounded-full bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300 ring-1 ring-amber-200">
               ระดับสาขา · ความต้องการรวมของแพทย์ {forecast.doctor_count} ท่าน
             </p>
           ) : null}
@@ -83,7 +83,7 @@ export function DemandForecastCard({ forecast }: DemandForecastCardProps) {
         <div className="group relative shrink-0">
           <span
             tabIndex={0}
-            className="inline-flex cursor-help items-center gap-1 rounded-full bg-mint-100 px-2 py-0.5 text-[10px] font-medium text-mint-800 outline-none"
+            className="inline-flex cursor-help items-center gap-1 rounded-full bg-mint-100 dark:bg-mint-500/15 px-2 py-0.5 text-[10px] font-medium text-mint-800 dark:text-mint-200 outline-none"
           >
             {forecast.winning_model}
             {forecast.model_mae != null ? ` · MAE ${forecast.model_mae.toFixed(2)}` : ''}
@@ -101,7 +101,7 @@ export function DemandForecastCard({ forecast }: DemandForecastCardProps) {
       {/* KPI ribbon */}
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi label="คนไข้ทั้งสัปดาห์" labelEn="Forecast / week">
-          <span className="text-xl font-bold text-ink">≈{week.weekTotal}</span>
+          <span className="text-xl font-bold text-foreground">≈{week.weekTotal}</span>
           <span className="text-[10px] text-muted-foreground">ครั้ง</span>
         </Kpi>
 
@@ -117,14 +117,14 @@ export function DemandForecastCard({ forecast }: DemandForecastCardProps) {
         </Kpi>
 
         <Kpi label="ช่วงพีค" labelEn="Peak" caption={`${LEVEL_TH[peak.level]} · ~${peak.expected.toFixed(1)}/ชม.`}>
-          <span className="text-xl font-bold text-ink">{peakDay}</span>
+          <span className="text-xl font-bold text-foreground">{peakDay}</span>
           <span className="text-[10px] text-muted-foreground">
             {String(peak.hour).padStart(2, '0')}:00 น.
           </span>
         </Kpi>
 
         <Kpi label="โอกาสรายได้เพิ่ม" labelEn="Revenue uplift" caption="เทียบกับการสุ่มเปิดเวลา" accent>
-          <span className="text-xl font-bold text-mint-700">
+          <span className="text-xl font-bold text-mint-700 dark:text-mint-400">
             +{forecast.expected_revenue_uplift_pct.toFixed(0)}%
           </span>
         </Kpi>
@@ -146,7 +146,7 @@ export function DemandForecastCard({ forecast }: DemandForecastCardProps) {
             return (
               <span
                 key={i}
-                className="inline-flex items-center gap-1.5 rounded-full bg-mint-100/80 px-2.5 py-1 text-xs text-mint-800 ring-1 ring-mint-300/50"
+                className="inline-flex items-center gap-1.5 rounded-full bg-mint-100/80 dark:bg-mint-500/15 px-2.5 py-1 text-xs text-mint-800 dark:text-mint-200 ring-1 ring-mint-300/50 dark:ring-mint-500/30"
                 title={`${LEVEL_TH[slot.level]} (${LEVEL_EN[slot.level]})`}
               >
                 <LevelDots level={slot.level} compact />
@@ -154,9 +154,9 @@ export function DemandForecastCard({ forecast }: DemandForecastCardProps) {
                   {day} {sh}–{eh} น.
                 </span>
                 {slot.expected_consults >= 1 ? (
-                  <span className="text-mint-700">· ~{slot.expected_consults} คิว</span>
+                  <span className="text-mint-700 dark:text-mint-400">· ~{slot.expected_consults} คิว</span>
                 ) : (
-                  <span className="text-mint-700">· {LEVEL_TH[slot.level]}</span>
+                  <span className="text-mint-700 dark:text-mint-400">· {LEVEL_TH[slot.level]}</span>
                 )}
               </span>
             );
@@ -170,7 +170,7 @@ export function DemandForecastCard({ forecast }: DemandForecastCardProps) {
 const LEVEL_TEXT: Record<DemandLevel, string> = {
   0: 'text-muted-foreground',
   1: 'text-mint-600',
-  2: 'text-mint-700',
+  2: 'text-mint-700 dark:text-mint-400',
   3: 'text-mint-800',
   4: 'text-mint-800',
 };
@@ -209,7 +209,7 @@ function Kpi({
     <div
       className={cn(
         'rounded-xl border p-3',
-        accent ? 'border-mint-300/70 bg-mint-50/60' : 'border-line/60 bg-white/60',
+        accent ? 'border-mint-300/70 bg-mint-50/60 dark:bg-mint-500/10' : 'border-border/60 bg-white/60 dark:bg-slate-800/50',
       )}
     >
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{labelEn}</div>
