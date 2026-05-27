@@ -34,7 +34,7 @@ async function gateNode(state: typeof TriageState.State) {
 }
 
 async function embedNode(state: typeof TriageState.State) {
-  const embedding = await embedModel.embedQuery(state.symptom_text);
+  const embedding = await embedModel().embedQuery(state.symptom_text);
   return { embedding };
 }
 

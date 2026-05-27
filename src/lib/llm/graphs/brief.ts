@@ -21,7 +21,7 @@ const BriefState = Annotation.Root({
 });
 
 async function retrieveNode(state: typeof BriefState.State) {
-  const embedding = await embedModel.embedQuery(state.input.symptom_text);
+  const embedding = await embedModel().embedQuery(state.input.symptom_text);
   const ragHits = await topK(embedding, 3);
   return { ragHits };
 }

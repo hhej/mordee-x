@@ -60,7 +60,7 @@ async function pickTop3(input: MatchInput): Promise<ScoredDoctor[]> {
   try {
     const [, embedding] = await Promise.all([
       ensureDoctorEmbeddings(),
-      embedModel.embedQuery(input.symptom_text),
+      embedModel().embedQuery(input.symptom_text),
     ]);
     symptomEmbedding = embedding;
   } catch (err) {

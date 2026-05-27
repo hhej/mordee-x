@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",
-    "db:seed": "node scripts/seed-neon.mjs"
+    "db:seed": "node scripts/seed-neon.mjs",
+    "tunnel": "bash scripts/tunnel-up.sh"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -26,7 +26,7 @@ function programEmbedText(p: CheckupProgram): string {
 async function ensureCatalogEmbeddings(): Promise<CatalogVector[]> {
   if (!catalogPromise) {
     const programs = getCheckupPrograms();
-    catalogPromise = embedModel
+    catalogPromise = embedModel()
       .embedDocuments(programs.map(programEmbedText))
       .then((vectors) => programs.map((p, i) => ({ id: p.id, embedding: vectors[i] })))
       .catch((err) => {
@@ -87,7 +87,7 @@ const CheckupGraphState = Annotation.Root({
 });
 
 async function embedQueryNode(state: typeof CheckupGraphState.State) {
-  const queryEmbedding = await embedModel.embedQuery(buildQueryText(state.input));
+  const queryEmbedding = await embedModel().embedQuery(buildQueryText(state.input));
   return { queryEmbedding };
 }
 

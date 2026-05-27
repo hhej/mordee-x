@@ -24,7 +24,17 @@ export function chatModel(opts: { temperature?: number } = {}) {
   });
 }
 
-export const embedModel = new GoogleGenerativeAIEmbeddings({
-  apiKey: apiKey ?? '',
-  model: 'gemini-embedding-001',
-});
+// Lazy singleton — constructed on first use, never at import. A missing
+// GOOGLE_API_KEY then can't throw at build/import time (prod proxies /api/* to
+// the local tunnel, so the Vercel build only needs these modules to compile,
+// not run). Mirrors chatModel()'s lazy shape.
+let _embedModel: GoogleGenerativeAIEmbeddings | null = null;
+export function embedModel(): GoogleGenerativeAIEmbeddings {
+  if (!_embedModel) {
+    _embedModel = new GoogleGenerativeAIEmbeddings({
+      apiKey: apiKey ?? '',
+      model: 'gemini-embedding-001',
+    });
+  }
+  return _embedModel;
+}

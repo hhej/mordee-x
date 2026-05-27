@@ -1,0 +1,5 @@
+# Never upload local secrets into the Vercel build bundle.
+# Secrets belong in Vercel's env (dashboard / `vercel env add`) or stay local
+# behind the tunnel — never baked into a deployment artifact.
+.env
+.env.*
