@@ -7,6 +7,7 @@ import checkupData from '@/data/checkup_programs.json';
 // notebooks write to data/ml/; re-copy into src/data/ml/ after re-running.
 import noShowData from '@/data/ml/no_show_predictions.json';
 import demandData from '@/data/ml/demand_forecast_7d.json';
+import segmentData from '@/data/ml/patient_segments.json';
 import type { BriefResult, SummaryResult } from '@/lib/llm/schemas';
 
 export interface Doctor {
@@ -154,12 +155,58 @@ interface DemandData {
   DD01: DemandForecast;
 }
 
+/** One cohort from the patient-segmentation notebook (nb04). `profile` holds the
+ *  cluster's centroid stats in ORIGINAL units (e.g. mean bookings, no-show rate). */
+export interface PatientSegment {
+  id: number;
+  label_th: string;
+  label_en: string;
+  /** Hex colour from the mint/triage palette — tracks the persona's meaning. */
+  color: string;
+  size: number;
+  pct: number;
+  profile: Record<string, number>;
+  recommended_action_th: string;
+}
+
+/** One row of the unsupervised model bake-off (KMeans vs Agglomerative vs GMM). */
+export interface SegmentModelRow {
+  algorithm: string;
+  silhouette: number;
+  davies_bouldin: number;
+  calinski_harabasz: number;
+  winner: boolean;
+}
+
+export interface SegmentMeta {
+  n_patients: number;
+  k: number;
+  chosen_algorithm: string;
+  feature_set: string[];
+  /** Variance explained by PC1, PC2 — captions the scatter. */
+  pca_explained_variance: number[];
+  k_selection: { k_values: number[]; inertia: number[]; silhouette: number[] };
+  model_comparison: SegmentModelRow[];
+  random_state: number;
+}
+
+/** Shape of data/ml/patient_segments.json (nb04). `by_scenario` maps a patient
+ *  id — a real sampled `user_id` or a demo appointment id (A001…) — to a
+ *  segment id, so the dashboard can look up a cohort by scenario id. */
+export interface PatientSegmentsData {
+  meta: SegmentMeta;
+  segments: PatientSegment[];
+  scatter: Array<{ x: number; y: number; segment_id: number }>;
+  by_scenario: Record<string, number>;
+}
+
 const doctors = doctorsData as Doctor[];
 const hospitals = hospitalsData as Hospital[];
 const checkupPrograms = checkupData as CheckupProgram[];
 const demoScenarios = demoData as DemoScenarios;
 const noShowMap = noShowData as Record<string, NoShowPrediction>;
 const demand = demandData as unknown as DemandData;
+const segments = segmentData as unknown as PatientSegmentsData;
 
 export function getDoctors(): Doctor[] {
   return doctors;
@@ -199,6 +246,20 @@ export function getPatientDemo(id: string): PatientDemo | undefined {
 
 export function getNoShow(id: string): NoShowPrediction | undefined {
   return noShowMap[id];
+}
+
+/** The full patient-segmentation payload (meta + segments + scatter) — the
+ *  doctor dashboard cohorts card consumes this whole object. */
+export function getSegments(): PatientSegmentsData {
+  return segments;
+}
+
+/** Resolve a patient's cohort by scenario id (a sampled `user_id` or a demo
+ *  appointment id like "A001"), via the notebook's `by_scenario` map. */
+export function getPatientSegment(scenarioId: string): PatientSegment | undefined {
+  const segId = segments.by_scenario[scenarioId];
+  if (segId === undefined) return undefined;
+  return segments.segments.find((s) => s.id === segId);
 }
 
 /** Compute the demand-forecast key for a specialty (mirrors the notebook's

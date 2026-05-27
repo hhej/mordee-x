@@ -5,6 +5,7 @@ import { ChevronRight, Clock, FileClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { DoctorAppointment, NoShowPrediction } from '@/lib/data';
+import { getPatientSegment } from '@/lib/data';
 import { NoShowBadge } from './NoShowBadge';
 import { PastConsultsDialog } from './PastConsultsDialog';
 import { useDoctorStore } from '@/stores/store-doctor';
@@ -44,6 +45,9 @@ export function AppointmentRow({ appointment, prediction, doctorId, now }: Appoi
   const rel = now ? relativeChip(appointment.time, now) : null;
   const [historyOpen, setHistoryOpen] = useState(false);
   const pastConsults = appointment.past_consults ?? [];
+  // Patient cohort from the segmentation model (nb04). Muted slate pill + a
+  // coloured dot — deliberately distinct from the triage and no-show palettes.
+  const segment = getPatientSegment(appointment.appt_id);
 
   return (
     <div
@@ -73,6 +77,15 @@ export function AppointmentRow({ appointment, prediction, doctorId, now }: Appoi
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-ink">{appointment.patient}</div>
         <div className="line-clamp-1 text-xs text-muted-foreground">{appointment.symptom}</div>
+        {segment ? (
+          <span
+            className="mt-1 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 ring-1 ring-slate-200/70"
+            title={`กลุ่มผู้ป่วย · ${segment.label_en}`}
+          >
+            <span className="size-1.5 rounded-full" style={{ backgroundColor: segment.color }} />
+            {segment.label_th}
+          </span>
+        ) : null}
       </div>
       <div className="flex items-center gap-2 md:gap-3">
         <NoShowBadge prediction={prediction} />

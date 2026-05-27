@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PredictQuerySchema } from '@/lib/llm/schemas';
-import { getNoShow, getDemand } from '@/lib/data';
+import { getNoShow, getDemand, getPatientSegment } from '@/lib/data';
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -17,6 +17,12 @@ export async function GET(req: NextRequest) {
     const data = getNoShow(id);
     if (!data) return NextResponse.json({ error: `No prediction for ${id}` }, { status: 404 });
     return NextResponse.json(data);
+  }
+
+  if (type === 'segment') {
+    const seg = getPatientSegment(id);
+    if (!seg) return NextResponse.json({ error: `No segment for ${id}` }, { status: 404 });
+    return NextResponse.json(seg);
   }
 
   const data = getDemand(id);

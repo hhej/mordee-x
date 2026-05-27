@@ -1699,11 +1699,358 @@ def build_nb03() -> Path:
     return write_nb("03_seed_symptom_kb", cells)
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Notebook 04 — Patient segmentation (unsupervised clustering)
+# ─────────────────────────────────────────────────────────────────────
+
+NB04_BOOT = r'''
+import sys, os, json, warnings
+from pathlib import Path
+if Path.cwd().name == "notebooks":
+    os.chdir(Path.cwd().parent)
+REPO = Path.cwd()
+sys.path.insert(0, str(REPO))
+sys.path.insert(0, str(REPO / "notebooks"))
+(REPO / "data" / "ml").mkdir(parents=True, exist_ok=True)
+warnings.filterwarnings("ignore")
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_theme(style="whitegrid", font_scale=0.95)
+plt.rcParams["figure.dpi"] = 110
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.mixture import GaussianMixture
+from sklearn.decomposition import PCA
+from sklearn.metrics import (silhouette_score, davies_bouldin_score,
+                             calinski_harabasz_score)
+
+from lib.segmentation import aggregate_patients, label_clusters, FEATURE_COLS
+
+RANDOM_STATE = 20260520
+np.random.seed(RANDOM_STATE)
+print("nb04 booted. REPO:", REPO)
+'''
+
+
+def build_nb04() -> Path:
+    cells = [
+        md(r"""
+        # MorDee+ — Notebook 04: Patient Segmentation (Unsupervised Clustering)
+
+        ## 1. Project context / บริบทธุรกิจ
+
+        **ปัญหา** — MorDee+ ปฏิบัติกับผู้ป่วยทุกคนเหมือนกันหมด ทั้งที่พฤติกรรมต่างกันมาก
+        บางกลุ่มใช้บริการสม่ำเสมอ บางกลุ่มเสี่ยงไม่มาตามนัด บางกลุ่มเพิ่งเริ่มใช้แอป.
+        การ **แบ่งกลุ่มผู้ป่วย (segmentation)** ช่วยให้ทีม CRM/การตลาดออกแบบการสื่อสารแบบเจาะกลุ่มได้:
+
+        1. **รวมข้อมูลรายการจองให้เป็นรายผู้ป่วย** (per-booking → per-patient)
+        2. **เลือกจำนวนกลุ่ม (k)** ด้วย elbow + silhouette อย่างมีหลักการ
+        3. **เทียบ 3 อัลกอริทึม** (KMeans / Agglomerative / GMM) ด้วยดัชนีภายใน 3 ตัว
+        4. **อธิบายแต่ละกลุ่ม** เป็นเพอร์โซนาที่นำไปใช้งานได้จริง + คำแนะนำเชิงปฏิบัติ
+
+        **Business problem** — One-size-fits-all outreach wastes budget. We aggregate the
+        booking log to one row per patient, choose k via elbow + silhouette, benchmark
+        KMeans / Agglomerative / GaussianMixture on three internal indices (silhouette ↑,
+        Davies-Bouldin ↓, Calinski-Harabasz ↑), visualise with PCA, and profile each
+        cluster into an actionable persona. Output → `data/ml/patient_segments.json`.
+        """),
+        md(r"""
+        ## 2. Imports + data load
+        """),
+        code(NB04_BOOT),
+        code(r"""
+        df = pd.read_csv("data/synthetic/bookings.csv", parse_dates=["booked_at", "scheduled_at"])
+        patients = aggregate_patients(df)
+        print(f"Loaded {len(df):,} bookings → {len(patients):,} unique patients")
+        patients.head(3)
+        """),
+        md(r"""
+        ## 3. EDA — per-patient feature distributions + correlation
+
+        Clustering is distance-based, so we check the spread and pairwise correlation
+        of the aggregated features before scaling.
+        """),
+        code(r"""
+        print(patients[FEATURE_COLS].describe().T.round(3))
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(patients[FEATURE_COLS].corr(), annot=True, fmt=".2f",
+                    cmap="RdYlGn", center=0, square=True, cbar_kws={"shrink": .8})
+        plt.title("Feature correlation — aggregated patients")
+        plt.tight_layout(); plt.show()
+        """),
+        md(r"""
+        ## 4. Feature selection + scaling
+
+        We drop any zero-variance column (a constant can't separate clusters), then
+        **StandardScaler** — mandatory for distance-based clustering so no single
+        large-magnitude feature (e.g. lead-time hours) dominates the Euclidean metric.
+        """),
+        code(r"""
+        X_raw = patients[FEATURE_COLS].to_numpy(dtype=float)
+        vt = VarianceThreshold(threshold=0.0).fit(X_raw)
+        kept = [f for f, k in zip(FEATURE_COLS, vt.get_support()) if k]
+        print("Non-constant features kept:", kept)
+
+        scaler = StandardScaler().fit(X_raw)
+        X_scaled = scaler.transform(X_raw)
+        print("Scaled matrix:", X_scaled.shape)
+        """),
+        md(r"""
+        ## 5. Choosing k — elbow (inertia) + silhouette
+
+        We sweep k = 2..10 and read both the inertia elbow and the silhouette peak.
+        """),
+        code(r"""
+        k_values = list(range(2, 11))
+        inertia, sil = [], []
+        for k in k_values:
+            km = KMeans(n_clusters=k, n_init=10, random_state=RANDOM_STATE).fit(X_scaled)
+            inertia.append(float(km.inertia_))
+            sil.append(float(silhouette_score(X_scaled, km.labels_,
+                                               sample_size=2000, random_state=RANDOM_STATE)))
+
+        fig, ax = plt.subplots(1, 2, figsize=(11, 3.6))
+        ax[0].plot(k_values, inertia, "o-", color="#16a34a")
+        ax[0].set_title("Elbow (inertia)"); ax[0].set_xlabel("k"); ax[0].set_ylabel("inertia")
+        ax[1].plot(k_values, sil, "o-", color="#0ea5a4")
+        ax[1].set_title("Silhouette"); ax[1].set_xlabel("k"); ax[1].set_ylabel("score")
+        plt.tight_layout(); plt.show()
+
+        # Business-constrained selection: 2 segments isn't actionable for
+        # differentiated outreach and >6 over-fragments the playbook, so we pick the
+        # best silhouette within k ∈ [3, 6].
+        cand = [k for k in k_values if 3 <= k <= 6]
+        CHOSEN_K = max(cand, key=lambda k: sil[k_values.index(k)])
+        print(f"Chosen k = {CHOSEN_K}  (silhouette={sil[k_values.index(CHOSEN_K)]:.3f})")
+        """),
+        md(r"""
+        ## 6. Algorithm bake-off — KMeans vs Agglomerative vs GMM
+
+        Same k, three different cluster geometries, judged on three internal indices.
+        Winner = highest silhouette (tie-break: lower Davies-Bouldin).
+        """),
+        code(r"""
+        def _metrics(X, labels):
+            return {
+                "silhouette": float(silhouette_score(X, labels, sample_size=2000,
+                                                      random_state=RANDOM_STATE)),
+                "davies_bouldin": float(davies_bouldin_score(X, labels)),
+                "calinski_harabasz": float(calinski_harabasz_score(X, labels)),
+            }
+
+        models = {}
+        models["kmeans"] = KMeans(n_clusters=CHOSEN_K, n_init=10,
+                                  random_state=RANDOM_STATE).fit(X_scaled).labels_
+        models["agglomerative"] = AgglomerativeClustering(n_clusters=CHOSEN_K,
+                                  linkage="ward").fit(X_scaled).labels_
+        models["gmm"] = GaussianMixture(n_components=CHOSEN_K, covariance_type="full",
+                                  random_state=RANDOM_STATE).fit(X_scaled).predict(X_scaled)
+
+        comp_df = pd.DataFrame(
+            [{"algorithm": n, **_metrics(X_scaled, lbl)} for n, lbl in models.items()]
+        ).set_index("algorithm")
+        print(comp_df.round(4))
+
+        winner = comp_df.sort_values(["silhouette", "davies_bouldin"],
+                                     ascending=[False, True]).index[0]
+        labels_raw = models[winner]
+        print("Winning algorithm:", winner)
+        """),
+        md(r"""
+        ## 7. PCA projection (2D) for visualisation
+        """),
+        code(r"""
+        pca = PCA(n_components=2, random_state=RANDOM_STATE).fit(X_scaled)
+        X_pca = pca.transform(X_scaled)
+        evr = pca.explained_variance_ratio_
+        print("Explained variance ratio:", evr.round(3), " sum:", evr.sum().round(3))
+
+        plt.figure(figsize=(6.5, 5))
+        for c in np.unique(labels_raw):
+            p = X_pca[labels_raw == c]
+            plt.scatter(p[:, 0], p[:, 1], s=6, alpha=0.4, label=f"cluster {c}")
+        plt.xlabel(f"PC1 ({evr[0]:.0%})"); plt.ylabel(f"PC2 ({evr[1]:.0%})")
+        plt.title(f"PCA projection — {winner}, k={CHOSEN_K}")
+        plt.legend(markerscale=2, fontsize=8); plt.tight_layout(); plt.show()
+        """),
+        md(r"""
+        ## 8. Cluster profiling + stable labelling
+
+        We compute each cluster's centroid in **original units**, then `label_clusters`
+        re-numbers clusters by a stable key (completion rate desc) — sklearn cluster
+        integers otherwise permute across runs — and assigns a human persona + colour.
+        """),
+        code(r"""
+        patients["_raw"] = labels_raw
+        profile_df = patients.groupby("_raw")[FEATURE_COLS].mean()
+        labels_meta = label_clusters(profile_df)              # raw_id -> {id,label_th,...}
+        remap = {raw: m["id"] for raw, m in labels_meta.items()}
+        patients["segment_id"] = patients["_raw"].map(remap)
+
+        # Centroids in SCALED space, aligned to sorted raw-cluster order — used for
+        # nearest-centroid assignment of the synthetic demo profiles below.
+        raw_sorted = sorted(np.unique(labels_raw))
+        centroids = np.vstack([X_scaled[labels_raw == c].mean(axis=0) for c in raw_sorted])
+
+        print(profile_df.round(3))
+        for raw, m in sorted(labels_meta.items(), key=lambda kv: kv[1]["id"]):
+            print(f"  id {m['id']}: {m['label_en']} / {m['label_th']}  ({m['recommended_action_th']})")
+        """),
+        md(r"""
+        ## 9. Per-patient assignment map (≥100 ids)
+
+        The dashboard resolves a patient's cohort by id. We emit:
+        - **~150 real `user_id`s** sampled from the cohort, each carrying its actual
+          model-assigned (stable) cluster — authentic, not hand-mapped;
+        - **the 18 demo appointment ids** (A/B/C × 6). Their profiles aren't real CSV
+          rows, so we build a feature vector from the demo's age + triage + an
+          engagement archetype inferred from the no-show tier (NS001/LOW→engaged,
+          NS002/MED→mid, NS003/HIGH→no-show-prone), scale with the **same fitted
+          scaler**, and assign by nearest centroid. *(Stated assumption — keeps the
+          chip ML-driven and reproducible.)*
+        """),
+        code(r"""
+        SAMPLE_N = 150
+        sampled = patients.sample(min(SAMPLE_N, len(patients)), random_state=RANDOM_STATE)
+        by_scenario = {row.user_id: int(row.segment_id) for row in sampled.itertuples()}
+
+        ARCHETYPE = {  # engagement archetype per no-show tier
+            "NS001": dict(n_bookings=6, observed_no_show_rate=0.05, prior_completion_rate=0.93,
+                          sms_confirm_rate=0.85, reminder_click_rate=0.70, avg_app_opens=3.2,
+                          avg_lead_time_hours=12, paid_upfront_rate=0.75),
+            "NS002": dict(n_bookings=3, observed_no_show_rate=0.14, prior_completion_rate=0.78,
+                          sms_confirm_rate=0.55, reminder_click_rate=0.35, avg_app_opens=1.6,
+                          avg_lead_time_hours=40, paid_upfront_rate=0.45),
+            "NS003": dict(n_bookings=2, observed_no_show_rate=0.34, prior_completion_rate=0.52,
+                          sms_confirm_rate=0.25, reminder_click_rate=0.12, avg_app_opens=0.6,
+                          avg_lead_time_hours=90, paid_upfront_rate=0.20),
+        }
+
+        def assign_demo(age, triage, ns_tier):
+            a = dict(ARCHETYPE.get(ns_tier, ARCHETYPE["NS002"]))
+            a["age"] = float(age)
+            a["pct_red_yellow_triage"] = 0.0 if triage == "green" else 1.0
+            vec = scaler.transform(np.array([[a[c] for c in FEATURE_COLS]], dtype=float))
+            nearest = raw_sorted[int(np.argmin(((centroids - vec) ** 2).sum(axis=1)))]
+            return int(remap[nearest])
+
+        with open("src/data/demo_scenarios.json") as f:
+            demo = json.load(f)
+        demos = [demo.get("doctor_demo", {})] + list(demo.get("doctor_demos", {}).values())
+        for d in demos:
+            for appt in d.get("today_appointments", []) + d.get("standby_appointments", []):
+                prof = appt.get("profile", {})
+                by_scenario[appt["appt_id"]] = assign_demo(
+                    prof.get("age", 45), prof.get("triage", "green"),
+                    appt.get("prediction_id", "NS002"))
+
+        print(f"by_scenario: {len(by_scenario)} ids (>=100 required), "
+              f"{sum(1 for k in by_scenario if k[0] in 'ABC')} demo appts")
+        """),
+        md(r"""
+        ## 10. Export → `data/ml/patient_segments.json`
+        """),
+        code(r"""
+        def _round(d, n=4):
+            return {k: round(float(v), n) for k, v in d.items()}
+
+        total = len(patients)
+        segments = []
+        for raw, m in sorted(labels_meta.items(), key=lambda kv: kv[1]["id"]):
+            mask = patients["segment_id"] == m["id"]
+            size = int(mask.sum())
+            segments.append({
+                "id": m["id"], "label_th": m["label_th"], "label_en": m["label_en"],
+                "color": m["color"], "size": size, "pct": round(100 * size / total, 1),
+                "profile": _round(patients.loc[mask, FEATURE_COLS].mean().to_dict()),
+                "recommended_action_th": m["recommended_action_th"],
+            })
+
+        SCATTER_N = 600
+        idx = np.random.default_rng(RANDOM_STATE).choice(total, min(SCATTER_N, total), replace=False)
+        scatter = [{"x": round(float(X_pca[i, 0]), 3), "y": round(float(X_pca[i, 1]), 3),
+                    "segment_id": int(patients["segment_id"].iloc[i])} for i in idx]
+
+        best_sil = comp_df["silhouette"].max()
+        model_comparison = [{
+            "algorithm": n,
+            "silhouette": round(float(r["silhouette"]), 4),
+            "davies_bouldin": round(float(r["davies_bouldin"]), 4),
+            "calinski_harabasz": round(float(r["calinski_harabasz"]), 1),
+            "winner": bool(n == winner),
+        } for n, r in comp_df.iterrows()]
+
+        out = {
+            "meta": {
+                "n_patients": total, "k": int(CHOSEN_K), "chosen_algorithm": winner,
+                "feature_set": FEATURE_COLS,
+                "pca_explained_variance": [round(float(v), 4) for v in evr],
+                "k_selection": {"k_values": k_values,
+                                "inertia": [round(v, 2) for v in inertia],
+                                "silhouette": [round(v, 4) for v in sil]},
+                "model_comparison": model_comparison, "random_state": RANDOM_STATE,
+            },
+            "segments": segments, "scatter": scatter, "by_scenario": by_scenario,
+        }
+        with open("data/ml/patient_segments.json", "w") as f:
+            json.dump(out, f, indent=2, ensure_ascii=False)
+        sz = Path("data/ml/patient_segments.json").stat().st_size / 1024
+        print(f"Wrote data/ml/patient_segments.json ({sz:.1f} KB)")
+        print(json.dumps({"meta": out["meta"], "segments": out["segments"]},
+                         indent=2, ensure_ascii=False)[:1500])
+        """),
+        code(r"""
+        # Verify the JSON shape before it ships to the front-end.
+        with open("data/ml/patient_segments.json") as f:
+            v = json.load(f)
+        assert set(v) == {"meta", "segments", "scatter", "by_scenario"}
+        assert v["meta"]["k"] == len(v["segments"]) == CHOSEN_K
+        assert {s["id"] for s in v["segments"]} == set(range(CHOSEN_K)), "ids must be 0..k-1"
+        for s in v["segments"]:
+            assert 0 <= s["pct"] <= 100 and s["size"] >= 0 and s["color"].startswith("#")
+        assert len(v["meta"]["model_comparison"]) == 3
+        assert sum(m["winner"] for m in v["meta"]["model_comparison"]) == 1
+        assert len(v["by_scenario"]) >= 100, f"need >=100 ids, got {len(v['by_scenario'])}"
+        for appt in ["A001", "B001", "C001", "A006", "B006", "C006"]:
+            assert appt in v["by_scenario"], f"missing demo appt {appt}"
+        assert all(0 <= c < CHOSEN_K for c in v["by_scenario"].values())
+        print(f"✔ schema OK · k={v['meta']['k']} · {len(v['by_scenario'])} assigned ids "
+              f"· {len(v['scatter'])} scatter pts · winner={v['meta']['chosen_algorithm']}")
+        """),
+        md(r"""
+        ## 11. Business summary / สรุปธุรกิจ
+
+        | กลุ่ม | ลักษณะ | การดำเนินการที่แนะนำ |
+        |---|---|---|
+        | ผู้ป่วยประจำ (Loyal regulars) | จองบ่อย completion สูง | สิทธิพิเศษสมาชิก + นัดติดตามอัตโนมัติ |
+        | กลุ่มเรื้อรังมูลค่าสูง (High-value chronic) | อายุมาก triage เหลือง/แดงบ่อย | โปรแกรมดูแลโรคเรื้อรัง |
+        | ผู้ใช้ใหม่ (New low-engagement) | จองน้อย engagement ต่ำ | คอนเทนต์ให้ความรู้ + กระตุ้นการใช้งาน |
+        | กลุ่มเสี่ยงไม่มา (At-risk no-show) | no-show rate สูง | ขอยืนยันก่อนนัด + เตือนหลายครั้ง |
+
+        **Limitations** — synthetic DGP; real cohorts need periodic re-fit + drift
+        monitoring. Cluster count is fixed by an operational [3,6] constraint, not a
+        purely statistical optimum.
+        """),
+    ]
+    return write_nb("04_patient_segmentation", cells)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# CLI
+# ─────────────────────────────────────────────────────────────────────
+
+
 BUILDERS = {
     "nb00": build_nb00,
     "nb01": build_nb01,
     "nb02": build_nb02,
     "nb03": build_nb03,
+    "nb04": build_nb04,
 }
 
 

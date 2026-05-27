@@ -11,6 +11,7 @@ import {
   getDoctor,
   getDoctorDemo,
   getNoShow,
+  getSegments,
   type NoShowPrediction,
 } from '@/lib/data';
 import { useDoctorStore } from '@/stores/store-doctor';
@@ -85,6 +86,8 @@ export default function DoctorPage() {
     if (ns) predictions[appt.prediction_id] = ns;
   }
 
+  const segments = getSegments();
+
   return (
     <>
       <RoleHeader
@@ -105,6 +108,7 @@ export default function DoctorPage() {
           appointments={visibleAppointments}
           predictions={predictions}
           forecast={forecast}
+          segments={segments}
         />
       </main>
     </>

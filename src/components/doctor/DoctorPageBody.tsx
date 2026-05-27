@@ -3,9 +3,15 @@
 import { useDoctorStore } from '@/stores/store-doctor';
 import { useSessionAnchor } from '@/lib/use-now';
 import { rebaseAppointments } from '@/lib/appointment-times';
-import type { DemandForecast, DoctorAppointment, NoShowPrediction } from '@/lib/data';
+import type {
+  DemandForecast,
+  DoctorAppointment,
+  NoShowPrediction,
+  PatientSegmentsData,
+} from '@/lib/data';
 import { AppointmentsCard } from './AppointmentsCard';
 import { DemandForecastCard } from './DemandForecastCard';
+import { PatientCohortsDialog } from './PatientCohortsDialog';
 import { ConsultTakeover } from './ConsultTakeover';
 
 interface DoctorPageBodyProps {
@@ -15,6 +21,7 @@ interface DoctorPageBodyProps {
   appointments: DoctorAppointment[];
   predictions: Record<string, NoShowPrediction>;
   forecast: DemandForecast;
+  segments: PatientSegmentsData;
 }
 
 export function DoctorPageBody({
@@ -24,6 +31,7 @@ export function DoctorPageBody({
   appointments,
   predictions,
   forecast,
+  segments,
 }: DoctorPageBodyProps) {
   const selectedApptId = useDoctorStore((s) => s.selectedApptId);
   const inConsult = selectedApptId !== null;
@@ -47,6 +55,9 @@ export function DoctorPageBody({
 
   return (
     <div className="flex flex-col gap-5">
+      <div className="flex justify-end">
+        <PatientCohortsDialog data={segments} />
+      </div>
       <AppointmentsCard
         appointments={appts}
         predictions={predictions}

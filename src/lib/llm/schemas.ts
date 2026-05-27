@@ -152,7 +152,7 @@ export const PrescribeRequestSchema = z.object({
 export type PrescribeRequest = z.infer<typeof PrescribeRequestSchema>;
 
 export const PredictQuerySchema = z.object({
-  type: z.enum(['no_show', 'demand']),
+  type: z.enum(['no_show', 'demand', 'segment']),
   id: z.string().min(1),
 });
 
