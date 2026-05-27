@@ -1,7 +1,8 @@
 'use client';
 
-import { AlertTriangle, Circle, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Circle, Info, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { GlassCard } from '@/components/shared/GlassCard';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { TriageResult } from '@/lib/llm/schemas';
 
 interface TriageResultCardProps {
@@ -84,11 +85,23 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
             <span className="text-xs text-muted-foreground">· {t.labelEn}</span>
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ring-1 ${t.badge}`}
-            >
-              ความมั่นใจ {confidencePct}%
-            </span>
+            <Popover>
+              <PopoverTrigger
+                className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ring-1 transition-transform hover:scale-[1.03] ${t.badge}`}
+                title="ความเชื่อมั่นของ AI ต่อการประเมินนี้ ไม่ใช่ความรุนแรงของอาการ"
+              >
+                AI ประเมินด้วยความเชื่อมั่น {confidencePct}%
+                <Info className="size-3" aria-hidden />
+              </PopoverTrigger>
+              <PopoverContent className="w-64" align="start">
+                <p className="text-xs leading-relaxed text-ink">
+                  ระดับความเชื่อมั่นของ AI ต่อการประเมินนี้ ไม่ใช่ระดับความรุนแรงของอาการ
+                  <span className="mt-1 block text-muted-foreground">
+                    How sure the AI is about this assessment — not how severe your symptoms are.
+                  </span>
+                </p>
+              </PopoverContent>
+            </Popover>
             {triage.specialty_hint ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-mint-50 px-2 py-0.5 text-[11px] text-mint-800 ring-1 ring-mint-200/60">
                 แผนกแนะนำ · {triage.specialty_hint}
@@ -99,6 +112,20 @@ export function TriageResultCard({ triage, variant = 'card' }: TriageResultCardP
       </div>
 
       <p className="mt-4 text-sm leading-relaxed text-ink">{triage.reasoning_th}</p>
+
+      {triage.triage === 'green' ? (
+        <div className="mt-4 flex gap-2 rounded-lg bg-mint-50 px-3 py-2.5 text-sm leading-relaxed text-mint-800 ring-1 ring-mint-200/60">
+          <span aria-hidden>💚</span>
+          <p>
+            อาการของคุณดูแลเองที่บ้านได้ ยังไม่จำเป็นต้องพบแพทย์
+            แต่ถ้ายังกังวลหรืออาการไม่ดีขึ้น สามารถปรึกษาแพทย์ด้านล่างได้เสมอ
+            <span className="mt-1 block text-[11px] text-mint-700/80">
+              You can likely care for this at home — a doctor isn&apos;t required, but you&apos;re
+              always welcome to consult one below if you&apos;re worried.
+            </span>
+          </p>
+        </div>
+      ) : null}
 
       {triage.warning_signs_th.length > 0 ? (
         <div className="mt-4">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Send, Stethoscope } from 'lucide-react';
+import { Info, Loader2, Send, Stethoscope } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { getPatientDemo } from '@/lib/data';
@@ -73,6 +73,17 @@ export function SymptomChat() {
             <span>{c.label}</span>
           </button>
         ))}
+      </div>
+
+      <div className="mb-3 flex gap-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900 ring-1 ring-amber-200">
+        <Info className="mt-0.5 size-3.5 shrink-0 text-amber-600" aria-hidden />
+        <p>
+          AI จะประเมินจากข้อความนี้เพียงครั้งเดียว ไม่มีถาม-ตอบเพิ่ม — โปรดเล่าอาการให้ครบในครั้งเดียว
+          <span className="mt-0.5 block text-amber-700/80">
+            The AI assesses this single message — there&apos;s no follow-up chat, so include
+            everything.
+          </span>
+        </p>
       </div>
 
       <div
