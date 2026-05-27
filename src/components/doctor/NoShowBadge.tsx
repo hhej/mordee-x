@@ -69,7 +69,6 @@ export function NoShowBadge({ prediction }: NoShowBadgeProps) {
       >
         <Icon className="size-3.5 opacity-80" />
         <span>{style.label}</span>
-        <span className="font-semibold">{noShowPct}%</span>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end">
         <div className="flex flex-col gap-2.5">
