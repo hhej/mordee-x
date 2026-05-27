@@ -10,6 +10,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss)](https://tailwindcss.com)
 [![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-8e75ff?logo=googlegemini)](https://ai.google.dev)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.x-1c3c3c)](https://langchain-ai.github.io/langgraph/)
+[![Neon Postgres](https://img.shields.io/badge/Neon-Postgres%20%2B%20pgvector-00e599?logo=postgresql&logoColor=white)](https://neon.tech)
 [![Python](https://img.shields.io/badge/Python-3.12-3776ab?logo=python)](https://www.python.org)
 
 **Live demo → [mordee-x.vercel.app](https://mordee-x.vercel.app)**
@@ -18,7 +19,7 @@
 
 </div>
 
-> **About this build.** MorDee+ is a polished, fully working demo of a Thai telemedicine product. It was produced as an academic project for two MADT courses (presented 2026‑05‑30). Everything below describes it as the product it models — the only "demo-isms" are deliberate architectural choices (no database, ML trained offline) explained in [Architecture](#-architecture).
+> **About this build.** MorDee+ is a polished, fully working demo of a Thai telemedicine product. It was produced as an academic project for two MADT courses (presented 2026‑05‑30). Everything below describes it as the product it models — the only "demo-isms" are deliberate choices (ML trained offline; a managed **Neon Postgres** backend that **automatically falls back to bundled JSON** so the demo can never break) explained in [Architecture](#-architecture).
 
 ---
 
@@ -72,15 +73,16 @@ Thailand's telemedicine market grew up fast during and after COVID, but it carri
 1. **Pick a doctor persona** (GP, cardiologist, …) — drives specialty-specific data.
 2. **Today's queue** with a **no-show risk badge** per appointment (LOW / MED / HIGH, with the top SHAP factors and a recommended action in a popover).
 3. **7-day demand forecast** — an interactive heatmap, "demand now" gauge, peak window, expected revenue uplift, and recommended slots to open.
-4. **Consult takeover** — a pre-consult **AI brief**: one-liner, key symptoms, ranked differential diagnosis (DDx), suggested questions, and red flags, grounded in the same KB.
-5. **AI Rx draft** — one click drafts a prescription (medications, dose, advice, follow-up) for the doctor to review and edit — never auto-issued.
-6. **End consult** → the same certificate + self-care summary, and the next standby patient backfills the queue.
+4. **Patient cohorts** — a **k-means segmentation** card: the patient base split into 4 cohorts (pie composition + a PCA scatter showing cluster separation), a model-comparison table (KMeans vs Agglomerative vs GMM), and a recommended retention action per cohort.
+5. **Consult takeover** — a pre-consult **AI brief**: one-liner, key symptoms, ranked differential diagnosis (DDx), suggested questions, and red flags, grounded in the same KB.
+6. **AI Rx draft** — one click drafts a prescription (medications, dose, advice, follow-up) for the doctor to review and edit — never auto-issued.
+7. **End consult** → the same certificate + self-care summary, and the next standby patient backfills the queue.
 
 ---
 
 ## 🏗 Architecture
 
-MorDee+ is **one Next.js 16 App Router app**. The browser talks to Next.js **API routes**, which run **LangGraph** graphs against **Gemini**, grounded by an in-memory **RAG** store and backed by **static JSON** (catalogues + offline ML outputs). There is no separate backend.
+MorDee+ is **one Next.js 16 App Router app**. The browser talks to Next.js **API routes**, which run **LangGraph** graphs against **Gemini**, grounded by **RAG over pgvector on a managed Neon Postgres** database. Postgres is the runtime source of truth for the ML outputs, the symptom knowledge base, doctor-matching embeddings, and the patient cohorts — and every query **falls back to bundled JSON** the moment the database is unset or unreachable. Catalogues (doctors, hospitals, …) ship as static JSON. There is no separate application backend.
 
 ```mermaid
 graph TB
@@ -97,30 +99,39 @@ graph TB
         subgraph Graphs["LangGraph orchestration"]
             G["triage · match · chat · brief<br/>summarize · prescribe · checkup"]
         end
-        RAG["RAG · lib/rag.ts<br/>manual cosine + topK"]
+        RAG["RAG · lib/rag.ts<br/>pgvector topK, cosine fallback"]
+        DB["lib/db.ts<br/>@neondatabase/serverless"]
         API --> G
         G --> RAG
+        RAG --> DB
+        API --> DB
     end
 
-    subgraph Data["📦 Static data (no database)"]
+    subgraph Neon["🐘 Neon Postgres + pgvector (DB-first)"]
+        KB["symptom_kb<br/>50 entries × vector(3072)"]
+        DE["doctor_embeddings<br/>33 × vector(3072)"]
+        ML["ml_artifacts<br/>no_show · demand"]
+        SEG["patient_segments (+ assignments,<br/>scatter, meta) — k-means"]
+    end
+
+    subgraph Fallback["📦 Bundled JSON fallback (no DB needed)"]
         CAT["Catalogues<br/>doctors · hospitals · checkup<br/>demo scenarios · rx suggestions"]
-        ML["ML outputs<br/>no_show · demand_forecast"]
-        KB["symptom_kb.json<br/>50 entries × 768-d embeddings"]
+        FJSON["symptom_kb.json · doctors_embeddings.json<br/>ml/*.json · patient_segments.json"]
     end
 
     subgraph Offline["🐍 Offline — Jupyter (not in prod)"]
-        NB["4 notebooks<br/>XGBoost · Prophet · LightGBM · SHAP"]
+        NB["5 notebooks<br/>XGBoost · Prophet · LightGBM · SHAP · k-means"]
     end
 
-    Gemini["✨ Google Gemini<br/>2.5 Flash + embedding-001"]
+    Gemini["✨ Google Gemini<br/>2.5 Flash + gemini-embedding-001 (3072-d)"]
 
     Z -->|"fetch + SSE"| API
     G -->|"withStructuredOutput (Zod)"| Gemini
-    RAG --> KB
+    DB -->|"SQL · &lt;=&gt; cosine"| Neon
+    DB -.->|"DB unset / unreachable"| FJSON
     API --> CAT
-    API --> ML
-    NB -.->|"export JSON"| ML
-    NB -.->|"export JSON"| KB
+    NB -.->|"pnpm db:seed → load JSON"| Neon
+    NB -.->|"export JSON"| FJSON
 
     classDef offline stroke-dasharray:5 5;
     class Offline,NB offline;
@@ -128,12 +139,13 @@ graph TB
 
 ### Constraints — and why they're deliberate
 
-These are hard rules, chosen so the demo is **deterministic, reproducible, and reviewable** — not because the patterns scale to a hospital.
+These are deliberate choices, made so the demo stays **deterministic, reproducible, and reviewable** — not because every pattern scales to a hospital.
 
-- **No database.** All catalogue data lives in `src/data/*.json`; runtime state is held in Zustand (and `localStorage`). Nothing to seed, migrate, or leak.
-- **No live ML in production.** Models are trained offline in Jupyter and exported to JSON; API routes look up predictions by scenario / specialty ID. No Python sidecar, no model server.
-- **No external vector DB.** RAG is pre-embedded vectors in `symptom_kb.json` + a hand-written cosine similarity in `lib/rag.ts`. The whole KB is small enough to hold in memory.
+- **DB-first, with automatic JSON fallback.** ML outputs, the symptom KB, doctor embeddings, and patient cohorts live in **Neon Postgres** (Vercel Marketplace, Free tier) with **pgvector**, accessed through `src/lib/db.ts` and seeded by `pnpm db:seed`. If `DATABASE_URL` / `POSTGRES_URL` is unset or the DB is unreachable, every lookup transparently falls back to the bundled JSON — so the demo runs fully offline and can't break in front of a grader.
+- **No live ML in production.** Models are trained offline in Jupyter and exported to JSON, then loaded into Postgres; API routes look up predictions by scenario / specialty ID. No Python sidecar, no model server.
+- **pgvector for RAG, in-memory cosine as the safety net.** Pre-embedded 3072-d vectors live in the `symptom_kb` table and are searched with pgvector's `<=>` cosine operator; `lib/rag.ts` falls back to a hand-written cosine over `data/symptom_kb.json` when the DB is unavailable.
 - **No auth, no navigation between flows.** Each role is a single route; everything else is a modal or a scroll. Personas stand in for accounts.
+- **Write-state stays client-side.** Appointments and session state live in Zustand (+ `localStorage`) — never in the database.
 - **Mock fallback.** Append `?mock=1` to any route to run the full demo deterministically without spending Gemini quota.
 
 ---
@@ -212,11 +224,11 @@ flowchart TD
 
 **Triage safety, by design.** Before the LLM runs, a **red-keyword gate** scans for hard emergencies (เจ็บหน้าอก, stroke signs, anaphylaxis, …) and can force a 🔴 verdict outright. After the LLM runs, a **validator** re-checks and overrides the model up to red if it under-triaged. The LLM can lower urgency only within safe bounds — it can never *downgrade* a red flag.
 
-**Doctor matching** scores each doctor as `0.4 × specialty-fit + 0.4 × cosine(symptom, doctor-profile embedding) + 0.2 × normalised rating`, falling back to specialty + rating if embeddings are unavailable, and streams each resolved card to the client as it's ready.
+**Doctor matching** scores each doctor as `0.4 × specialty-fit + 0.4 × cosine(symptom, doctor-profile embedding) + 0.2 × normalised rating`, and streams each resolved card to the client as it's ready. The 33 doctor-profile embeddings (3072-d) are read from the `doctor_embeddings` table and cached in memory on the first match request (falling back to `data/doctors_embeddings.json`); if no embedding is available the score degrades gracefully to specialty + rating.
 
-### RAG — `src/lib/rag.ts`
+### RAG — `src/lib/rag.ts` + `src/lib/db.ts`
 
-No vector database. The 50-entry `data/symptom_kb.json` ships with **pre-computed 768-dim Gemini embeddings**; at request time the query is embedded, scored against the KB with a hand-written **cosine similarity**, and `topK(query, 3)` grounds both `triage` and `brief`. Each KB entry carries bilingual guidance, a severity, a specialty hint, and a real clinical source (e.g. Manchester Triage System, Thai ACS Guidelines 2020, WHO Dengue 2009).
+The 50-entry symptom KB carries **pre-computed 3072-dim `gemini-embedding-001` vectors** and lives in the `symptom_kb` pgvector table. At request time the query is embedded and `topK(query, 3)` runs a pgvector cosine search (`ORDER BY embedding <=> $query`, similarity reported as `1 − distance`) to ground both `triage` and `brief`. If the DB is unavailable, the same `topK` transparently falls back to a hand-written **cosine similarity** over the bundled `data/symptom_kb.json`. Each KB entry carries bilingual guidance, a severity, a specialty hint, and a real clinical source (e.g. Manchester Triage System, Thai ACS Guidelines 2020, WHO Dengue 2009).
 
 ### Prescription — three layers
 
@@ -235,7 +247,7 @@ No vector database. The 50-entry `data/symptom_kb.json` ships with **pre-compute
 | `/api/summarize` | POST | – | Certificate + self-care plan |
 | `/api/prescribe` | POST | – | Draft prescription |
 | `/api/checkup` | POST | – | Recommend one check-up package |
-| `/api/predict` | GET | – | Look up no-show / demand ML output by ID |
+| `/api/predict` | GET | – | Look up ML output: `?type=no_show\|demand\|segment` by ID, or `?type=segments` for the full patient-cohort model (DB-first, JSON fallback) |
 
 > Every route honours `?mock=1` for an instant, deterministic, quota-free response.
 
@@ -246,7 +258,7 @@ sequenceDiagram
     participant C as Client (Zustand)
     participant R as /api/triage
     participant G as triage graph
-    participant K as symptom_kb.json
+    participant K as symptom_kb (pgvector / JSON fallback)
     participant AI as Gemini
 
     C->>R: POST { symptom_text, history }
@@ -255,8 +267,8 @@ sequenceDiagram
     alt red keyword hit
         G-->>R: 🔴 RED (LLM bypassed)
     else
-        G->>AI: embed symptom (embedding-001)
-        G->>K: topK(query, 3) — cosine
+        G->>AI: embed symptom (gemini-embedding-001, 3072-d)
+        G->>K: topK(query, 3) — pgvector &lt;=&gt; cosine
         K-->>G: 3 grounding entries
         G->>AI: classify (withStructuredOutput)
         AI-->>G: { triage, confidence, reasoning_th, ... }
@@ -270,7 +282,7 @@ sequenceDiagram
 
 ## 📊 The ML layer — notebooks
 
-ML lives entirely in **Jupyter**. Notebooks train on a synthetic event log, export JSON to `data/ml/` and `data/symptom_kb.json`, and the app consumes those by ID. Nothing trains at request time.
+ML lives entirely in **Jupyter**. Notebooks train on a synthetic event log and export JSON to `data/ml/` and `data/symptom_kb.json`; `pnpm db:seed` loads those into Neon Postgres, and the app consumes them by ID (DB-first, JSON fallback). Nothing trains at request time.
 
 ```mermaid
 flowchart LR
@@ -278,11 +290,14 @@ flowchart LR
     SY --> CSV["bookings.csv<br/>30k rows · 12 months · seed 20260520"]
     CSV --> NB1["nb01 · no-show<br/>XGBoost + SHAP"]
     CSV --> NB2["nb02 · demand<br/>Prophet · SARIMA · LightGBM"]
-    SEED["symptom_kb_seed.py<br/>50 curated entries"] --> NB3["nb03 · embeddings<br/>Gemini 768-d"]
+    CSV --> NB4["nb04 · cohorts<br/>k-means · GMM · Agglomerative"]
+    SEED["symptom_kb_seed.py<br/>50 curated entries"] --> NB3["nb03 · embeddings<br/>gemini-embedding-001 · 3072-d"]
     NB1 --> O1["no_show_predictions.json"]
     NB2 --> O2["demand_forecast_7d.json"]
     NB3 --> O3["symptom_kb.json"]
-    O1 & O2 & O3 --> APP["Next.js app<br/>lookup by ID"]
+    NB4 --> O4["patient_segments.json"]
+    O1 & O2 & O3 & O4 --> SEEDDB["pnpm db:seed →<br/>Neon Postgres + pgvector"]
+    SEEDDB --> APP["Next.js app<br/>lookup by ID"]
 ```
 
 **Foundation — synthetic data calibrated to real Thai stats.** `notebooks/lib/thai_stats.py` encodes published figures (66% female, ~70% aged 40+, ~14% no-show base rate, peak hours 19:00–21:00, monsoon +15%, holidays −30%) and effect sizes as logit coefficients (SMS confirmation −0.85, paid-upfront −0.60, prior no-shows +0.55, …). `synth.py` then generates **30,000 bookings** over a 12-month window (reproducible seed `20260520`) where the ground-truth no-show probability is a sigmoid of those features.
@@ -292,13 +307,15 @@ flowchart LR
 | `00_generate_synthetic_data` | Build the event log | calibrated sampler | `data/synthetic/bookings.csv` |
 | `01_no_show_full_pipeline` | Predict no-show + reminder policy | **XGBoost** (champion, ROC-AUC ≈ 0.80) vs LogReg, **SHAP** TreeExplainer | `data/ml/no_show_predictions.json` |
 | `02_demand_forecast_full_pipeline` | Per-specialty hourly demand | **Prophet** vs **SARIMA** vs **LightGBM** bake-off, tiered by volume | `data/ml/demand_forecast_7d.json` |
-| `03_seed_symptom_kb` | Clinical KB + embeddings | Gemini `embedding-001` (768-d, L2-normalised) | `data/symptom_kb.json` |
+| `03_seed_symptom_kb` | Clinical KB + embeddings | `gemini-embedding-001` (3072-d, L2-normalised) | `data/symptom_kb.json` |
+| `04_patient_segmentation` | Patient cohorts | **k-means** champion vs **GMM** / **Agglomerative**, StandardScaler + PCA(2) | `data/ml/patient_segments.json` |
 
 - **No-show (nb01)** — full pipeline (EDA → feature selection → tuning → calibration → SHAP → policy sim). Exports three demo scenarios (`NS001` LOW / `NS002` MED / `NS003` HIGH) with `p_no_show`, `risk_tier`, top SHAP factors, and a `recommended_action`.
 - **Demand (nb02)** — a 3-model bake-off across **18 specialties**, tiered (full bake-off for high-volume, LightGBM for mid, seasonal-naive for sparse), 14-day horizon. Exports `by_specialty` (hourly forecasts + recommended online slots + expected revenue uplift) plus a `DD01` back-compat alias.
 - **Symptom KB (nb03)** — 50 hand-curated entries (≈15 red / 20 yellow / 15 green) with real clinical citations, anchored to the demo scenarios.
+- **Patient cohorts (nb04)** — unsupervised segmentation of the patient base on 10 behavioural features (bookings, observed no-show rate, completion rate, SMS-confirm rate, lead time, age, triage mix, …). Picks `k` via elbow + silhouette, runs a 3-algorithm bake-off (**k-means** wins on silhouette / Davies-Bouldin / Calinski-Harabasz), projects to 2-D with **PCA**, and labels each cohort with a Thai persona + recommended retention action. Exports `meta` (model comparison, PCA variance), the **4 cohorts**, a 600-point PCA scatter, and per-scenario assignments. Surfaces in the doctor dashboard's **Patient cohorts** card and `GET /api/predict?type=segments`.
 
-Regenerate with `uv run python notebooks/_build.py` then `uv run jupyter nbconvert --to notebook --execute --inplace notebooks/XX.ipynb`.
+Regenerate with `uv run python notebooks/_build.py` then `uv run jupyter nbconvert --to notebook --execute --inplace notebooks/XX.ipynb`. Reload Postgres with `pnpm db:seed`.
 
 ---
 
@@ -307,10 +324,11 @@ Regenerate with `uv run python notebooks/_build.py` then `uv run jupyter nbconve
 | Layer | Tools |
 | --- | --- |
 | **Framework** | Next.js **16.2.6** (App Router) · React **19.2.4** · TypeScript **5** |
-| **Styling** | Tailwind CSS **4** (CSS-first `@theme`) · shadcn/ui (add components with the **4.6.0** CLI) · lucide-react |
+| **Styling** | Tailwind CSS **4** (CSS-first `@theme`) · shadcn/ui (add components with the **4.6.0** CLI) · lucide-react · **next-themes** (dark mode) |
+| **Backend / data** | **Neon Postgres** (Vercel Marketplace, Free) + **pgvector** · `@neondatabase/serverless` **1.x** · DB-first with bundled-JSON fallback |
 | **State** | Zustand **5** (3 stores) · `localStorage` persistence |
 | **Motion / charts** | Framer Motion **12** · Recharts **3** |
-| **AI** | `@google/genai` · `@langchain/core` **1.x** · `@langchain/google-genai` · `@langchain/langgraph` **1.x** · Zod **4** · react-markdown |
+| **AI** | `@google/genai` **2.x** · `@langchain/core` **1.x** · `@langchain/google-genai` **2.x** · `@langchain/langgraph` **1.x** · Zod **4** · react-markdown |
 | **ML (Jupyter)** | Python **3.12** · pandas · numpy · scikit-learn · **XGBoost** · **LightGBM** · **Prophet** · statsmodels · **SHAP** · holidays · google-genai |
 | **Tooling** | pnpm 11 · uv (Python) · Playwright (e2e) · ESLint 9 |
 
@@ -319,10 +337,10 @@ Regenerate with `uv run python notebooks/_build.py` then `uv run jupyter nbconve
 ## 🎨 Design system
 
 - **Surface.** Every panel is a `<GlassCard>` — frosted glass (`backdrop-filter: blur(20px) saturate(180%)`), `rounded-2xl`, over a mint/teal mesh background.
-- **Colour.** Mint scale `mint-50 → mint-800`; triage semantics `triage-green | triage-yellow | triage-red`. No-show badges use a distinct slate/amber/orange ramp so they're never confused with triage colours.
+- **Colour.** Mint scale `mint-50 → mint-800` (brand primary `#22c55e`); triage semantics `triage-green | triage-yellow | triage-red`. No-show badges use a distinct slate/amber/orange ramp so they're never confused with triage colours.
 - **Type.** **Sarabun** (Thai + Latin), Inter fallback. Thai-first, English peppered where natural (doctor English names, ICD-10, specialty hints) — **no i18n library, no locale switcher**.
-- **Print.** The certificate and self-care plan render into isolated `#cert-print-area` / `#care-print-area` regions for clean PDF export.
-- **No dark mode** (explicitly out of scope).
+- **Dark mode.** Light by default; a manual `<ThemeToggle>` (floating on the landing page, in the `RoleHeader` actions on each role page) flips themes via **`next-themes`** (class strategy, `enableSystem={false}` — no OS following). Wired in `globals.css` with `@custom-variant dark` + a `.dark {}` token block; the mint primary holds across themes while triage/chart hues brighten for contrast. Brand neutrals were migrated to semantic tokens (`text-foreground`, `bg-card`, `border-border`) so they auto-flip.
+- **Print.** The certificate and self-care plan render into isolated `#cert-print-area` / `#care-print-area` regions for clean PDF export, and `@media print` forces a white (light) background regardless of theme.
 
 ---
 
@@ -331,18 +349,19 @@ Regenerate with `uv run python notebooks/_build.py` then `uv run jupyter nbconve
 ```
 src/
 ├── app/
-│   ├── page.tsx                 # landing — patient/doctor split hero
+│   ├── page.tsx                 # landing — patient/doctor split hero + ThemeToggle
 │   ├── patient/page.tsx         # patient flow (single route)
 │   ├── doctor/page.tsx          # doctor dashboard (single route)
-│   ├── layout.tsx · globals.css # Sarabun font · mint theme · glass
+│   ├── layout.tsx · globals.css # Sarabun font · mint theme · glass · dark tokens
 │   └── api/{triage,match,chat,brief,summarize,prescribe,checkup,predict}/
 ├── components/
-│   ├── shared/   # GlassCard, ChatStream, ConsultSummary, MedicalCertificate, …
+│   ├── shared/   # GlassCard, RoleHeader, ChatStream, ConsultSummary, MedicalCertificate, ThemeProvider, ThemeToggle, …
 │   ├── patient/  # SymptomChat, TriageResultCard, DoctorMatchList, BookingDialog, …
-│   ├── doctor/   # AppointmentsCard, NoShowBadge, DemandForecastCard, ConsultPanel, PatientBrief, …
+│   ├── doctor/   # AppointmentsCard, NoShowBadge, DemandForecastCard, PatientCohortsCard, ConsultPanel, PatientBrief, …
 │   └── ui/        # shadcn primitives (Tabs, Dialog, Popover, Button, …)
 ├── lib/
-│   ├── llm/{client,prompts,schemas}.ts
+│   ├── db.ts                    # Neon client · pgvector queries · JSON fallback
+│   ├── llm/{client,prompts,schemas}.ts · llm/doctor-embeddings.ts
 │   ├── llm/graphs/{triage,match,chat,brief,summarize,prescribe,checkup}.ts
 │   ├── rag.ts · rx-suggest.ts · prescription.ts · mocks.ts
 │   └── utils.ts
@@ -350,14 +369,17 @@ src/
 └── data/
     ├── doctors.json (33) · hospitals.json (5) · checkup_programs.json (15)
     ├── demo_scenarios.json · rx_suggestions.json
-    └── ml/{no_show_predictions,demand_forecast_7d}.json
+    └── ml/{no_show_predictions,demand_forecast_7d,patient_segments}.json
+scripts/
+└── seed-neon.mjs                # pnpm db:seed — create tables + load JSON into Neon
 data/
 ├── synthetic/bookings.csv       # 30k synthetic bookings
-└── symptom_kb.json              # 50 entries × 768-d embeddings
+├── symptom_kb.json              # 50 entries × 3072-d embeddings
+└── doctors_embeddings.json      # 33 doctor profiles × 3072-d (match fallback)
 notebooks/
 ├── _build.py                    # programmatic .ipynb builder
-├── 00_…  01_…  02_…  03_….ipynb
-└── lib/{thai_stats,synth,symptom_kb_seed}.py
+├── 00_…  01_…  02_…  03_…  04_patient_segmentation.ipynb
+└── lib/{thai_stats,synth,symptom_kb_seed,segmentation}.py
 ```
 
 ---
@@ -367,6 +389,7 @@ notebooks/
 ### Prerequisites
 - **Node 20+** and **pnpm 11** (`corepack enable`)
 - A **Google Gemini API key** (free tier works) — [aistudio.google.com](https://aistudio.google.com/app/apikey)
+- *(optional)* A **Neon Postgres** database (Vercel Marketplace, Free tier) for the pgvector backend — without it the app runs entirely on bundled JSON
 - *(optional, notebooks only)* **uv** + Python 3.12
 
 ### Run the app
@@ -378,11 +401,23 @@ cp .env.local.example .env.local
 # then edit .env.local:
 #   GOOGLE_API_KEY=your_key_here
 #   GEMINI_MODEL=gemini-2.5-flash
+#   DATABASE_URL=postgres://…   # optional — Neon connection string
+#                               # (POSTGRES_URL also accepted; omit to use JSON fallback)
 
 pnpm dev          # → http://localhost:3000  (Turbopack)
 ```
 
 Open **`/patient`** and **`/doctor`**. To explore without spending API quota, append **`?mock=1`** to any page (e.g. `/patient?mock=1`).
+
+### Seed the database (optional)
+
+Only needed if you want the pgvector backend. With a `DATABASE_URL` set, create the tables and load the ML / RAG / embedding JSON into Postgres:
+
+```bash
+pnpm db:seed      # → scripts/seed-neon.mjs (idempotent)
+```
+
+Skip this entirely and the app falls back to the bundled JSON, so every feature still works offline.
 
 ```bash
 pnpm build        # production build — also the fastest way to type-check
@@ -403,7 +438,7 @@ uv run jupyter nbconvert --to notebook --execute --inplace notebooks/01_no_show_
 
 ## 🧠 State & persistence
 
-All runtime state is client-side Zustand — there is no backend session.
+Postgres holds only **read-only** data (ML outputs, the symptom KB, embeddings, cohorts). All **write-state** — personas, the appointment queue, consult sessions — is client-side Zustand (+ `localStorage`); there is no backend session.
 
 | Store | Owns |
 | --- | --- |
@@ -415,7 +450,7 @@ All runtime state is client-side Zustand — there is no backend session.
 
 ## ☁️ Deployment
 
-Deployed on **Vercel** (project `mordee-x`). `pnpm build` produces the production bundle; set `GOOGLE_API_KEY` and `GEMINI_MODEL` as environment variables in the Vercel dashboard. Live at **[mordee-x.vercel.app](https://mordee-x.vercel.app)**.
+Deployed on **Vercel** (project `mordee-x`). `pnpm build` produces the production bundle; set `GOOGLE_API_KEY` and `GEMINI_MODEL` as environment variables in the Vercel dashboard. The pgvector backend is a **Neon Postgres** integration from the Vercel Marketplace — it injects `DATABASE_URL` / `POSTGRES_URL` automatically; run `pnpm db:seed` once after provisioning to populate it (and omit it entirely to ship on the JSON fallback). Live at **[mordee-x.vercel.app](https://mordee-x.vercel.app)**.
 
 ---
 
