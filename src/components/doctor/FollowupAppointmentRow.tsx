@@ -1,7 +1,11 @@
 'use client';
 
-import { CalendarPlus, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { CalendarPlus, Clock, FileClock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { findDoctorAppointmentByPatient } from '@/lib/data';
 import type { Appointment } from '@/stores/store-appointments';
+import { PatientRecordDialog } from './PatientRecordDialog';
 
 interface FollowupAppointmentRowProps {
   appointment: Appointment;
@@ -30,6 +34,12 @@ export function FollowupAppointmentRow({ appointment, now }: FollowupAppointment
   const timeLabel = slot.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
   const dateLabel = slot.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
   const isFollowup = appointment.kind === 'followup';
+  const [recordOpen, setRecordOpen] = useState(false);
+  // Upcoming bookings carry only a patient name — resolve it back to the
+  // doctor's demo record (profile + past consults) so the doctor can review
+  // the chart before the visit. No match → dialog shows a "no record" state.
+  const record = findDoctorAppointmentByPatient(appointment.doctorId, appointment.patientName);
+  const pastCount = record?.past_consults?.length ?? 0;
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-mint-200/70 bg-mint-50/40 p-3.5 md:flex-row md:items-center md:gap-4">
@@ -50,12 +60,32 @@ export function FollowupAppointmentRow({ appointment, now }: FollowupAppointment
           <div className="line-clamp-1 text-xs text-muted-foreground">{appointment.reason_th}</div>
         ) : null}
       </div>
-      <div className="flex shrink-0 items-center">
+      <div className="flex shrink-0 items-center gap-2">
         <span className="inline-flex items-center gap-1 rounded-full bg-mint-100 px-2.5 py-1 text-[11px] font-medium text-mint-800">
           <CalendarPlus className="size-3" />
           {isFollowup ? 'นัดติดตาม · Follow-up' : 'นัดใหม่ · New'}
         </span>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setRecordOpen(true)}
+          title="ดูประวัติผู้ป่วย"
+        >
+          <FileClock className="size-3.5" />
+          ดูประวัติ
+          {pastCount > 0 ? (
+            <span className="ml-0.5 text-[10px] text-muted-foreground">({pastCount})</span>
+          ) : null}
+        </Button>
       </div>
+
+      <PatientRecordDialog
+        patientName={appointment.patientName}
+        record={record}
+        reason_th={appointment.reason_th}
+        open={recordOpen}
+        onOpenChange={setRecordOpen}
+      />
     </div>
   );
 }

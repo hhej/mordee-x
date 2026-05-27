@@ -237,6 +237,21 @@ export function getDoctorDemo(doctorId: string): DoctorDemo | undefined {
   return undefined;
 }
 
+/** Resolve a patient's mock record (profile + past consults) for a doctor by
+ *  patient name, scanning that doctor's demo queue (today + standby). Upcoming
+ *  appointments carry only a `patientName`, so this links them back to the
+ *  richer DoctorAppointment record. Returns undefined when the patient isn't in
+ *  the doctor's demo roster (e.g. a patient-booked follow-up). */
+export function findDoctorAppointmentByPatient(
+  doctorId: string,
+  patientName: string,
+): DoctorAppointment | undefined {
+  const demo = getDoctorDemo(doctorId);
+  if (!demo) return undefined;
+  const pool = [...demo.today_appointments, ...(demo.standby_appointments ?? [])];
+  return pool.find((a) => a.patient === patientName);
+}
+
 /** Doctor IDs that have an interactive demo queue — used by the persona picker. */
 export const DOCTOR_PERSONA_IDS = ['D001', 'D003', 'D005'] as const;
 

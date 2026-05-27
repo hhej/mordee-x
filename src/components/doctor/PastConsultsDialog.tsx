@@ -54,7 +54,7 @@ export function PastConsultsDialog({
   );
 }
 
-function ConsultCard({ consult }: { consult: PastConsult }) {
+export function ConsultCard({ consult }: { consult: PastConsult }) {
   return (
     <div className="rounded-xl border border-line/60 bg-white/60 p-3.5">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">

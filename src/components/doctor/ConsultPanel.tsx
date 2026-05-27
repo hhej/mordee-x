@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { ChatStream } from '@/components/shared/ChatStream';
 import type { DoctorAppointment } from '@/lib/data';
+import { TRIAGE_CHIP, TRIAGE_LABEL_TH } from '@/lib/triage';
 import { useDoctorStore } from '@/stores/store-doctor';
 import { buildPrescriptionThai, partsFromSummary } from '@/lib/prescription';
 import { cn } from '@/lib/utils';
@@ -140,18 +141,6 @@ export function ConsultPanel() {
     </AnimatePresence>
   );
 }
-
-const TRIAGE_CHIP: Record<'green' | 'yellow' | 'red', string> = {
-  green: 'bg-triage-green/10 text-triage-green ring-triage-green/30',
-  yellow: 'bg-triage-yellow/10 text-triage-yellow ring-triage-yellow/30',
-  red: 'bg-triage-red/10 text-triage-red ring-triage-red/30',
-};
-
-const TRIAGE_LABEL_TH: Record<'green' | 'yellow' | 'red', string> = {
-  green: 'เขียว · ดูแลตัวเอง',
-  yellow: 'เหลือง · ควรปรึกษาแพทย์',
-  red: 'แดง · เร่งด่วน',
-};
 
 function BriefSkeleton() {
   return (
