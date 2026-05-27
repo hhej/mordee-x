@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useSyncExternalStore, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button';
 interface PrintableDocProps {
   children: ReactNode;
 }
+
+/** Stable no-op subscribe for useSyncExternalStore — the "are we on the client"
+ *  snapshot never changes after mount, so there's nothing to subscribe to. */
+const subscribeNoop = () => () => {};
 
 /** Wraps a printable A4-style document (medical certificate, self-care plan).
  *
@@ -18,9 +22,10 @@ interface PrintableDocProps {
  *  hidden` approach had — hidden elements keep their layout box, so the tall app
  *  shell (chat transcript, cards) still padded the printout to many pages. */
 export function PrintableDoc({ children }: PrintableDocProps) {
-  const [mounted, setMounted] = useState(false);
-  // Portal target (document.body) only exists on the client.
-  useEffect(() => setMounted(true), []);
+  // Portal target (document.body) only exists on the client. useSyncExternalStore
+  // gives a clean SSR(false)→client(true) read without a setState-in-effect, which
+  // the React Compiler lint flags as a cascading-render risk.
+  const mounted = useSyncExternalStore(subscribeNoop, () => true, () => false);
 
   return (
     <div className="flex flex-col gap-3">

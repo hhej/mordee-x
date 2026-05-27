@@ -16,16 +16,23 @@ probing** of every API route on a running dev server (real Gemini + Neon calls).
 
 ---
 
+## Status (updated 2026-05-28)
+
+**✅ Fixed this pass:** D1, A1, B1, B2, C1 — all verified (`tsc`/`lint` clean + live re-probe: oversized
+input now `400`, rate limit returns `429` at the cap, RAG retrieval still grounded). **⏸ Deferred:** G3
+(client-bundle perf refactor — too invasive two days before the presentation). Everything else 🟡/⚪ remains
+open future work.
+
 ## Summary
 
 | ID | Severity | Area | Finding |
 |----|----------|------|---------|
-| D1 | 🔴 High | Deploy | No rate limiting/auth on paid-LLM routes (public Vercel URL → quota/cost abuse) |
-| A1 | 🟠 Med | CI | `pnpm lint` fails (exit 1) — `setState`-in-effect in `PrintableDoc.tsx` |
-| B1 | 🟠 Med | Resilience | `rag.ts` reads the KB at module import — unguarded; a bad file crashes every route that imports it |
-| B2 | 🟠 Med | Resilience | `cosineSimilarity` returns `NaN` on dim-mismatch / zero-vector → silent wrong retrieval |
-| C1 | 🟠 Med | Abuse | No max length on free-text → 1.5 MB input took **20 s** live; bigger → timeout/cost |
-| G3 | 🟠 Med | Perf | ~960 KB demand-forecast JSON statically imported into client bundle |
+| D1 ✅ | 🔴 High | Deploy | No rate limiting/auth on paid-LLM routes (public Vercel URL → quota/cost abuse) |
+| A1 ✅ | 🟠 Med | CI | `pnpm lint` fails (exit 1) — `setState`-in-effect in `PrintableDoc.tsx` |
+| B1 ✅ | 🟠 Med | Resilience | `rag.ts` reads the KB at module import — unguarded; a bad file crashes every route that imports it |
+| B2 ✅ | 🟠 Med | Resilience | `cosineSimilarity` returns `NaN` on dim-mismatch / zero-vector → silent wrong retrieval |
+| C1 ✅ | 🟠 Med | Abuse | No max length on free-text → 1.5 MB input took **20 s** live; bigger → timeout/cost |
+| G3 ⏸ | 🟠 Med | Perf | ~960 KB demand-forecast JSON statically imported into client bundle |
 | B3 | 🟡 Low | Resilience | `checkup.ts` empty-catalog → `topIds[0]` is `undefined` → invalid `program_id` |
 | B4 | 🟡 Low | Consistency | `/api/summarize` hard-500s on unknown `doctor_id`; `/api/prescribe` degrades gracefully |
 | C2 | 🟡 Low | Validation | `MatchRequestSchema.specialty_hint` is open `z.string()` (response uses a closed enum) |
@@ -44,23 +51,23 @@ probing** of every API route on a running dev server (real Gemini + Neon calls).
 
 ## 1. Deploy exposure
 
-### D1 — 🔴 No rate limiting or auth on routes that make paid Gemini calls
+### D1 — 🔴 No rate limiting or auth on routes that make paid Gemini calls — ✅ FIXED 2026-05-28 (`src/proxy.ts`)
 **Where:** all of `src/app/api/*` (`triage`, `brief`, `chat`, `match`, `prescribe`, `summarize`, `checkup`).
-No `src/middleware.ts`, no limiter, no shared token.
+No `src/proxy.ts`, no limiter, no shared token.
 **Why it matters:** the app is live at `mordee-x.vercel.app`. Every route invokes Gemini (and several
 embed first). Anyone with the URL can script a loop and drain the API quota / run up cost. This is the
 single highest *real-world* adversarial risk. (No login is intentional per plan; rate-limiting is
 orthogonal to that.)
 **Live evidence:** unauthenticated `POST /api/triage` etc. all returned `200` with no throttling.
 **Proposed fix (future):** a Vercel Firewall rate rule (simplest, platform-native), or a tiny
-`middleware.ts` per-IP limiter (Upstash Ratelimit), or gate the deployed demo behind a shared
+`proxy.ts` per-IP limiter (Upstash Ratelimit), or gate the deployed demo behind a shared
 `?key=` / header token you hand graders. Keep local dev unthrottled.
 
 ---
 
 ## 2. Build / CI correctness
 
-### A1 — 🟠 `pnpm lint` fails (exit 1)
+### A1 — 🟠 `pnpm lint` fails (exit 1) — ✅ FIXED 2026-05-28 (`useSyncExternalStore`)
 **Where:** `src/components/shared/PrintableDoc.tsx:23`
 ```ts
 useEffect(() => setMounted(true), []);  // react-hooks/set-state-in-effect (React Compiler on)
@@ -78,7 +85,7 @@ flag is intentional. (Also clears the only blocker to making lint a CI check.)
 The architecture promises DB-first with automatic JSON fallback so retrieval *never* fails. Two spots
 quietly violate that.
 
-### B1 — 🟠 RAG knowledge base is read at module import, unguarded
+### B1 — 🟠 RAG knowledge base is read at module import, unguarded — ✅ FIXED 2026-05-28 (lazy guarded `loadKb()`)
 **Where:** `src/lib/rag.ts:17-18`
 ```ts
 const KB_PATH = path.join(process.cwd(), 'data', 'symptom_kb.json');
@@ -92,7 +99,7 @@ safely (try/catch → `{}`).
 fallback inside try/catch, default to `[]` (empty KB) on failure. Retrieval then degrades to "no
 grounding" instead of a 500.
 
-### B2 — 🟠 `cosineSimilarity` returns `NaN` on dimension mismatch / zero vector
+### B2 — 🟠 `cosineSimilarity` returns `NaN` on dimension mismatch / zero vector — ✅ FIXED 2026-05-28 (dim + zero-norm guards)
 **Where:** `src/lib/rag.ts:20-29`
 ```ts
 for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; normA += a[i]*a[i]; normB += b[i]*b[i]; }
@@ -133,7 +140,7 @@ indexing `[0]`.
 > through React (auto-escaped) — **no XSS / code-exec** path exists (no `dangerouslySetInnerHTML`, no
 > markdown-to-HTML). So these are **prompt-steering, cost, and data-quality** issues, not injection RCE.
 
-### C1 — 🟠 No maximum length on free-text input
+### C1 — 🟠 No maximum length on free-text input — ✅ FIXED 2026-05-28 (`.max()` caps + textarea `maxLength`)
 **Where:** `schemas.ts:96` `symptom_text: z.string().min(1)` (no `.max()`); same for transcript content.
 **Live evidence:** `POST /api/triage` with a **1.5 MB** `symptom_text` → **200 in 20.06 s**. A larger paste
 would cross the 35 s LLM timeout / 45 s route `maxDuration` and waste embedding+token cost; there's no
@@ -172,7 +179,7 @@ trimmed `{ field, message }[]`.
 ## 5. Headers
 
 ### D2 — 🟡 No security headers / CSP
-**Where:** no `headers()` in `next.config.ts`, no middleware. (`/api/chat` & `/api/match` set only
+**Where:** no `headers()` in `next.config.ts`; `src/proxy.ts` only rate-limits, sets no headers. (`/api/chat` & `/api/match` set only
 `Cache-Control`.)
 **Why it matters:** defense-in-depth — the actual XSS surface is minimal (React-escaped output), so this
 is low priority.
@@ -204,7 +211,7 @@ dark-aware).
 
 ## 7. Performance
 
-### G3 — 🟠 ~960 KB ML JSON statically imported into the client bundle
+### G3 — 🟠 ~960 KB ML JSON statically imported into the client bundle — ⏸ DEFERRED (post-presentation)
 **Where:** `src/lib/data.ts` does `import demandData from '@/data/ml/demand_forecast_7d.json'` (a **static TS
 import**, per its own comment "ML JSONs are bundled as TS imports (not `fs.readFileSync`)"). `data.ts` is
 imported by **many `'use client'` components** — `availability.ts → getDemandForDoctor` (used in patient

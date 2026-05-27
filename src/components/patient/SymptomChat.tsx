@@ -103,6 +103,7 @@ export function SymptomChat() {
             }
           }}
           rows={3}
+          maxLength={4000}
           disabled={disabled}
           placeholder="พิมพ์อาการทั้งหมดให้ละเอียด... เช่น ปวดหัวตุบ ๆ มา 2 วัน คลื่นไส้ มีไข้ต่ำ ๆ กินยาพาราแล้วไม่ดีขึ้น มีโรคประจำตัวความดัน"
           className="w-full resize-none rounded-xl border border-border/70 bg-white/80 dark:bg-slate-800/60 px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-mint-400 focus:ring-2 focus:ring-mint-200/50 disabled:opacity-60"

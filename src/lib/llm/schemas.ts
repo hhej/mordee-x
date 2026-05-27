@@ -91,37 +91,43 @@ export const PrescribeSchema = z.object({
 export type PrescribeResult = z.infer<typeof PrescribeSchema>;
 
 // ----- Request body schemas -----
+// Length caps on free-text inputs (C1): an uncapped symptom_text let a multi-
+// hundred-KB paste flow into the embedder + LLM (a 1.5 MB body took ~20 s).
+// These bound the abuse/cost surface; the patient textarea mirrors MAX_SYMPTOM.
+const MAX_SYMPTOM = 4000;
+const MAX_MESSAGE = 8000;
+const MAX_NAME = 120;
 
 export const TriageRequestSchema = z.object({
-  symptom_text: z.string().min(1),
+  symptom_text: z.string().min(1).max(MAX_SYMPTOM),
 });
 
 export const MatchRequestSchema = z.object({
-  symptom_text: z.string().min(1),
+  symptom_text: z.string().min(1).max(MAX_SYMPTOM),
   specialty_hint: z.string(),
 });
 
 export const BriefRequestSchema = z.object({
-  patient_name: z.string(),
+  patient_name: z.string().max(MAX_NAME),
   age: z.number().int().min(0),
   gender: z.string(),
-  symptom_text: z.string(),
+  symptom_text: z.string().max(MAX_SYMPTOM),
   triage: z.enum(['green', 'yellow', 'red']),
   history: z.string().optional(),
 });
 
 export const ChatMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
-  content: z.string(),
+  content: z.string().max(MAX_MESSAGE),
 });
 
 export const ChatRequestSchema = z.object({
   role: z.enum(['patient', 'doctor']),
   messages: z.array(ChatMessageSchema),
   doctor_id: z.string(),
-  patient_name: z.string(),
+  patient_name: z.string().max(MAX_NAME),
   triage: z.enum(['green', 'yellow', 'red']).optional(),
-  symptom_text: z.string().optional(),
+  symptom_text: z.string().max(MAX_SYMPTOM).optional(),
   age: z.number().int().optional(),
   gender: z.string().optional(),
   history: z.string().optional(),
@@ -130,7 +136,7 @@ export const ChatRequestSchema = z.object({
 
 export const SummarizeRequestSchema = z.object({
   transcript: z.array(ChatMessageSchema),
-  patient_name: z.string(),
+  patient_name: z.string().max(MAX_NAME),
   doctor_id: z.string(),
 });
 
@@ -139,10 +145,10 @@ export const SummarizeRequestSchema = z.object({
 // optional context the model uses when present.
 export const PrescribeRequestSchema = z.object({
   doctor_id: z.string(),
-  patient_name: z.string(),
+  patient_name: z.string().max(MAX_NAME),
   age: z.number().int().min(0),
   gender: z.string(),
-  symptom_text: z.string(),
+  symptom_text: z.string().max(MAX_SYMPTOM),
   triage: z.enum(['green', 'yellow', 'red']),
   history: z.string().optional(),
   brief_summary: z.string().optional(),
@@ -169,7 +175,7 @@ export const CheckupRequestSchema = z.object({
   diagnosis: z.string(),
   diagnosis_th: z.string(),
   icd10: z.string(),
-  symptom_text: z.string().optional(),
+  symptom_text: z.string().max(MAX_SYMPTOM).optional(),
   summary_th: z.string().optional(),
 });
 export type CheckupRequest = z.infer<typeof CheckupRequestSchema>;
