@@ -17,6 +17,7 @@ import { MockPaymentDialog } from '@/components/patient/MockPaymentDialog';
 import { FollowupCallout } from '@/components/patient/FollowupCallout';
 import { CheckupUpsell } from '@/components/patient/CheckupUpsell';
 import { ScheduledConfirmationCard } from '@/components/patient/ScheduledConfirmationCard';
+import { ConsultDoneButton } from '@/components/patient/ConsultDoneButton';
 import { UpcomingAppointmentsCard } from '@/components/patient/UpcomingAppointmentsCard';
 import { MyAppointmentsButton } from '@/components/patient/MyAppointmentsButton';
 import { StepPill } from '@/components/patient/StepPill';
@@ -259,6 +260,7 @@ export default function PatientPage() {
           {consultEnded && selectedDoctor ? (
             <motion.section {...fadeUp} key="summary" ref={summaryRef}>
               <ConsultSummary
+                key="summary-card"
                 visible={Boolean(consultEnded && selectedDoctor)}
                 isSummarizing={isSummarizing}
                 summary={summary}
@@ -274,6 +276,7 @@ export default function PatientPage() {
                 )}
                 renderCheckupUpsell={() => <CheckupUpsell />}
               />
+              <ConsultDoneButton key="done-button" />
             </motion.section>
           ) : null}
         </div>
