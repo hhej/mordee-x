@@ -424,7 +424,7 @@
         "patient": "นาย กิตติพงษ์",
         "time": "15:00",
         "symptom": "ปวดหัวเรื้อรัง 2 เดือน รับประทานยาแก้ปวดบ่อย",
-        "prediction_id": "NS001",
+        "prediction_id": "NS004",
         "profile": {
           "age": 40,
           "gender": "male",
@@ -437,7 +437,7 @@
         "patient": "นางสาว พรพิมล",
         "time": "15:30",
         "symptom": "ท้องเสียถ่ายเหลว 3 ครั้ง คลื่นไส้",
-        "prediction_id": "NS002",
+        "prediction_id": "NS005",
         "profile": {
           "age": 28,
           "gender": "female",
@@ -450,7 +450,7 @@
         "patient": "นาย วิชัย",
         "time": "16:00",
         "symptom": "เจ็บคอ ไอ มีไข้ต่ำ ๆ 2 วัน",
-        "prediction_id": "NS003",
+        "prediction_id": "NS006",
         "profile": {
           "age": 52,
           "gender": "male",
@@ -470,7 +470,7 @@
           "patient": "นาย ประยุทธ์",
           "time": "09:30",
           "symptom": "ใจสั่น เหนื่อยง่ายเวลาออกแรง 1 สัปดาห์",
-          "prediction_id": "NS001",
+          "prediction_id": "NS007",
           "profile": {
             "age": 55,
             "gender": "male",
@@ -511,7 +511,7 @@
           "patient": "นาง สุมาลี",
           "time": "13:00",
           "symptom": "แน่นหน้าอกตอนเย็น ๆ เป็น ๆ หาย ๆ",
-          "prediction_id": "NS002",
+          "prediction_id": "NS008",
           "profile": {
             "age": 62,
             "gender": "female",
@@ -552,7 +552,7 @@
           "patient": "นาย ธีระ",
           "time": "15:30",
           "symptom": "ปรึกษาผลตรวจ EKG ที่ทำมาเมื่อสัปดาห์ก่อน",
-          "prediction_id": "NS003",
+          "prediction_id": "NS009",
           "profile": {
             "age": 48,
             "gender": "male",
@@ -595,7 +595,7 @@
           "patient": "นาง ปิยะนุช",
           "time": "16:00",
           "symptom": "ปรึกษาผลตรวจไขมันในเลือดสูง อยากปรับยา",
-          "prediction_id": "NS001",
+          "prediction_id": "NS010",
           "profile": {
             "age": 50,
             "gender": "female",
@@ -608,7 +608,7 @@
           "patient": "นาย สมพร",
           "time": "16:30",
           "symptom": "ใจเต้นแรงตอนกลางคืน ตื่นมานอนไม่หลับ 3 วัน",
-          "prediction_id": "NS002",
+          "prediction_id": "NS011",
           "profile": {
             "age": 60,
             "gender": "male",
@@ -621,7 +621,7 @@
           "patient": "นาง รัตนา",
           "time": "17:00",
           "symptom": "เจ็บแน่นหน้าอกร้าวไปแขนซ้าย 30 นาที เหงื่อแตก",
-          "prediction_id": "NS003",
+          "prediction_id": "NS012",
           "profile": {
             "age": 67,
             "gender": "female",
@@ -640,7 +640,7 @@
           "patient": "น้องมิน (พ่อพามา)",
           "time": "10:00",
           "symptom": "ไข้ 38.5 มา 2 วัน ไอแห้ง ๆ เบื่ออาหาร",
-          "prediction_id": "NS001",
+          "prediction_id": "NS013",
           "profile": {
             "age": 6,
             "gender": "female",
@@ -681,7 +681,7 @@
           "patient": "น้องเพชร (แม่พามา)",
           "time": "11:30",
           "symptom": "ผื่นแดงทั่วตัวหลังกินกุ้ง 1 ชั่วโมง",
-          "prediction_id": "NS002",
+          "prediction_id": "NS014",
           "profile": {
             "age": 4,
             "gender": "male",
@@ -722,7 +722,7 @@
           "patient": "น้องอันดา (แม่พามา)",
           "time": "14:30",
           "symptom": "ฉีดวัคซีนตามวัย 2 เข็ม",
-          "prediction_id": "NS003",
+          "prediction_id": "NS015",
           "profile": {
             "age": 2,
             "gender": "female",
@@ -738,7 +738,7 @@
           "patient": "น้องภูมิ (แม่พามา)",
           "time": "15:00",
           "symptom": "ปรึกษาเรื่องการกินยาก น้ำหนักขึ้นช้า 6 เดือน",
-          "prediction_id": "NS001",
+          "prediction_id": "NS016",
           "profile": {
             "age": 3,
             "gender": "male",
@@ -751,7 +751,7 @@
           "patient": "น้องอันนา (พ่อพามา)",
           "time": "15:30",
           "symptom": "ท้องเสียถ่ายเหลว 4 ครั้ง อาเจียน 2 ครั้ง ดูซึม ๆ",
-          "prediction_id": "NS002",
+          "prediction_id": "NS017",
           "profile": {
             "age": 5,
             "gender": "female",
@@ -764,7 +764,7 @@
           "patient": "น้องโชค (แม่พามา)",
           "time": "16:00",
           "symptom": "หายใจหอบ มีเสียงหวีด ไข้ 39 องศา 1 วัน",
-          "prediction_id": "NS003",
+          "prediction_id": "NS018",
           "profile": {
             "age": 4,
             "gender": "male",

@@ -1,68 +1,398 @@
 {
   "NS001": {
-    "p_no_show": 0.092,
+    "p_no_show": 0.1902,
     "risk_tier": "LOW",
     "top_shap": [
       {
-        "feature": "triage_color_red",
-        "value": 1.0,
-        "shap": -0.9232423305511475
-      },
-      {
-        "feature": "age",
-        "value": 73.0,
-        "shap": -0.25761497020721436
-      },
-      {
         "feature": "paid_upfront",
         "value": 1.0,
-        "shap": -0.20774787664413452
+        "shap": -0.2759111821651459
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.2682051956653595
+      },
+      {
+        "feature": "triage_color_yellow",
+        "value": 1.0,
+        "shap": -0.1829201877117157
       }
     ],
     "recommended_action": "single_reminder"
   },
   "NS002": {
-    "p_no_show": 0.45,
-    "risk_tier": "MED",
+    "p_no_show": 0.8031,
+    "risk_tier": "HIGH",
     "top_shap": [
       {
         "feature": "sms_confirmed",
         "value": 0.0,
-        "shap": 0.4798773527145386
-      },
-      {
-        "feature": "paid_upfront",
-        "value": 1.0,
-        "shap": -0.30858173966407776
+        "shap": 0.4434753954410553
       },
       {
         "feature": "lead_time_hours",
-        "value": 2.1083501569805323,
-        "shap": -0.1854242980480194
+        "value": 120.0,
+        "shap": 0.37426114082336426
+      },
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.2136874496936798
+      }
+    ],
+    "recommended_action": "require_confirmation"
+  },
+  "NS003": {
+    "p_no_show": 0.6636,
+    "risk_tier": "HIGH",
+    "top_shap": [
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.28075841069221497
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.2553848326206207
+      },
+      {
+        "feature": "lead_time_hours",
+        "value": 72.0,
+        "shap": 0.18954788148403168
+      }
+    ],
+    "recommended_action": "require_confirmation"
+  },
+  "NS004": {
+    "p_no_show": 0.5266,
+    "risk_tier": "MED",
+    "top_shap": [
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.33430787920951843
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.23115317523479462
+      },
+      {
+        "feature": "lead_time_hours",
+        "value": 96.0,
+        "shap": 0.17545561492443085
       }
     ],
     "recommended_action": "escalated_reminder"
   },
-  "NS003": {
-    "p_no_show": 0.9291,
-    "risk_tier": "HIGH",
+  "NS005": {
+    "p_no_show": 0.2603,
+    "risk_tier": "MED",
     "top_shap": [
       {
-        "feature": "prior_no_show_count",
-        "value": 3.0,
-        "shap": 0.8652743101119995
+        "feature": "paid_upfront",
+        "value": 1.0,
+        "shap": -0.2889873683452606
       },
       {
-        "feature": "lead_time_hours",
-        "value": 191.513909453544,
-        "shap": 0.4311985671520233
+        "feature": "age",
+        "value": 28.0,
+        "shap": 0.2711610496044159
       },
       {
         "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.2605668008327484
+      }
+    ],
+    "recommended_action": "escalated_reminder"
+  },
+  "NS006": {
+    "p_no_show": 0.7643,
+    "risk_tier": "HIGH",
+    "top_shap": [
+      {
+        "feature": "sms_confirmed",
         "value": 0.0,
-        "shap": 0.40987467765808105
+        "shap": 0.4490923285484314
+      },
+      {
+        "feature": "engagement_score",
+        "value": 0.0,
+        "shap": 0.33177608251571655
+      },
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.26423728466033936
       }
     ],
     "recommended_action": "require_confirmation"
+  },
+  "NS007": {
+    "p_no_show": 0.4658,
+    "risk_tier": "MED",
+    "top_shap": [
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.28990790247917175
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.2180200070142746
+      },
+      {
+        "feature": "triage_color_yellow",
+        "value": 1.0,
+        "shap": -0.18862952291965485
+      }
+    ],
+    "recommended_action": "escalated_reminder"
+  },
+  "NS008": {
+    "p_no_show": 0.1929,
+    "risk_tier": "LOW",
+    "top_shap": [
+      {
+        "feature": "paid_upfront",
+        "value": 1.0,
+        "shap": -0.2696121335029602
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.24410662055015564
+      },
+      {
+        "feature": "triage_color_yellow",
+        "value": 1.0,
+        "shap": -0.1829201877117157
+      }
+    ],
+    "recommended_action": "single_reminder"
+  },
+  "NS009": {
+    "p_no_show": 0.8543,
+    "risk_tier": "HIGH",
+    "top_shap": [
+      {
+        "feature": "sms_confirmed",
+        "value": 0.0,
+        "shap": 0.4078447222709656
+      },
+      {
+        "feature": "lead_time_hours",
+        "value": 240.0,
+        "shap": 0.36345145106315613
+      },
+      {
+        "feature": "engagement_score",
+        "value": 0.0,
+        "shap": 0.23593775928020477
+      }
+    ],
+    "recommended_action": "require_confirmation"
+  },
+  "NS010": {
+    "p_no_show": 0.7793,
+    "risk_tier": "HIGH",
+    "top_shap": [
+      {
+        "feature": "sms_confirmed",
+        "value": 0.0,
+        "shap": 0.43151047825813293
+      },
+      {
+        "feature": "lead_time_hours",
+        "value": 360.0,
+        "shap": 0.3420292139053345
+      },
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.26098111271858215
+      }
+    ],
+    "recommended_action": "require_confirmation"
+  },
+  "NS011": {
+    "p_no_show": 0.4042,
+    "risk_tier": "MED",
+    "top_shap": [
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.29345405101776123
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.22286157310009003
+      },
+      {
+        "feature": "age",
+        "value": 60.0,
+        "shap": -0.19305942952632904
+      }
+    ],
+    "recommended_action": "escalated_reminder"
+  },
+  "NS012": {
+    "p_no_show": 0.1263,
+    "risk_tier": "LOW",
+    "top_shap": [
+      {
+        "feature": "triage_color_red",
+        "value": 1.0,
+        "shap": -0.6991356611251831
+      },
+      {
+        "feature": "age",
+        "value": 67.0,
+        "shap": -0.240543395280838
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.2157021164894104
+      }
+    ],
+    "recommended_action": "single_reminder"
+  },
+  "NS013": {
+    "p_no_show": 0.5513,
+    "risk_tier": "MED",
+    "top_shap": [
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.35116690397262573
+      },
+      {
+        "feature": "age",
+        "value": 6.0,
+        "shap": 0.23432013392448425
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.22894823551177979
+      }
+    ],
+    "recommended_action": "escalated_reminder"
+  },
+  "NS014": {
+    "p_no_show": 0.2386,
+    "risk_tier": "LOW",
+    "top_shap": [
+      {
+        "feature": "paid_upfront",
+        "value": 1.0,
+        "shap": -0.2940840721130371
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.2557610869407654
+      },
+      {
+        "feature": "age",
+        "value": 4.0,
+        "shap": 0.24755604565143585
+      }
+    ],
+    "recommended_action": "single_reminder"
+  },
+  "NS015": {
+    "p_no_show": 0.6709,
+    "risk_tier": "HIGH",
+    "top_shap": [
+      {
+        "feature": "sms_confirmed",
+        "value": 0.0,
+        "shap": 0.42843344807624817
+      },
+      {
+        "feature": "age",
+        "value": 2.0,
+        "shap": -0.3522571921348572
+      },
+      {
+        "feature": "paid_upfront",
+        "value": 0.0,
+        "shap": 0.253955215215683
+      }
+    ],
+    "recommended_action": "require_confirmation"
+  },
+  "NS016": {
+    "p_no_show": 0.7136,
+    "risk_tier": "HIGH",
+    "top_shap": [
+      {
+        "feature": "sms_confirmed",
+        "value": 0.0,
+        "shap": 0.4291626513004303
+      },
+      {
+        "feature": "age",
+        "value": 3.0,
+        "shap": -0.29946964979171753
+      },
+      {
+        "feature": "engagement_score",
+        "value": 0.0,
+        "shap": 0.28010573983192444
+      }
+    ],
+    "recommended_action": "require_confirmation"
+  },
+  "NS017": {
+    "p_no_show": 0.2623,
+    "risk_tier": "MED",
+    "top_shap": [
+      {
+        "feature": "paid_upfront",
+        "value": 1.0,
+        "shap": -0.2871152460575104
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.26376304030418396
+      },
+      {
+        "feature": "age",
+        "value": 5.0,
+        "shap": 0.23800522089004517
+      }
+    ],
+    "recommended_action": "escalated_reminder"
+  },
+  "NS018": {
+    "p_no_show": 0.1141,
+    "risk_tier": "LOW",
+    "top_shap": [
+      {
+        "feature": "triage_color_red",
+        "value": 1.0,
+        "shap": -0.880154550075531
+      },
+      {
+        "feature": "symptom_category_dyspnea",
+        "value": 1.0,
+        "shap": -0.28546980023384094
+      },
+      {
+        "feature": "sms_confirmed",
+        "value": 1.0,
+        "shap": -0.26720213890075684
+      }
+    ],
+    "recommended_action": "single_reminder"
   }
 }

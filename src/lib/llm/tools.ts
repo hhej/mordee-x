@@ -41,7 +41,7 @@ export const getNoShowRisk = tool(
     description:
       'Get the no-show risk prediction for an upcoming appointment by prediction id (e.g. NS001). Returns p_no_show, risk_tier (LOW/MED/HIGH), top SHAP features, and recommended_action.',
     schema: z.object({
-      prediction_id: z.string().describe('Prediction id such as NS001, NS002, NS003'),
+      prediction_id: z.string().describe('Prediction id such as NS001..NS018 (one per demo appointment)'),
     }),
   },
 );

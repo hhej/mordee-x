@@ -670,32 +670,146 @@ def build_nb01() -> Path:
         plt.tight_layout(); plt.show()
         """),
         code(r"""
-        # We pick 3 specific patients from the test set whose risk tiers map to NS001 (LOW), NS002 (MED), NS003 (HIGH)
-        test_aux = test_aux.assign(p_pred=p_test)
-        # LOW = lowest 5% bucket; MED = around the median; HIGH = top 5%
-        low_cand = test_aux[test_aux["p_pred"] < test_aux["p_pred"].quantile(0.05)].sort_values("p_pred").head(1)
-        med_cand = test_aux.iloc[(test_aux["p_pred"] - 0.45).abs().argsort()].head(1)
-        high_cand = test_aux[test_aux["p_pred"] > test_aux["p_pred"].quantile(0.95)].sort_values("p_pred", ascending=False).head(1)
-        scenarios = pd.concat([low_cand, med_cand, high_cand]).assign(
-            scenario_id=["NS001","NS002","NS003"])
-        print(scenarios[["scenario_id","p_pred","sms_confirmed","prior_no_show_count",
-                          "triage_color","paid_upfront","age","specialty"]].to_string())
+        # ── Per-appointment no-show predictions for the 18 demo-queue patients ──
+        # Instead of cherry-picking 3 test-set rows and recycling them across every
+        # doctor, we score EACH demo patient's OWN features through the trained model,
+        # so the doctor dashboard shows a genuine, patient-specific p_no_show + SHAP.
+        # Demographics (age/gender/triage/scheduled_hour/specialty) are read from
+        # demo_scenarios.json so they always match the UI; only the booking-behaviour
+        # features are authored here (clinically plausible per patient).
+        with open("src/data/demo_scenarios.json", encoding="utf-8") as _f:
+            _demo_json = json.load(_f)
+
+        DOCTOR_SPECIALTY = {"D001": "General Practice", "D003": "Cardiology", "D005": "Pediatrics"}
+        GENDER_MAP = {"female": "F", "male": "M"}
+
+        # booking-behaviour features per appointment id. Tuned to span LOW/MED/HIGH and
+        # to be NON-monotonic within each persona's visible queue (no more low->high ladder).
+        # keys: sms, push, rem(reminder_clicked), paid, pay(payment_method), lead(hours),
+        #   opens(app_opens_pre_visit), chan, plat, prov(province), lang, hol(is_thai_holiday),
+        #   dow(scheduled_dow), rag(rag_top_k_hit), sym(symptom_category),
+        #   pbc(prior_bookings_count >= consults shown in UI), pns(prior_no_show_count)
+        BEHAVIOR = {
+          "A001": dict(sms=1,push=1,rem=1,paid=1,pay="promptpay",  lead=6,  opens=5,chan="app",plat="iOS",    prov="Bangkok",          lang="th",hol=0,dow=2,rag=1,sym="cough",           pbc=2,pns=0),
+          "A002": dict(sms=0,push=1,rem=0,paid=0,pay="cod",        lead=120,opens=1,chan="app",plat="Android",prov="Nonthaburi",       lang="th",hol=0,dow=2,rag=1,sym="joint_pain",      pbc=3,pns=1),
+          "A003": dict(sms=1,push=1,rem=0,paid=0,pay="cod",        lead=72, opens=1,chan="web",plat="web",    prov="Chiang Mai",       lang="th",hol=0,dow=2,rag=0,sym="general",         pbc=4,pns=1),
+          "A004": dict(sms=1,push=1,rem=0,paid=0,pay="cod",        lead=96, opens=1,chan="app",plat="Android",prov="Nonthaburi",       lang="th",hol=0,dow=2,rag=1,sym="headache",        pbc=0,pns=0),
+          "A005": dict(sms=1,push=1,rem=1,paid=1,pay="promptpay",  lead=5,  opens=4,chan="app",plat="iOS",    prov="Bangkok",          lang="th",hol=0,dow=2,rag=1,sym="diarrhea",        pbc=0,pns=0),
+          "A006": dict(sms=0,push=0,rem=0,paid=0,pay="cod",        lead=72, opens=1,chan="web",plat="web",    prov="Chonburi",         lang="th",hol=0,dow=2,rag=1,sym="sore_throat",     pbc=0,pns=0),
+          "B001": dict(sms=1,push=1,rem=0,paid=0,pay="cod",        lead=72, opens=2,chan="app",plat="iOS",    prov="Bangkok",          lang="th",hol=0,dow=2,rag=1,sym="palpitations",    pbc=2,pns=0),
+          "B002": dict(sms=1,push=1,rem=1,paid=1,pay="credit_card",lead=4,  opens=6,chan="app",plat="iOS",    prov="Bangkok",          lang="th",hol=0,dow=2,rag=1,sym="chest_pain",      pbc=3,pns=0),
+          "B003": dict(sms=0,push=0,rem=0,paid=0,pay="cod",        lead=240,opens=0,chan="web",plat="web",    prov="Khon Kaen",        lang="th",hol=0,dow=2,rag=0,sym="chronic_followup",pbc=2,pns=1),
+          "B004": dict(sms=0,push=0,rem=0,paid=0,pay="cod",        lead=360,opens=0,chan="web",plat="web",    prov="Songkhla",         lang="th",hol=0,dow=2,rag=0,sym="chronic_followup",pbc=0,pns=0),
+          "B005": dict(sms=1,push=1,rem=0,paid=0,pay="cod",        lead=48, opens=2,chan="app",plat="Android",prov="Bangkok",          lang="th",hol=0,dow=2,rag=1,sym="palpitations",    pbc=0,pns=0),
+          "B006": dict(sms=1,push=1,rem=1,paid=1,pay="credit_card",lead=2,  opens=3,chan="app",plat="iOS",    prov="Bangkok",          lang="th",hol=0,dow=2,rag=1,sym="chest_pain",      pbc=0,pns=0),
+          "C001": dict(sms=1,push=1,rem=0,paid=0,pay="cod",        lead=24, opens=2,chan="app",plat="Android",prov="Samut Prakan",     lang="th",hol=0,dow=2,rag=1,sym="pediatric_fever", pbc=2,pns=0),
+          "C002": dict(sms=1,push=1,rem=1,paid=1,pay="promptpay",  lead=3,  opens=5,chan="app",plat="iOS",    prov="Bangkok",          lang="th",hol=0,dow=2,rag=1,sym="pediatric_rash",  pbc=2,pns=0),
+          "C003": dict(sms=0,push=0,rem=0,paid=0,pay="cod",        lead=300,opens=0,chan="web",plat="web",    prov="Nakhon Ratchasima",lang="th",hol=0,dow=2,rag=0,sym="preventive_care",pbc=1,pns=0),
+          "C004": dict(sms=0,push=0,rem=0,paid=0,pay="cod",        lead=280,opens=0,chan="web",plat="web",    prov="Phuket",           lang="th",hol=0,dow=2,rag=0,sym="pediatric_gi",    pbc=0,pns=0),
+          "C005": dict(sms=1,push=1,rem=1,paid=1,pay="promptpay",  lead=6,  opens=4,chan="app",plat="iOS",    prov="Bangkok",          lang="th",hol=0,dow=2,rag=1,sym="pediatric_gi",    pbc=0,pns=0),
+          "C006": dict(sms=1,push=1,rem=0,paid=1,pay="promptpay",  lead=2,  opens=3,chan="app",plat="iOS",    prov="Bangkok",          lang="th",hol=0,dow=2,rag=1,sym="dyspnea",         pbc=0,pns=0),
+        }
+
+        # canonical order across personas -> NS001..NS018 (1:1 with A001..C006)
+        def _persona_appts(doctor_id, node):
+            out = []
+            for grp in ("today_appointments", "standby_appointments"):
+                for a in node.get(grp, []):
+                    out.append((doctor_id, a))
+            return out
+
+        _ordered = (_persona_appts("D001", _demo_json["doctor_demo"])
+                    + _persona_appts("D003", _demo_json["doctor_demos"]["D003"])
+                    + _persona_appts("D005", _demo_json["doctor_demos"]["D005"]))
+
+        rows, meta = [], []
+        for i, (doc_id, appt) in enumerate(_ordered, start=1):
+            b = BEHAVIOR[appt["appt_id"]]
+            prof = appt["profile"]
+            pbc, pns = b["pbc"], b["pns"]
+            rows.append({
+                "age": float(prof["age"]),
+                "gender": GENDER_MAP.get(prof.get("gender", "male"), "M"),
+                "province": b["prov"],
+                "language": b["lang"],
+                "specialty": DOCTOR_SPECIALTY[doc_id],
+                "lead_time_hours": float(b["lead"]),
+                "scheduled_dow": int(b["dow"]),
+                "scheduled_hour": int(appt["time"].split(":")[0]),
+                "is_thai_holiday": int(b["hol"]),
+                "booking_channel": b["chan"],
+                "platform": b["plat"],
+                "sms_confirmed": int(b["sms"]),
+                "push_enabled": int(b["push"]),
+                "reminder_clicked": int(b["rem"]),
+                "app_opens_pre_visit": int(b["opens"]),
+                "prior_bookings_count": int(pbc),
+                "prior_no_show_count": int(pns),
+                "prior_completion_rate": (1 - pns / pbc) if pbc > 0 else np.nan,
+                "triage_color": prof["triage"],
+                "symptom_category": b["sym"],
+                "rag_top_k_hit": int(b["rag"]),
+                "paid_upfront": int(b["paid"]),
+                "payment_method": b["pay"],
+            })
+            meta.append((f"NS{i:03d}", appt["appt_id"]))
+
+        demo_raw = pd.DataFrame(rows)
+
+        # Replicate the SAME feature engineering used for training (section 5)
+        dfe = demo_raw.copy()
+        dfe["prior_completion_rate"] = dfe["prior_completion_rate"].fillna(1.0)
+        dfe["is_new_user"] = (dfe["prior_bookings_count"] == 0).astype(int)
+        dfe["lead_time_bucket"] = pd.cut(dfe["lead_time_hours"], bins=[0,6,24,72,168,720,np.inf],
+                                          labels=["<6h","6-24h","1-3d","3-7d","1-4w","1mo+"])
+        dfe["age_bin"] = pd.cut(dfe["age"], bins=[0,18,30,45,60,120], labels=["0-18","19-30","31-45","46-60","60+"])
+        dfe["engagement_score"] = (dfe["sms_confirmed"].astype(int) + dfe["push_enabled"].astype(int) +
+                                    dfe["reminder_clicked"].astype(int) + (dfe["app_opens_pre_visit"] >= 2).astype(int))
+        dfe["part_of_day"] = pd.cut(dfe["scheduled_hour"], bins=[-1,6,12,17,21,24],
+                                     labels=["overnight","morning","afternoon","evening","late"])
+        dfe["is_weekend"] = dfe["scheduled_dow"].isin([5,6]).astype(int)
+        for c in ["is_thai_holiday","sms_confirmed","push_enabled","reminder_clicked","rag_top_k_hit","paid_upfront"]:
+            dfe[c] = dfe[c].astype(int)
+        cat_cols_demo = ["gender","province","language","specialty","booking_channel","platform",
+                         "triage_color","symptom_category","payment_method","lead_time_bucket",
+                         "age_bin","part_of_day"]
+        X_demo = pd.get_dummies(dfe, columns=cat_cols_demo).astype(float)
+        # Align to the trained feature set: fills absent one-hot cols with 0, drops extras.
+        # (No drop_first needed — reindex selects exactly the model's columns by name.)
+        X_demo = X_demo.reindex(columns=X.columns, fill_value=0.0)
+
+        p_demo = best_xgb.predict_proba(X_demo)[:, 1]
+        sv_demo = explainer.shap_values(X_demo)
+
+        demo_summary = pd.DataFrame({
+            "ns_id": [m[0] for m in meta],
+            "appt_id": [m[1] for m in meta],
+            "p_no_show": p_demo.round(4),
+            "triage": demo_raw["triage_color"].values,
+            "sms": demo_raw["sms_confirmed"].values,
+            "paid": demo_raw["paid_upfront"].values,
+            "lead_h": demo_raw["lead_time_hours"].values,
+            "pns": demo_raw["prior_no_show_count"].values,
+        })
+        print(demo_summary.to_string(index=False))
         """),
         code(r"""
-        # 3 local force plots (matplotlib backend so it embeds in the static notebook)
+        # 3 representative local explanations from the demo cohort (lowest / mid / highest risk)
+        rep_idx = [int(np.argmin(p_demo)),
+                   int(np.argsort(p_demo)[len(p_demo) // 2]),
+                   int(np.argmax(p_demo))]
         fig, axes = plt.subplots(3, 1, figsize=(13, 7))
-        for ax, (_, row) in zip(axes, scenarios.iterrows()):
-            x_row = X.loc[[row.name]]
-            sv = explainer.shap_values(x_row)
-            top_idx = np.argsort(np.abs(sv[0]))[::-1][:8]
-            top_features = x_row.columns[top_idx]
-            top_vals = sv[0][top_idx]
+        for ax, i in zip(axes, rep_idx):
+            sv = sv_demo[i]
+            top_idx = np.argsort(np.abs(sv))[::-1][:8]
+            top_features = X_demo.columns[top_idx]
+            top_vals = sv[top_idx]
             colors = ["#ef4444" if v > 0 else "#0ea672" for v in top_vals]
             ax.barh(range(len(top_features)), top_vals, color=colors)
             ax.set_yticks(range(len(top_features)))
             ax.set_yticklabels(top_features, fontsize=8)
             ax.axvline(0, color="black", lw=0.5)
-            ax.set_title(f"{row.scenario_id}  p_pred={row.p_pred:.3f}  top SHAP contributions "
+            ax.set_title(f"{meta[i][0]} ({meta[i][1]})  p_pred={p_demo[i]:.3f}  top SHAP contributions "
                           "(red=raises risk, green=lowers risk)")
             ax.invert_yaxis()
         plt.tight_layout(); plt.show()
@@ -782,7 +896,9 @@ def build_nb01() -> Path:
         md(r"""
         ## 13. Export predictions → `data/ml/no_show_predictions.json`
 
-        ตามรูปแบบใน §6 — keyed by NS001, NS002, NS003 พร้อม top SHAP features และ recommended action.
+        **18 per-appointment predictions** (NS001…NS018, 1:1 with the demo queue appts
+        A001…C006). Each entry is the model's real prediction for *that* patient's own
+        features — not 3 recycled exemplars — with top SHAP features and recommended action.
         """),
         code(r"""
         def tier_for(p):
@@ -791,41 +907,41 @@ def build_nb01() -> Path:
             return "HIGH", "require_confirmation"
 
         out = {}
-        for _, row in scenarios.iterrows():
-            x_row = X.loc[[row.name]]
-            sv = explainer.shap_values(x_row)[0]
+        for i, (ns_id, appt_id) in enumerate(meta):
+            sv = sv_demo[i]
             order = np.argsort(np.abs(sv))[::-1][:3]
-            top_shap = []
-            for idx in order:
-                feat = x_row.columns[idx]
-                top_shap.append({
-                    "feature": feat,
-                    "value": float(x_row.iloc[0, idx]),
-                    "shap": float(sv[idx]),
-                })
-            tier, action = tier_for(float(row.p_pred))
-            out[row.scenario_id] = {
-                "p_no_show": round(float(row.p_pred), 4),
+            top_shap = [{
+                "feature": X_demo.columns[idx],
+                "value": float(X_demo.iloc[i, idx]),
+                "shap": float(sv[idx]),
+            } for idx in order]
+            tier, action = tier_for(float(p_demo[i]))
+            out[ns_id] = {
+                "p_no_show": round(float(p_demo[i]), 4),
                 "risk_tier": tier,
                 "top_shap": top_shap,
                 "recommended_action": action,
             }
         with open("data/ml/no_show_predictions.json", "w") as f:
             json.dump(out, f, indent=2, ensure_ascii=False)
-        print(json.dumps(out, indent=2)[:1200])
+        print(f"Wrote {len(out)} per-appointment predictions")
+        print(json.dumps(out, indent=2, ensure_ascii=False)[:1200])
         print("...")
         """),
         code(r"""
-        # Verify the JSON shape matches §6
+        # Verify the JSON shape
         with open("data/ml/no_show_predictions.json") as f:
             verify = json.load(f)
-        assert set(verify) == {"NS001","NS002","NS003"}, "Must have exactly NS001/NS002/NS003"
+        expected_ids = {f"NS{i:03d}" for i in range(1, 19)}
+        assert set(verify) == expected_ids, f"Must have NS001..NS018, got {sorted(verify)}"
         for k, v in verify.items():
             assert "p_no_show" in v and 0 <= v["p_no_show"] <= 1
             assert v["risk_tier"] in {"LOW","MED","HIGH"}
             assert v["recommended_action"] in {"single_reminder","escalated_reminder","require_confirmation"}
             assert isinstance(v["top_shap"], list) and len(v["top_shap"]) >= 1
-        print("✔ JSON schema matches §6")
+        tiers = pd.Series([v["risk_tier"] for v in verify.values()]).value_counts().to_dict()
+        print("✔ JSON schema OK — 18 per-appointment predictions")
+        print("Tier spread:", tiers)
         print(f"✔ File size: {Path('data/ml/no_show_predictions.json').stat().st_size} bytes")
         """),
     ]
@@ -1121,27 +1237,49 @@ def build_nb02() -> Path:
         """),
         md(r"""
         ## 9. Hyperparameter tuning on winner
+
+        Selection is done on **rolling-origin CV folds of the train set only** (same
+        `TimeSeriesSplit` as §8) — never on the test set. We pick the grid combo with the
+        lowest mean CV MAE, refit on the full train window, then touch the held-out test set
+        **exactly once** to report the unbiased generalization MAE.
         """),
         code(r"""
         # If LightGBM is the winner, tune it; otherwise note we'd tune Prophet's
         # seasonality_prior_scale / changepoint_prior_scale (out of scope here for runtime).
         if winner == "LightGBM":
-            best_mae = float("inf")
+            # Model selection on rolling-origin CV of the TRAIN set — the test set stays
+            # untouched until the single unbiased estimate below (no test-set leakage).
+            tscv = TimeSeriesSplit(n_splits=3)
+            best_cv_mae = float("inf")
             best_params = None
+            grid_rows = []
             for n in [200, 400, 600]:
                 for d in [4, 6, 8]:
                     for lr in [0.03, 0.05]:
-                        m = lgb.LGBMRegressor(n_estimators=n, max_depth=d, learning_rate=lr,
-                                               random_state=RANDOM_STATE, n_jobs=4, verbose=-1)
-                        m.fit(feat_train[kept], feat_train["y"])
-                        p = m.predict(feat_test[kept]).clip(min=0)
-                        mae = mean_absolute_error(feat_test["y"].values, p)
-                        if mae < best_mae:
-                            best_mae = mae; best_params = {"n_estimators": n, "max_depth": d, "learning_rate": lr}
-            print(f"Tuned LightGBM best MAE: {best_mae:.3f}")
-            print(f"Best params: {best_params}")
+                        fold_maes = []
+                        for tr_idx, va_idx in tscv.split(feat_train):
+                            m = lgb.LGBMRegressor(n_estimators=n, max_depth=d, learning_rate=lr,
+                                                   random_state=RANDOM_STATE, n_jobs=4, verbose=-1)
+                            m.fit(feat_train.iloc[tr_idx][kept], feat_train.iloc[tr_idx]["y"])
+                            p = m.predict(feat_train.iloc[va_idx][kept]).clip(min=0)
+                            fold_maes.append(mean_absolute_error(feat_train.iloc[va_idx]["y"].values, p))
+                        cv_mae = float(np.mean(fold_maes))
+                        grid_rows.append({"n_estimators": n, "max_depth": d,
+                                          "learning_rate": lr, "cv_MAE": round(cv_mae, 3)})
+                        if cv_mae < best_cv_mae:
+                            best_cv_mae = cv_mae
+                            best_params = {"n_estimators": n, "max_depth": d, "learning_rate": lr}
+            print("Grid search (rolling-origin CV MAE on train) — top 5:")
+            print(pd.DataFrame(grid_rows).sort_values("cv_MAE").head().to_string(index=False))
+            print(f"\\nBest params (selected by CV): {best_params}  | CV MAE={best_cv_mae:.3f}")
+
+            # Refit on the full train window with the CV-chosen params, then report the
+            # held-out TEST MAE once as the unbiased generalization estimate.
             final_model = lgb.LGBMRegressor(**best_params, random_state=RANDOM_STATE, n_jobs=4, verbose=-1)
             final_model.fit(feat_train[kept], feat_train["y"])
+            best_mae = mean_absolute_error(feat_test["y"].values,
+                                           final_model.predict(feat_test[kept]).clip(min=0))
+            print(f"Held-out TEST MAE (reported once, unbiased): {best_mae:.3f}")
         else:
             print(f"Winner is {winner}; we keep the default fit. Skipping tuning to stay in runtime budget.")
             best_mae = leaderboard.loc[winner, "MAE"]
@@ -1909,45 +2047,51 @@ def build_nb04() -> Path:
           model-assigned (stable) cluster — authentic, not hand-mapped;
         - **the 18 demo appointment ids** (A/B/C × 6). Their profiles aren't real CSV
           rows, so we build a feature vector from the demo's age + triage + an
-          engagement archetype inferred from the no-show tier (NS001/LOW→engaged,
-          NS002/MED→mid, NS003/HIGH→no-show-prone), scale with the **same fitted
-          scaler**, and assign by nearest centroid. *(Stated assumption — keeps the
-          chip ML-driven and reproducible.)*
+          engagement archetype keyed to each patient's **real no-show tier** from nb01
+          (LOW→engaged, MED→mid, HIGH→no-show-prone), scale with the **same fitted
+          scaler**, and assign by nearest centroid. Keying off the actual predicted tier
+          keeps the segment chip consistent with the no-show badge on the same row.
+          *(Stated assumption — keeps the chip ML-driven and reproducible.)*
         """),
         code(r"""
         SAMPLE_N = 150
         sampled = patients.sample(min(SAMPLE_N, len(patients)), random_state=RANDOM_STATE)
         by_scenario = {row.user_id: int(row.segment_id) for row in sampled.itertuples()}
 
-        ARCHETYPE = {  # engagement archetype per no-show tier
-            "NS001": dict(n_bookings=6, observed_no_show_rate=0.05, prior_completion_rate=0.93,
-                          sms_confirm_rate=0.85, reminder_click_rate=0.70, avg_app_opens=3.2,
-                          avg_lead_time_hours=12, paid_upfront_rate=0.75),
-            "NS002": dict(n_bookings=3, observed_no_show_rate=0.14, prior_completion_rate=0.78,
-                          sms_confirm_rate=0.55, reminder_click_rate=0.35, avg_app_opens=1.6,
-                          avg_lead_time_hours=40, paid_upfront_rate=0.45),
-            "NS003": dict(n_bookings=2, observed_no_show_rate=0.34, prior_completion_rate=0.52,
-                          sms_confirm_rate=0.25, reminder_click_rate=0.12, avg_app_opens=0.6,
-                          avg_lead_time_hours=90, paid_upfront_rate=0.20),
+        ARCHETYPE = {  # engagement archetype per REAL no-show risk tier (from nb01)
+            "LOW": dict(n_bookings=6, observed_no_show_rate=0.05, prior_completion_rate=0.93,
+                        sms_confirm_rate=0.85, reminder_click_rate=0.70, avg_app_opens=3.2,
+                        avg_lead_time_hours=12, paid_upfront_rate=0.75),
+            "MED": dict(n_bookings=3, observed_no_show_rate=0.14, prior_completion_rate=0.78,
+                        sms_confirm_rate=0.55, reminder_click_rate=0.35, avg_app_opens=1.6,
+                        avg_lead_time_hours=40, paid_upfront_rate=0.45),
+            "HIGH": dict(n_bookings=2, observed_no_show_rate=0.34, prior_completion_rate=0.52,
+                         sms_confirm_rate=0.25, reminder_click_rate=0.12, avg_app_opens=0.6,
+                         avg_lead_time_hours=90, paid_upfront_rate=0.20),
         }
 
-        def assign_demo(age, triage, ns_tier):
-            a = dict(ARCHETYPE.get(ns_tier, ARCHETYPE["NS002"]))
+        def assign_demo(age, triage, tier):
+            a = dict(ARCHETYPE.get(tier, ARCHETYPE["MED"]))
             a["age"] = float(age)
             a["pct_red_yellow_triage"] = 0.0 if triage == "green" else 1.0
             vec = scaler.transform(np.array([[a[c] for c in FEATURE_COLS]], dtype=float))
             nearest = raw_sorted[int(np.argmin(((centroids - vec) ** 2).sum(axis=1)))]
             return int(remap[nearest])
 
+        # A demo patient's engagement archetype follows their REAL no-show tier (nb01's
+        # per-appointment predictions), so the segment chip can't contradict the no-show
+        # badge on the same appointment row.
+        with open("data/ml/no_show_predictions.json") as f:
+            _nspred = json.load(f)
         with open("src/data/demo_scenarios.json") as f:
             demo = json.load(f)
         demos = [demo.get("doctor_demo", {})] + list(demo.get("doctor_demos", {}).values())
         for d in demos:
             for appt in d.get("today_appointments", []) + d.get("standby_appointments", []):
                 prof = appt.get("profile", {})
+                tier = _nspred.get(appt.get("prediction_id", ""), {}).get("risk_tier", "MED")
                 by_scenario[appt["appt_id"]] = assign_demo(
-                    prof.get("age", 45), prof.get("triage", "green"),
-                    appt.get("prediction_id", "NS002"))
+                    prof.get("age", 45), prof.get("triage", "green"), tier)
 
         print(f"by_scenario: {len(by_scenario)} ids (>=100 required), "
               f"{sum(1 for k in by_scenario if k[0] in 'ABC')} demo appts")
