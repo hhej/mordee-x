@@ -17,6 +17,10 @@
 
 *ดูแลสุขภาพ ใกล้แค่ปลายนิ้ว — healthcare at your fingertips.*
 
+<br/>
+
+<img src="docs/screenshots/landing.png" alt="MorDee+ landing — patient / doctor split hero" width="100%" />
+
 </div>
 
 > **About this build.** MorDee+ is a polished, fully working demo of a Thai telemedicine product. It was produced as an academic project for two MADT courses (presented 2026‑05‑30). Everything below describes it as the product it models — the only "demo-isms" are deliberate choices (ML trained offline; a managed **Neon Postgres** backend that **automatically falls back to bundled JSON** so the demo can never break) explained in [Architecture](#-architecture).
@@ -27,6 +31,7 @@
 
 - [The problem & the business case](#-the-problem--the-business-case)
 - [What it does](#-what-it-does)
+- [Screenshots](#-screenshots)
 - [Architecture](#-architecture)
 - [Application flow](#-application-flow)
 - [The AI layer — LLM + RAG](#-the-ai-layer--llm--rag)
@@ -77,6 +82,31 @@ Thailand's telemedicine market grew up fast during and after COVID, but it carri
 5. **Consult takeover** — a pre-consult **AI brief**: one-liner, key symptoms, ranked differential diagnosis (DDx), suggested questions, and red flags, grounded in the same KB.
 6. **AI Rx draft** — one click drafts a prescription (medications, dose, advice, follow-up) for the doctor to review and edit — never auto-issued.
 7. **End consult** → the same certificate + self-care summary, and the next standby patient backfills the queue.
+
+---
+
+## 📸 Screenshots
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/patient-match.png" alt="Patient side — AI triage result with a yellow verdict and a list of ranked, matched doctors" /></td>
+<td width="50%"><img src="docs/screenshots/patient-consult.png" alt="Patient side — streaming consult chat with the matched doctor" /></td>
+</tr>
+<tr>
+<td align="center"><b>Patient · AI triage 🟡 + ranked doctor matches</b></td>
+<td align="center"><b>Patient · streaming consult</b></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/doctor-dashboard.png" alt="Doctor side — 7-day demand forecast heatmap above today's queue with per-appointment no-show risk badges" /></td>
+<td width="50%"><img src="docs/screenshots/emergency-path.png" alt="Red triage short-circuits to the 1669 emergency hotline and a list of nearby hospitals" /></td>
+</tr>
+<tr>
+<td align="center"><b>Doctor · demand forecast + no-show risk queue</b></td>
+<td align="center"><b>🔴 Red path · 1669 hotline + nearby hospitals</b></td>
+</tr>
+</table>
+
+> All captured at the live demo — [mordee-x.vercel.app](https://mordee-x.vercel.app).
 
 ---
 
