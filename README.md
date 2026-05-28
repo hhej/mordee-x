@@ -269,7 +269,7 @@ sequenceDiagram
         G-->>R: 🔴 RED (LLM bypassed)
     else
         G->>AI: embed symptom (gemini-embedding-001, 3072-d)
-        G->>K: topK(query, 3) — pgvector &lt;=&gt; cosine
+        G->>K: topK(query, 3) — pgvector #60;=#62; cosine
         K-->>G: 3 grounding entries
         G->>AI: classify (withStructuredOutput)
         AI-->>G: { triage, confidence, reasoning_th, ... }
